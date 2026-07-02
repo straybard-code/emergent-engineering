@@ -1,0 +1,76 @@
+@page
+@model EmergentEngineering.Pages.Simulations.CreateModel
+@{
+    ViewData["Title"] = "New Simulation";
+}
+
+<div class="page-heading">
+    <h1 class="h2">New Simulation</h1>
+    <p class="text-muted">Define the organizational context. Agents will be generated automatically.</p>
+</div>
+
+<form method="post" class="simulation-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Name" class="form-label"></label>
+        <input asp-for="Input.Name" class="form-control" />
+        <span asp-validation-for="Input.Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Purpose" class="form-label"></label>
+        <textarea asp-for="Input.Purpose" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Input.Purpose" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.BoundaryConditions" class="form-label">Culture and boundary conditions</label>
+        <textarea asp-for="Input.BoundaryConditions" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Input.BoundaryConditions" class="text-danger"></span>
+        <div class="sample-panel mt-2">
+            <div class="small fw-semibold mb-2">BoundaryConditions examples</div>
+            <ul class="small mb-0">
+                <li>協調・情報共有型: 「情報共有を重視する。困ったときは相談してよい。失敗は学習材料として扱う。互いに支援することを推奨する。」</li>
+                <li>競争・個人成果型: 「個人成果を重視する。各自が自分の成果を最大化する。情報共有は任意とする。」</li>
+                <li>市場学習型: 「市場評価を重視する。顧客の反応、品質、リピート率を学習し、次の提案に活かす。」</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.KpiDefinition" class="form-label">KPI</label>
+        <textarea asp-for="Input.KpiDefinition" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Input.KpiDefinition" class="text-danger"></span>
+        <div class="sample-panel mt-2">
+            <div class="small fw-semibold mb-2">KPI examples</div>
+            <ul class="small mb-0">
+                <li>「採用率、短期売上」</li>
+                <li>「市場学習、品質、リピート率、顧客成功」</li>
+                <li>「提案件数、実行速度、個人成果」</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.AgentCount" class="form-label">Agent count</label>
+            <input asp-for="Input.AgentCount" class="form-control" type="number" min="1" max="20" />
+            <span asp-validation-for="Input.AgentCount" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.TotalSteps" class="form-label">Step count</label>
+            <input asp-for="Input.TotalSteps" class="form-control" type="number" min="1" max="100" />
+            <span asp-validation-for="Input.TotalSteps" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-page="/Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,59 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Simulations";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h2 mb-1">Emergence Engineering Lab</h1>
+        <p class="text-muted mb-0">Observe how multi-agent organizations form, learn, silo, or emerge under different constraints.</p>
+    </div>
+    <a class="btn btn-primary" asp-page="/Simulations/Create">New Simulation</a>
+</div>
+
+@if (Model.Projects.Count == 0)
+{
+    <div class="empty-state">
+        <h2 class="h5">No simulations yet</h2>
+        <p>Create an MVP scenario, run it with the mock LLM, and inspect the persisted logs.</p>
+        <a class="btn btn-primary" asp-page="/Simulations/Create">Create first simulation</a>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Phase</th>
+                    <th>Progress</th>
+                    <th>Agents</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var project in Model.Projects)
+            {
+                <tr>
+                    <td>
+                        <strong>@project.Name</strong>
+                        <div class="text-muted small">@project.Purpose</div>
+                    </td>
+                    <td><span class="badge text-bg-secondary">@project.Status</span></td>
+                    <td><span class="phase-pill">@project.Phase</span></td>
+                    <td>@project.CurrentStep / @project.TotalSteps</td>
+                    <td>@project.AgentCount</td>
+                    <td>@project.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" asp-page="/Simulations/Details" asp-route-id="@project.Id">Open</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

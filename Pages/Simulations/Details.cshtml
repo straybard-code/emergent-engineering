@@ -1,0 +1,191 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.Simulations.DetailsModel
+@{
+    ViewData["Title"] = Model.Project?.Name ?? "Simulation";
+}
+
+@if (Model.Project is null)
+{
+    <div class="alert alert-warning">Simulation not found.</div>
+    return;
+}
+
+<div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+    <div>
+        <a asp-page="/Index" class="text-decoration-none small">&larr; Back to simulations</a>
+        <h1 class="h2 mt-2 mb-1">@Model.Project.Name</h1>
+        <div class="text-muted">CurrentStep @Model.Project.CurrentStep / @Model.Project.TotalSteps - @Model.Project.Status - Phase @Model.Project.Phase</div>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="RunOne" asp-route-id="@Model.Project.Id">
+            <button class="btn btn-primary" type="submit" disabled="@Model.IsCompleted">Run one step</button>
+        </form>
+        <form method="post" asp-page-handler="RunAll" asp-route-id="@Model.Project.Id">
+            <button class="btn btn-outline-primary" type="submit" disabled="@Model.IsCompleted">Run all</button>
+        </form>
+    </div>
+</div>
+
+<section class="summary-grid mb-4">
+    <div>
+        <h2 class="h6">CurrentStep</h2>
+        <p>@Model.Project.CurrentStep / @Model.Project.TotalSteps</p>
+    </div>
+    <div>
+        <h2 class="h6">Status</h2>
+        <p>@Model.Project.Status</p>
+    </div>
+    <div>
+        <h2 class="h6">Phase</h2>
+        <p><span class="phase-pill">@Model.Project.Phase</span></p>
+    </div>
+    <div>
+        <h2 class="h6">Purpose</h2>
+        <p>@Model.Project.Purpose</p>
+    </div>
+    <div>
+        <h2 class="h6">Culture and Boundary Conditions</h2>
+        <p>@Model.Project.BoundaryConditions</p>
+    </div>
+    <div>
+        <h2 class="h6">KPI</h2>
+        <p>@Model.Project.KpiDefinition</p>
+    </div>
+</section>
+
+<ul class="nav nav-tabs mb-3" id="simulationTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.SelectedView == "logs" ? "active" : "")" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">Step logs</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="agents-tab" data-bs-toggle="tab" data-bs-target="#agents" type="button" role="tab">Agents</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.SelectedView == "history" ? "active" : "")" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">Agent history</button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade @(Model.SelectedView == "logs" ? "show active" : "")" id="logs" role="tabpanel" aria-labelledby="logs-tab">
+        <form method="get" class="log-filter mb-3">
+            <div>
+                <input type="hidden" name="id" value="@Model.Project.Id" />
+                <input type="hidden" name="view" value="logs" />
+                <label class="form-label" for="agentId">Agent filter</label>
+                <select class="form-select" id="agentId" name="agentId">
+                    <option value="">All agents</option>
+                    @foreach (var agent in Model.Project.Agents.OrderBy(agent => agent.Id))
+                    {
+                        <option value="@agent.Id" selected="@(Model.SelectedAgentId == agent.Id ? "selected" : null)">@agent.Name - @agent.Role</option>
+                    }
+                </select>
+            </div>
+            <button class="btn btn-outline-primary" type="submit">Apply</button>
+        </form>
+
+        @if (Model.Actions.Count == 0)
+        {
+            <div class="empty-state">
+                <h2 class="h5">No step logs yet</h2>
+                <p>Run one step to generate messages, actions, memory updates, and state JSON.</p>
+            </div>
+        }
+        else
+        {
+            <section class="log-section">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>StepNo</th>
+                                <th>AgentName</th>
+                                <th>Action</th>
+                                <th>TargetAgentName</th>
+                                <th>Message</th>
+                                <th>Memory</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var action in Model.Actions)
+                        {
+                            <tr>
+                                <td>@action.StepNo</td>
+                                <td>@action.Agent?.Name</td>
+                                <td><span class="badge text-bg-info">@action.Action</span></td>
+                                <td>@(string.IsNullOrWhiteSpace(action.TargetAgentName) ? "-" : action.TargetAgentName)</td>
+                                <td>@action.Message</td>
+                                <td>@action.Memory</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        }
+    </div>
+
+    <div class="tab-pane fade" id="agents" role="tabpanel" aria-labelledby="agents-tab">
+        <div class="row g-3">
+        @foreach (var agent in Model.Project.Agents.OrderBy(agent => agent.Id))
+        {
+            <div class="col-md-6">
+                <article class="agent-card">
+                    <div class="d-flex justify-content-between">
+                        <h2 class="h5">@agent.Name</h2>
+                        <span class="badge text-bg-light">@agent.Role</span>
+                    </div>
+                    <p class="mb-2">@agent.Memory</p>
+                    <dl class="row small mb-0">
+                        <dt class="col-4">Position</dt>
+                        <dd class="col-8">@agent.PositionX, @agent.PositionY</dd>
+                        <dt class="col-4">TrustJson</dt>
+                        <dd class="col-8"><code>@agent.TrustJson</code></dd>
+                    </dl>
+                    <a class="btn btn-sm btn-outline-secondary mt-3" asp-page="/Simulations/Details" asp-route-id="@Model.Project.Id" asp-route-agentId="@agent.Id" asp-route-view="history">View history</a>
+                </article>
+            </div>
+        }
+        </div>
+    </div>
+
+    <div class="tab-pane fade @(Model.SelectedView == "history" ? "show active" : "")" id="history" role="tabpanel" aria-labelledby="history-tab">
+        <form method="get" class="d-flex gap-2 align-items-end mb-3">
+            <div>
+                <input type="hidden" name="id" value="@Model.Project.Id" />
+                <input type="hidden" name="view" value="history" />
+                <label class="form-label" for="agentId">Agent</label>
+                <select class="form-select" id="agentId" name="agentId">
+                    <option value="">Select agent</option>
+                    @foreach (var agent in Model.Project.Agents.OrderBy(agent => agent.Id))
+                    {
+                        <option value="@agent.Id" selected="@(Model.SelectedAgentId == agent.Id ? "selected" : null)">@agent.Name - @agent.Role</option>
+                    }
+                </select>
+            </div>
+            <button class="btn btn-outline-primary" type="submit">Show</button>
+        </form>
+
+        @if (Model.SelectedAgentId is null)
+        {
+            <p class="text-muted">Choose an agent to inspect its action and memory history.</p>
+        }
+        else if (Model.AgentHistory.Count == 0)
+        {
+            <p class="text-muted">No history for this agent yet.</p>
+        }
+        else
+        {
+            <div class="timeline">
+            @foreach (var action in Model.AgentHistory)
+            {
+                <article class="timeline-item">
+                    <div class="small text-muted">Step @action.StepNo - @action.Action</div>
+                    <h2 class="h6">@action.Agent?.Name</h2>
+                    <p>@action.Message</p>
+                    <p class="small"><strong>Memory:</strong> @action.Memory</p>
+                </article>
+            }
+            </div>
+        }
+    </div>
+</div>

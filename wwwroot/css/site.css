@@ -1,0 +1,118 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  background: #f6f7f9;
+  color: #20242a;
+  margin-bottom: 60px;
+}
+
+.app-shell {
+  max-width: 1180px;
+}
+
+.navbar {
+  background: #ffffff;
+}
+
+.empty-state,
+.summary-grid,
+.agent-card,
+.log-section,
+.timeline-item,
+.simulation-form,
+.sample-panel {
+  background: #ffffff;
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.empty-state {
+  max-width: 680px;
+}
+
+.summary-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.summary-grid p,
+.agent-card p,
+.timeline-item p {
+  margin-bottom: 0;
+}
+
+.log-section {
+  margin-bottom: 1rem;
+}
+
+.timeline {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.page-heading {
+  margin-bottom: 1.25rem;
+}
+
+.simulation-form {
+  max-width: 840px;
+}
+
+.sample-panel {
+  background: #f8fafc;
+  padding: 0.9rem 1rem;
+}
+
+.phase-pill {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: #e7f0ff;
+  color: #1c4b8f;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.log-filter {
+  display: flex;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.log-filter > div {
+  min-width: 280px;
+}
+
+textarea.form-control {
+  resize: vertical;
+}
+
+@media (max-width: 768px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .d-flex.justify-content-between {
+    align-items: stretch !important;
+    flex-direction: column;
+  }
+}
