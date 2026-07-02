@@ -53,6 +53,53 @@
     </div>
 </section>
 
+<section class="chart-panel mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Phase timeline</h2>
+            <p class="text-muted small mb-0">Forming 0, Learning 1, Stable 2, Emergent 3, Silo -1, Chaos -2, Collapse -3</p>
+        </div>
+    </div>
+    @if (Model.PhaseHistory.Count == 0)
+    {
+        <p class="text-muted mb-0">Run at least one step to create phase history.</p>
+    }
+    else
+    {
+        <canvas id="phaseTimelineChart" height="120"></canvas>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Trust overview</h2>
+            <p class="text-muted small mb-0">AverageTrust is the average of values stored in each agent's TrustJson.</p>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>AgentName</th>
+                    <th>AverageTrust</th>
+                    <th>TrustJson</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var trust in Model.AgentTrustSummaries)
+            {
+                <tr>
+                    <td>@trust.AgentName</td>
+                    <td>@trust.AverageTrust.ToString("0.00")</td>
+                    <td><code>@trust.TrustJson</code></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
 <ul class="nav nav-tabs mb-3" id="simulationTabs" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link @(Model.SelectedView == "logs" ? "active" : "")" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">Step logs</button>
@@ -111,7 +158,7 @@
                             <tr>
                                 <td>@action.StepNo</td>
                                 <td>@action.Agent?.Name</td>
-                                <td><span class="badge text-bg-info">@action.Action</span></td>
+                                <td><span class="action-chip @Model.GetActionCssClass(action.Action)">@action.Action</span></td>
                                 <td>@(string.IsNullOrWhiteSpace(action.TargetAgentName) ? "-" : action.TargetAgentName)</td>
                                 <td>@action.Message</td>
                                 <td>@action.Memory</td>
@@ -179,7 +226,7 @@
             @foreach (var action in Model.AgentHistory)
             {
                 <article class="timeline-item">
-                    <div class="small text-muted">Step @action.StepNo - @action.Action</div>
+                    <div class="small text-muted">Step @action.StepNo - <span class="action-chip @Model.GetActionCssClass(action.Action)">@action.Action</span></div>
                     <h2 class="h6">@action.Agent?.Name</h2>
                     <p>@action.Message</p>
                     <p class="small"><strong>Memory:</strong> @action.Memory</p>
@@ -189,3 +236,73 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (() => {
+            const points = @Html.Raw(Model.GetPhaseHistoryJson());
+            const canvas = document.getElementById('phaseTimelineChart');
+            if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                return;
+            }
+
+            const phaseLabels = {
+                '-3': 'Collapse',
+                '-2': 'Chaos',
+                '-1': 'Silo',
+                '0': 'Forming',
+                '1': 'Learning',
+                '2': 'Stable',
+                '3': 'Emergent'
+            };
+
+            new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: points.map(point => point.stepNo),
+                    datasets: [{
+                        label: 'Phase',
+                        data: points.map(point => point.phaseValue),
+                        borderColor: '#1c4b8f',
+                        backgroundColor: 'rgba(28, 75, 143, 0.14)',
+                        tension: 0.2,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            min: -3,
+                            max: 3,
+                            ticks: {
+                                stepSize: 1,
+                                callback: value => phaseLabels[String(value)] ?? value
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'StepNo'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: context => {
+                                    const point = points[context.dataIndex];
+                                    return ` ${point.phase} (${point.phaseValue})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+}

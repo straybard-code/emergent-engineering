@@ -167,6 +167,11 @@ namespace EmergentEngineering.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Phase")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<int>("SimulationProjectId")
                         .HasColumnType("int");
 

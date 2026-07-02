@@ -324,14 +324,42 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
 
         try
         {
-            var parsed = JsonSerializer.Deserialize<Dictionary<string, double>>(json, JsonOptions);
-            return parsed is null
-                ? new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase)
-                : new Dictionary<string, double>(parsed, StringComparer.OrdinalIgnoreCase);
+            using var document = JsonDocument.Parse(json);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            var trustMap = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+            foreach (var property in document.RootElement.EnumerateObject())
+            {
+                if (TryReadTrustValue(property.Value, out var value))
+                {
+                    trustMap[property.Name] = ClampTrust(value);
+                }
+            }
+
+            return trustMap;
         }
         catch
         {
             return new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private static bool TryReadTrustValue(JsonElement element, out double value)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Number:
+                return element.TryGetDouble(out value);
+
+            case JsonValueKind.String:
+                return double.TryParse(element.GetString(), out value);
+
+            default:
+                value = 0;
+                return false;
         }
     }
 

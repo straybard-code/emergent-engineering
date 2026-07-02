@@ -136,17 +136,42 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
 
         try
         {
-            var trustMap = JsonSerializer.Deserialize<Dictionary<string, double>>(trustJson, JsonOptions);
-            if (trustMap is null || trustMap.Count == 0)
+            using var document = JsonDocument.Parse(trustJson);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
                 return 0;
             }
 
-            return Math.Round(trustMap.Values.Average(), 2);
+            List<double> values = [];
+            foreach (var property in document.RootElement.EnumerateObject())
+            {
+                if (TryReadTrustValue(property.Value, out var value))
+                {
+                    values.Add(value);
+                }
+            }
+
+            return values.Count == 0 ? 0 : Math.Round(values.Average(), 2);
         }
         catch
         {
             return 0;
+        }
+    }
+
+    private static bool TryReadTrustValue(JsonElement element, out double value)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Number:
+                return element.TryGetDouble(out value);
+
+            case JsonValueKind.String:
+                return double.TryParse(element.GetString(), out value);
+
+            default:
+                value = 0;
+                return false;
         }
     }
 }
