@@ -1,4 +1,4 @@
-namespace EmergentEngineering.Pages.Simulations;
+namespace EmergentEngineering.Models;
 
 public sealed class ThresholdSweepPoint
 {

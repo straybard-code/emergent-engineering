@@ -336,10 +336,66 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             .ToList();
     }
 
+    private async Task<List<ExperimentPrecursorPoint>> GetPrecursorSummaryAsync(int experimentId)
+    {
+        var analyses = await GetProjectAnalysesAsync(experimentId);
+        if (analyses.Count == 0)
+        {
+            return [];
+        }
+
+        return analyses
+            .SelectMany(analysis => analysis.PrecursorPoints)
+            .GroupBy(point => point.StepNo)
+            .Select(group =>
+            {
+                var avgSilo = Math.Round(group.Average(point => point.SiloRiskScore), 4);
+                var avgStable = Math.Round(group.Average(point => point.StableScore), 4);
+                var avgEmergent = Math.Round(group.Average(point => point.EmergentScore), 4);
+
+                var signal = avgSilo >= avgStable && avgSilo >= avgEmergent
+                    ? "\u30B5\u30A4\u30ED\u4E88\u5146"
+                    : avgEmergent >= avgStable
+                        ? "\u5275\u767A\u4E88\u5146"
+                        : "\u5B89\u5B9A\u4E88\u5146";
+
+                return new ExperimentPrecursorPoint
+                {
+                    StepNo = group.Key,
+                    RunCount = group.Count(),
+                    AverageSiloRiskScore = avgSilo,
+                    AverageStableScore = avgStable,
+                    AverageEmergentScore = avgEmergent,
+                    MainSignal = signal
+                };
+            })
+            .OrderBy(point => point.StepNo)
+            .ToList();
+    }
+
     private async Task<List<PhaseTransitionInsight>> GetPhaseTransitionInsightsAsync(int experimentId)
+    {
+        var analyses = await GetProjectAnalysesAsync(experimentId);
+        return analyses
+            .SelectMany(analysis => analysis.PhaseTransitionInsights)
+            .ToList();
+    }
+
+    private async Task<List<EmergenceFingerprint>> GetRunFingerprintsAsync(int experimentId)
+    {
+        var analyses = await GetProjectAnalysesAsync(experimentId);
+        return analyses
+            .Select(analysis => analysis.Fingerprint)
+            .OrderBy(item => item.RunNo ?? int.MaxValue)
+            .ThenBy(item => item.SimulationProjectId)
+            .ToList();
+    }
+
+    private async Task<List<ProjectAnalysisBundle>> GetProjectAnalysesAsync(int experimentId)
     {
         var projects = await db.SimulationProjects
             .Include(project => project.Agents)
+            .Include(project => project.Metrics)
             .Where(project => project.ExperimentId == experimentId)
             .OrderBy(project => project.Id)
             .ToListAsync();
@@ -349,6 +405,10 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             return [];
         }
 
+        var runsByProjectId = await db.ExperimentRuns
+            .Where(run => run.ExperimentId == experimentId)
+            .ToDictionaryAsync(run => run.SimulationProjectId, run => run);
+
         var projectIds = projects.Select(project => project.Id).ToList();
         var steps = await db.SimulationSteps
             .Where(step => projectIds.Contains(step.SimulationProjectId))
@@ -356,9 +416,11 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             .ThenBy(step => step.StepNo)
             .ToListAsync();
         var actions = await db.AgentActions
+            .Include(action => action.Agent)
             .Where(action => projectIds.Contains(action.SimulationProjectId))
             .OrderBy(action => action.SimulationProjectId)
             .ThenBy(action => action.StepNo)
+            .ThenBy(action => action.Id)
             .ToListAsync();
         var trustSnapshots = await db.TrustSnapshots
             .Where(snapshot => projectIds.Contains(snapshot.SimulationProjectId))
@@ -368,40 +430,17 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             .ThenBy(snapshot => snapshot.TargetAgentId)
             .ToListAsync();
 
-        var actionsByProjectId = actions
-            .GroupBy(action => action.SimulationProjectId)
-            .ToDictionary(group => group.Key, group => group.ToList());
-        var stepsByProjectId = steps
-            .GroupBy(step => step.SimulationProjectId)
-            .ToDictionary(group => group.Key, group => group.ToList());
-        var snapshotsByProjectId = trustSnapshots
-            .GroupBy(snapshot => snapshot.SimulationProjectId)
-            .ToDictionary(group => group.Key, group => group.ToList());
+        var actionsByProjectId = actions.GroupBy(action => action.SimulationProjectId).ToDictionary(group => group.Key, group => group.ToList());
+        var stepsByProjectId = steps.GroupBy(step => step.SimulationProjectId).ToDictionary(group => group.Key, group => group.ToList());
+        var snapshotsByProjectId = trustSnapshots.GroupBy(snapshot => snapshot.SimulationProjectId).ToDictionary(group => group.Key, group => group.ToList());
 
-        List<PhaseTransitionInsight> insights = [];
-
+        List<ProjectAnalysisBundle> bundles = [];
         foreach (var project in projects)
         {
-            actionsByProjectId.TryGetValue(project.Id, out var projectActions);
-            stepsByProjectId.TryGetValue(project.Id, out var projectSteps);
-            snapshotsByProjectId.TryGetValue(project.Id, out var projectSnapshots);
-
-            var actionByStep = ActionDistributionCalculator.BuildByStep(
-                projectActions ?? new List<AgentAction>(),
-                action => action.StepNo,
-                action => action.Action);
-            var metricsByStep = NetworkMetricsCalculator.BuildMetricsByStep(
-                project.Agents,
-                projectSnapshots ?? new List<TrustSnapshot>(),
-                project.EffectiveTrustThreshold,
-                project.CurrentStep);
-            var edgeRowsByStep = NetworkMetricsCalculator.BuildEdgeRowsByStep(
-                project.Agents,
-                projectSnapshots ?? new List<TrustSnapshot>(),
-                project.CurrentStep);
-            var phaseByStep = (projectSteps ?? new List<SimulationStep>())
-                .ToDictionary(step => step.StepNo, step => step.Phase);
-            var actionRecords = (projectActions ?? new List<AgentAction>())
+            var projectActions = actionsByProjectId.GetValueOrDefault(project.Id, new List<AgentAction>());
+            var projectSteps = stepsByProjectId.GetValueOrDefault(project.Id, new List<SimulationStep>());
+            var projectSnapshots = snapshotsByProjectId.GetValueOrDefault(project.Id, new List<TrustSnapshot>());
+            var actionRecords = projectActions
                 .Select(action => new PhaseTransitionActionRecord
                 {
                     StepNo = action.StepNo,
@@ -413,48 +452,53 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
                     TrustAfter = action.TrustAfter
                 })
                 .ToList();
-
-            List<PhaseTransitionStepState> states = [];
-            for (var stepNo = 1; stepNo <= project.CurrentStep; stepNo++)
-            {
-                if (!metricsByStep.TryGetValue(stepNo, out var metrics))
+            var finalRows = GetFinalTrustRows(project, projectSnapshots);
+            var finalMetrics = CalculateNetworkMetrics(project.Agents, finalRows, project.EffectiveTrustThreshold);
+            var thresholdSweep = NetworkMetricsCalculator.StandardThresholdSweepValues
+                .Select(threshold =>
                 {
-                    continue;
-                }
-
-                actionByStep.TryGetValue(stepNo, out var action);
-                states.Add(new PhaseTransitionStepState
-                {
-                    StepNo = stepNo,
-                    Phase = phaseByStep.GetValueOrDefault(
-                        stepNo,
-                        stepNo <= 2 ? SimulationPhase.Forming : project.Phase),
-                    ShareInfoRate = action?.ShareInfoRate ?? 0,
-                    AskHelpRate = action?.AskHelpRate ?? 0,
-                    ProposeIdeaRate = action?.ProposeIdeaRate ?? 0,
-                    CriticizeRate = action?.CriticizeRate ?? 0,
-                    WorkAloneRate = action?.WorkAloneRate ?? 0,
-                    SupportOtherRate = action?.SupportOtherRate ?? 0,
-                    WaitRate = action?.WaitRate ?? 0,
-                    OtherRate = action?.OtherRate ?? 0,
-                    AverageTrust = metrics.AverageTrust,
-                    EffectiveNetworkDensity = metrics.EffectiveNetworkDensity,
-                    StrongLinkCount = metrics.StrongLinkCount,
-                    WeakLinkCount = metrics.WeakLinkCount,
-                    ComponentCount = metrics.ComponentCount,
-                    IsolatedCount = metrics.IsolatedCount
-                });
-            }
-
-            insights.AddRange(PhaseTransitionInspector.BuildInsights(
-                states,
+                    var metrics = CalculateNetworkMetrics(project.Agents, finalRows, threshold);
+                    return new ThresholdSweepPoint
+                    {
+                        Threshold = threshold,
+                        EffectiveNetworkDensity = metrics.EffectiveNetworkDensity,
+                        StrongLinkCount = metrics.StrongLinkCount,
+                        WeakLinkCount = metrics.WeakLinkCount,
+                        ComponentCount = metrics.ComponentCount,
+                        IsolatedCount = metrics.IsolatedCount
+                    };
+                })
+                .ToList();
+            var edgeRowsByStep = NetworkMetricsCalculator.BuildEdgeRowsByStep(project.Agents, projectSnapshots, project.CurrentStep);
+            var stepStates = BuildPhaseTransitionStates(project, projectActions, projectSteps, projectSnapshots, edgeRowsByStep);
+            var insights = PhaseTransitionInspector.BuildInsights(
+                stepStates,
                 actionRecords,
                 edgeRowsByStep,
                 windowSize: 3,
-                effectiveTrustThreshold: project.EffectiveTrustThreshold));
+                effectiveTrustThreshold: project.EffectiveTrustThreshold);
+            var precursorPoints = PrecursorAnalysisService.BuildPoints(stepStates, project.PsychologicalSafetyLevel);
+            runsByProjectId.TryGetValue(project.Id, out var run);
+            var fingerprint = EmergenceFingerprintService.Build(
+                project,
+                project.Name,
+                project.Id,
+                projectActions,
+                insights,
+                thresholdSweep,
+                finalMetrics,
+                run?.RunNo);
+
+            bundles.Add(new ProjectAnalysisBundle
+            {
+                ProjectId = project.Id,
+                PhaseTransitionInsights = insights,
+                PrecursorPoints = precursorPoints,
+                Fingerprint = fingerprint
+            });
         }
 
-        return insights;
+        return bundles;
     }
 
     private async Task<List<ExperimentThresholdSweepPoint>> GetThresholdSweepSummaryAsync(int experimentId)
@@ -551,6 +595,86 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             threshold);
     }
 
+    private static List<PhaseTransitionStepState> BuildPhaseTransitionStates(
+        SimulationProject project,
+        IReadOnlyCollection<AgentAction> actions,
+        IReadOnlyCollection<SimulationStep> steps,
+        IReadOnlyCollection<TrustSnapshot> trustSnapshots,
+        IReadOnlyDictionary<int, IReadOnlyCollection<NetworkTrustEdgeRef>> edgeRowsByStep)
+    {
+        var actionByStep = ActionDistributionCalculator.BuildByStep(
+            actions,
+            action => action.StepNo,
+            action => action.Action);
+        var metricsByStep = NetworkMetricsCalculator.BuildMetricsByStep(
+            project.Agents,
+            trustSnapshots,
+            project.EffectiveTrustThreshold,
+            project.CurrentStep);
+        var phaseByStep = steps.ToDictionary(step => step.StepNo, step => step.Phase);
+        var maxEdges = Math.Max(project.Agents.Count * Math.Max(project.Agents.Count - 1, 0), 1);
+
+        List<PhaseTransitionStepState> states = [];
+        for (var stepNo = 1; stepNo <= project.CurrentStep; stepNo++)
+        {
+            if (!metricsByStep.TryGetValue(stepNo, out var metrics))
+            {
+                continue;
+            }
+
+            actionByStep.TryGetValue(stepNo, out var action);
+            states.Add(new PhaseTransitionStepState
+            {
+                StepNo = stepNo,
+                Phase = phaseByStep.GetValueOrDefault(stepNo, stepNo <= 2 ? SimulationPhase.Forming : project.Phase),
+                ShareInfoRate = action?.ShareInfoRate ?? 0,
+                AskHelpRate = action?.AskHelpRate ?? 0,
+                ProposeIdeaRate = action?.ProposeIdeaRate ?? 0,
+                CriticizeRate = action?.CriticizeRate ?? 0,
+                WorkAloneRate = action?.WorkAloneRate ?? 0,
+                SupportOtherRate = action?.SupportOtherRate ?? 0,
+                WaitRate = action?.WaitRate ?? 0,
+                OtherRate = action?.OtherRate ?? 0,
+                AverageTrust = metrics.AverageTrust,
+                EffectiveNetworkDensity = metrics.EffectiveNetworkDensity,
+                NewStrongLinkRate = CalculateNewStrongLinkRate(
+                    edgeRowsByStep,
+                    stepNo,
+                    project.EffectiveTrustThreshold,
+                    maxEdges),
+                StrongLinkCount = metrics.StrongLinkCount,
+                WeakLinkCount = metrics.WeakLinkCount,
+                ComponentCount = metrics.ComponentCount,
+                IsolatedCount = metrics.IsolatedCount
+            });
+        }
+
+        return states;
+    }
+
+    private static double CalculateNewStrongLinkRate(
+        IReadOnlyDictionary<int, IReadOnlyCollection<NetworkTrustEdgeRef>> edgeRowsByStep,
+        int stepNo,
+        double effectiveTrustThreshold,
+        int maxEdges)
+    {
+        if (stepNo <= 1
+            || !edgeRowsByStep.TryGetValue(stepNo - 1, out var beforeRows)
+            || !edgeRowsByStep.TryGetValue(stepNo, out var afterRows))
+        {
+            return 0;
+        }
+
+        var beforeMap = beforeRows.ToDictionary(row => (row.SourceAgentName, row.TargetAgentName), row => row.TrustValue);
+        var newStrongLinks = afterRows.Count(row =>
+        {
+            beforeMap.TryGetValue((row.SourceAgentName, row.TargetAgentName), out var beforeValue);
+            return beforeValue < effectiveTrustThreshold && row.TrustValue >= effectiveTrustThreshold;
+        });
+
+        return Math.Round(newStrongLinks / (double)maxEdges, 4);
+    }
+
     private static int GetPhaseOrder(string? phase) => phase switch
     {
         SimulationPhase.Forming => 0,
@@ -562,4 +686,12 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         SimulationPhase.Collapse => 6,
         _ => 99
     };
+
+    private sealed class ProjectAnalysisBundle
+    {
+        public int ProjectId { get; init; }
+        public List<PhaseTransitionInsight> PhaseTransitionInsights { get; init; } = [];
+        public List<PrecursorPoint> PrecursorPoints { get; init; } = [];
+        public EmergenceFingerprint Fingerprint { get; init; } = new();
+    }
 }

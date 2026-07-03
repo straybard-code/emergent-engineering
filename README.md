@@ -1037,6 +1037,93 @@ This supports the emergence-engineering view of the intermediate process:
 - `Trust Network`
 - `Phase`
 
+## Precursor Analysis
+
+`Precursor Analysis` treats emergence as a phase-transition phenomenon with observable early signals.
+
+For each step, the app calculates a rule-based precursor profile:
+
+- `SiloRiskScore`
+- `StableScore`
+- `EmergentScore`
+- `MainSignal`
+- `Interpretation`
+
+These values combine:
+
+- action distribution
+- local trust-network state
+- effective network metrics
+- recent phase stability
+- newly formed strong links when they can be observed
+
+### Phase Forecast
+
+`Phase Forecast` is the step-level heuristic derived from the three precursor scores.
+
+It does not claim certainty. It indicates which tendency is currently stronger:
+
+- `Silo`
+- `Stable`
+- `Emergent`
+
+This makes it easier to inspect:
+
+- whether silo risk rises before an actual `Silo` transition
+- whether sharing, support, and idea proposal accumulate before `Emergent`
+- whether a stable-looking run is structurally stable or only temporarily quiet
+
+The modeling assumption is that emergence is not only visible at the final phase label. It leaves intermediate signals in:
+
+- `Boundary Conditions`
+- `Action Distribution`
+- `Trust Network`
+- `Phase`
+
+## Emergence Fingerprint
+
+`Emergence Fingerprint` summarizes one run as a feature vector.
+
+The goal is to compare organizations by emergence behavior rather than only by role chart or scenario label.
+
+The fingerprint includes:
+
+- final phase
+- average trust
+- network density
+- effective density
+- strong and weak links
+- component count
+- isolated count
+- phase transition count
+- phase stability
+- action rates
+- trigger-agent concentration
+- strong-link gain/loss around transitions
+- threshold fragility
+
+### ThresholdFragilityScore
+
+`ThresholdFragilityScore` is derived from the effective-threshold sweep:
+
+- `1 - AverageEffectiveDensityAcrossThresholds`
+
+Higher values mean the network looks connected only under low trust thresholds and fragments quickly when stricter collaboration strength is required.
+
+This is useful for distinguishing:
+
+- robust integrated networks
+- fragile weak-tie networks
+- runs that look connected in a permissive view but collapse in an effective-network view
+
+Experiment pages also assign a lightweight run label such as:
+
+- `Integrated Learning Type` 
+- `Controlled Silo Type` 
+- `Fragile Network Type` 
+- `Catalyst Driven Type` 
+- `Unclassified` 
+
 ### Effective network summary
 
 Experiment run summaries also surface effective-network metrics copied from `SimulationMetrics`:
@@ -1141,6 +1228,10 @@ dotnet ef database update
 - linking phase transitions with KPI changes
 - trigger-score weight tuning
 - Emergence Report PDF export
+- fingerprint clustering
+- fingerprint comparison against real organization data
+- before/after intervention fingerprint comparison
+- AI-driven boundary-condition optimization
 - predictive models from action distribution to phase transition
 - mapping to Slack / Teams / GitHub / email activity
 - KPI switch experiments
@@ -1157,3 +1248,4 @@ dotnet ef database update
 
 - This pass was implemented without build verification, startup verification, `dotnet run`, test execution, or migration apply.
 - If compile errors remain, they are most likely around Razor typing, manual migration drift, or EF relationship alignment and should be fixed from the reported build output.
+

@@ -294,6 +294,149 @@
 <section class="log-section mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
+            <h2 class="h5 mb-1">相予兆スコア集計</h2>
+            <p class="text-muted small mb-0">各Stepの相予兆スコアを複数Runで平均し、サイロ化・安定化・創発化の前兆を比較します。</p>
+        </div>
+    </div>
+    @if (Model.PrecursorSummary.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ前兆スコアを集計できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Run数</th>
+                        <th>Silo Risk</th>
+                        <th>Stable Score</th>
+                        <th>Emergent Score</th>
+                        <th>主信号</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.PrecursorSummary)
+                {
+                    <tr>
+                        <td>@point.StepNo</td>
+                        <td>@point.RunCount</td>
+                        <td>@point.AverageSiloRiskScore.ToString("0.000")</td>
+                        <td>@point.AverageStableScore.ToString("0.000")</td>
+                        <td>@point.AverageEmergentScore.ToString("0.000")</td>
+                        <td>@point.MainSignal</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">創発指紋サマリー</h2>
+            <p class="text-muted small mb-0">各Run全体を特徴量ベクトルとして要約し、創発の振る舞いを比較します。</p>
+        </div>
+    </div>
+    @if (Model.RunFingerprints.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ創発指紋を集計できるRunはありません。</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均信頼度 mean</div>
+                    <div class="fs-5">@Model.FingerprintAverageTrustMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">実効密度 mean</div>
+                    <div class="fs-5">@Model.FingerprintEffectiveDensityMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">相転移回数 mean</div>
+                    <div class="fs-5">@Model.FingerprintPhaseTransitionCountMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">相安定度 mean</div>
+                    <div class="fs-5">@Model.FingerprintPhaseStabilityMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">情報共有率 mean</div>
+                    <div class="fs-5">@Model.FingerprintShareInfoRateMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">単独作業率 mean</div>
+                    <div class="fs-5">@Model.FingerprintWorkAloneRateMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-12 col-xl-4">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">閾値脆弱性 mean</div>
+                    <div class="fs-5">@Model.FingerprintThresholdFragilityScoreMean.ToString("0.000")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Run</th>
+                        <th>Simulation</th>
+                        <th>最終相</th>
+                        <th>平均信頼度</th>
+                        <th>実効密度</th>
+                        <th>相転移回数</th>
+                        <th>相安定度</th>
+                        <th>情報共有率</th>
+                        <th>単独作業率</th>
+                        <th>主要TriggerAgent</th>
+                        <th>閾値脆弱性</th>
+                        <th>分類</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.RunFingerprints.OrderBy(fingerprint => fingerprint.RunNo ?? int.MaxValue).ThenBy(fingerprint => fingerprint.SimulationProjectId))
+                {
+                    <tr>
+                        <td>@(item.RunNo?.ToString() ?? "-")</td>
+                        <td><a asp-page="/Simulations/Details" asp-route-id="@item.SimulationProjectId">@item.SimulationName</a></td>
+                        <td><span class="phase-pill">@FormatPhase(item.FinalPhase)</span></td>
+                        <td>@item.AverageTrust.ToString("0.000")</td>
+                        <td>@item.EffectiveDensity.ToString("0.000")</td>
+                        <td>@item.PhaseTransitionCount</td>
+                        <td>@item.PhaseStability.ToString("0.000")</td>
+                        <td>@item.ShareInfoRate.ToString("0.000")</td>
+                        <td>@item.WorkAloneRate.ToString("0.000")</td>
+                        <td>@item.TopTriggerAgentName (@item.TopTriggerAgentCount)</td>
+                        <td>@item.ThresholdFragilityScore.ToString("0.000")</td>
+                        <td>@item.ClassificationLabel</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
             <h2 class="h5 mb-1">Emergence Explainer 集計</h2>
             <p class="text-muted small mb-0">Experiment配下の全Runから、引き金エージェント、主要Action変化、Strong Link変化を集計します。</p>
         </div>
