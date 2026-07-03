@@ -44,8 +44,8 @@
 
     private static string GetComponentBadgeText(int? componentCount) => componentCount switch
     {
-        >= 4 => "�l�b�g���[�N���f",
-        >= 2 => "�T�C���`��",
+        >= 4 => "ネットワーク分断",
+        >= 2 => "サイロ形成",
         _ => ""
     };
 
@@ -64,7 +64,7 @@
 
 @if (Model.Project is null)
 {
-    <div class="alert alert-warning">Simulation が見つかりません、E</div>
+    <div class="alert alert-warning">Simulation が見つかりません。</div>
     return;
 }
 
@@ -72,14 +72,14 @@
     <div>
         <a asp-page="/Index" class="text-decoration-none small">&larr; Simulation一覧</a>
         <h1 class="h2 mt-2 mb-1">@Model.Project.Name</h1>
-        <div class="text-muted">現在スチE��チE@Model.Project.CurrentStep / @Model.Project.TotalSteps ・ 状慁E@FormatStatus(Model.Project.Status) ・ 相 @FormatPhase(Model.Project.Phase)</div>
+        <div class="text-muted">現在ステップ @Model.Project.CurrentStep / @Model.Project.TotalSteps ・ 状態 @FormatStatus(Model.Project.Status) ・ 相 @FormatPhase(Model.Project.Phase)</div>
     </div>
     <div class="d-flex gap-2">
         <form method="post" asp-page-handler="RunOne" asp-route-id="@Model.Project.Id">
-            <button class="btn btn-primary" type="submit" disabled="@Model.IsCompleted">1スチE��プ実衁E</button>
+            <button class="btn btn-primary" type="submit" disabled="@Model.IsCompleted">1ステップ実行</button>
         </form>
         <form method="post" asp-page-handler="RunAll" asp-route-id="@Model.Project.Id">
-            <button class="btn btn-outline-primary" type="submit" disabled="@Model.IsCompleted">最後まで実衁E</button>
+            <button class="btn btn-outline-primary" type="submit" disabled="@Model.IsCompleted">最後まで実行</button>
         </form>
         <a class="btn btn-outline-danger" asp-page="/Simulations/Delete" asp-route-id="@Model.Project.Id">シミュレーション削除</a>
     </div>
@@ -87,11 +87,11 @@
 
 <section class="summary-grid mb-4">
     <div>
-        <h2 class="h6">現在スチE��チE</h2>
+        <h2 class="h6">現在ステップ</h2>
         <p>@Model.Project.CurrentStep / @Model.Project.TotalSteps</p>
     </div>
     <div>
-        <h2 class="h6">状慁E</h2>
+        <h2 class="h6">状態</h2>
         <p>@FormatStatus(Model.Project.Status)</p>
     </div>
     <div>
@@ -99,11 +99,11 @@
         <p><span class="phase-pill">@FormatPhase(Model.Project.Phase)</span></p>
     </div>
     <div>
-        <h2 class="h6">目皁E</h2>
+        <h2 class="h6">目的</h2>
         <p>@Model.Project.Purpose</p>
     </div>
     <div>
-        <h2 class="h6">墁E��条件</h2>
+        <h2 class="h6">境界条件</h2>
         <p>@Model.Project.BoundaryConditions</p>
     </div>
     <div>
@@ -115,7 +115,7 @@
         <p>@Model.Project.LlmProvider</p>
     </div>
     <div>
-        <h2 class="h6">LLMモチE��</h2>
+        <h2 class="h6">LLMモデル</h2>
         <p>@Model.Project.LlmModel</p>
     </div>
 </section>
@@ -123,13 +123,13 @@
 <section class="log-section mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="h5 mb-1">創発持E��E</h2>
-            <p class="text-muted small mb-0">こ�ERun全体�E創発皁E��る�EぁE��特徴量�Eクトルとして要紁E��ます、E</p>
+            <h2 class="h5 mb-1">創発指紋</h2>
+            <p class="text-muted small mb-0">この Run 全体の創発的振る舞いを特徴量ベクトルとして要約します。</p>
         </div>
     </div>
     @if (Model.Fingerprint is null)
     {
-        <p class="text-muted mb-0">まだ創発持E��を計算できるチE�Eタはありません、E</p>
+        <p class="text-muted mb-0">まだ創発指紋を計算できるデータはありません。</p>
     }
     else
     {
@@ -144,7 +144,7 @@
                     <tr><th>AverageKnowledgeStock</th><td>@Model.Fingerprint.AverageKnowledgeStock.ToString("0.000")</td><th>AverageKnowledgeDiversity</th><td>@Model.Fingerprint.AverageKnowledgeDiversity.ToString("0.000")</td></tr>
                     <tr><th>MaxKnowledgeRewiringScore</th><td>@Model.Fingerprint.MaxKnowledgeRewiringScore.ToString("0.000")</td><th>FinalKnowledgeRewiringScore</th><td>@Model.Fingerprint.FinalKnowledgeRewiringScore.ToString("0.000")</td></tr>
                     <tr><th>ShockOccurred</th><td>@(Model.Fingerprint.ShockOccurred ? "Yes" : "No")</td><th>ShockType</th><td>@Model.Fingerprint.ShockType</td></tr>
-                    <tr><th>KnowledgeDrivenType</th><td>@Model.Fingerprint.KnowledgeDrivenType</td><th>����</th><td>@Model.Fingerprint.ClassificationLabel</td></tr>
+                    <tr><th>KnowledgeDrivenType</th><td>@Model.Fingerprint.KnowledgeDrivenType</td><th>分類</th><td>@Model.Fingerprint.ClassificationLabel</td></tr>
                 </tbody>
             </table>
         </div>
@@ -155,12 +155,12 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="h5 mb-1">相転移インスペクター</h2>
-            <p class="text-muted small mb-0">相が変化したスチE��プを抽出し、その前後�E行動比率・信頼度・ネットワーク持E���E変化を表示します、E</p>
+            <p class="text-muted small mb-0">相が変化したステップを抽出し、その前後の行動比率・信頼度・ネットワーク指標の変化を表示します。</p>
         </div>
     </div>
     @if (Model.PhaseTransitionInsights.Count == 0)
     {
-        <p class="text-muted mb-0">まだ相転移は検�EされてぁE��せん、E</p>
+        <p class="text-muted mb-0">まだ相転移は検出されていません。</p>
     }
     else
     {
@@ -170,11 +170,11 @@
                 <p>@Model.PhaseTransitionCount</p>
             </div>
             <div>
-                <h2 class="h6">最初�E相転移Step</h2>
+                <h2 class="h6">最初の相転移Step</h2>
                 <p>@(Model.FirstPhaseTransitionStep?.ToString() ?? "-")</p>
             </div>
             <div>
-                <h2 class="h6">最後�E相転移Step</h2>
+                <h2 class="h6">最後の相転移Step</h2>
                 <p>@(Model.LastPhaseTransitionStep?.ToString() ?? "-")</p>
             </div>
             <div>
@@ -187,12 +187,12 @@
             <table class="table table-sm align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>スチE��チE</th>
-                        <th>遷移允E</th>
-                        <th>遷移允E</th>
+                        <th>ステップ</th>
+                        <th>遷移元</th>
+                        <th>遷移先</th>
                         <th>主な行動変化</th>
                         <th>主なネットワーク変化</th>
-                        <th>解釁E</th>
+                        <th>解釈</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -207,22 +207,22 @@
                         <td>
                             <div>@insight.ExplainerText</div>
                             <div class="small text-muted mt-1">
-                                惁E��共朁E@Model.FormatSignedDelta(insight.ShareInfoDelta) /
+                                情報共有 @Model.FormatSignedDelta(insight.ShareInfoDelta) /
                                 単独作業 @Model.FormatSignedDelta(insight.WorkAloneDelta) /
                                 支援 @Model.FormatSignedDelta(insight.SupportOtherDelta) /
-                                実効寁E�� @Model.FormatSignedDelta(insight.EffectiveDensityDelta) /
-                                平坁E��頼度 @Model.FormatSignedDelta(insight.AverageTrustDelta)
+                                実効密度 @Model.FormatSignedDelta(insight.EffectiveDensityDelta) /
+                                平均信頼度 @Model.FormatSignedDelta(insight.AverageTrustDelta)
                             </div>
                             <details class="mt-2">
                                 <summary class="small text-primary">詳細を見る</summary>
                                 <div class="small mt-2"><strong>主な増加Action:</strong> @insight.MainIncreasingAction</div>
                                 <div class="small"><strong>主な減少Action:</strong> @insight.MainDecreasingAction</div>
-                                <div class="small mb-2"><strong>Window冁E��最も多かったAction:</strong> @insight.WindowDominantAction</div>
+                                <div class="small mb-2"><strong>Window内で最も多かったAction:</strong> @insight.WindowDominantAction</div>
 
-                                <div class="fw-semibold small mt-2">Trigger Agent / 引き金エージェンチE</div>
+                                <div class="fw-semibold small mt-2">Trigger Agent / 引き金エージェント</div>
                                 @if (insight.TriggerAgents.Count == 0)
                                 {
-                                    <div class="small text-muted mb-2">該当なぁE</div>
+                                    <div class="small text-muted mb-2">該当なし</div>
                                 }
                                 else
                                 {
@@ -254,7 +254,7 @@
                                 <div class="fw-semibold small mt-2">Trigger Trust Changes / 信頼変化</div>
                                 @if (insight.TriggerTrustChanges.Count == 0)
                                 {
-                                    <div class="small text-muted mb-2">該当なぁE</div>
+                                    <div class="small text-muted mb-2">該当なし</div>
                                 }
                                 else
                                 {
@@ -289,7 +289,7 @@
                                 <div class="small"><strong>New Strong Links:</strong> @insight.NewStrongLinkTotalCount 件</div>
                                 @if (insight.NewStrongLinks.Count == 0)
                                 {
-                                    <div class="small text-muted mb-2">該当なぁE</div>
+                                    <div class="small text-muted mb-2">該当なし</div>
                                 }
                                 else
                                 {
@@ -304,7 +304,7 @@
                                 <div class="small"><strong>Lost Strong Links:</strong> @insight.LostStrongLinkTotalCount 件</div>
                                 @if (insight.LostStrongLinks.Count == 0)
                                 {
-                                    <div class="small text-muted">該当なぁE</div>
+                                    <div class="small text-muted">該当なし</div>
                                 }
                                 else
                                 {
@@ -328,13 +328,13 @@
 <section class="log-section mb-4" id="precursorSection">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="h5 mb-1">相予�Eスコア</h2>
-            <p class="text-muted small mb-0">各Stepの前�Eスコアです。次に起きやすい相候補を簡易に観測します、E</p>
+            <h2 class="h5 mb-1">相予兆スコア</h2>
+            <p class="text-muted small mb-0">各Stepの前兆スコアです。次に起きやすい相候補を簡易に観測します。</p>
         </div>
     </div>
     @if (Model.PrecursorPoints.Count == 0)
     {
-        <p class="text-muted mb-0">まだ前�Eスコアを表示できるチE�Eタはありません、E</p>
+        <p class="text-muted mb-0">まだ前兆スコアを表示できるデータはありません。</p>
     }
     else
     {
@@ -376,12 +376,12 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="h5 mb-1">行動タイムライン</h2>
-            <p class="text-muted small mb-0">吁E��チE��プでエージェントが選択した行動の比率を表示します。Phase遷移前後�E行動刁E��E�E変化を観察できます、E</p>
+            <p class="text-muted small mb-0">各ステップでエージェントが選択した行動の比率を表示します。Phase遷移前後の行動分布の変化を観察できます。</p>
         </div>
     </div>
     @if (Model.ActionTimeline.Count == 0)
     {
-        <p class="text-muted mb-0">まだ行動タイムラインを表示できるログはありません、E</p>
+        <p class="text-muted mb-0">まだ行動タイムラインを表示できるログはありません。</p>
     }
     else
     {
@@ -391,13 +391,13 @@
                     <tr>
                         <th>Step</th>
                         <th>Phase</th>
-                        <th>惁E��共朁E</th>
-                        <th>相諁E</th>
-                        <th>アイチE��提桁E</th>
+                        <th>情報共有</th>
+                        <th>相談</th>
+                        <th>アイデア提案</th>
                         <th>批判</th>
                         <th>単独作業</th>
                         <th>支援</th>
-                        <th>征E��E</th>
+                        <th>待機</th>
                         <th>Other</th>
                     </tr>
                 </thead>
@@ -434,13 +434,13 @@
 <section class="log-section mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="h5 mb-1">�m���l�b�g���[�N</h2>
-            <p class="text-muted small mb-0">�m���~�ρE�m�����l���E�O���h���E�ٕ���ڐG���A�n����Ĕz���ɗ^����e����\�����܂��B</p>
+            <h2 class="h5 mb-1">知識ネットワーク</h2>
+            <p class="text-muted small mb-0">知識蓄積・知識多様性・外部刺激・異分野接触が、創発や再配線に与える影響を表示します。</p>
         </div>
     </div>
     @if (Model.KnowledgeTimeline.Count == 0)
     {
-        <p class="text-muted mb-0">�܂��m���^�C�����C�����v�Z�ł���f�[�^�͂���܂���B</p>
+        <p class="text-muted mb-0">まだ知識タイムラインを計算できるデータはありません。</p>
     }
     else
     {
@@ -485,27 +485,27 @@
 </section>
 
 <section class="log-section mb-4">
-    <h2 class="h5 mb-3">���E�����p�����[�^</h2>
+    <h2 class="h5 mb-3">境界条件パラメータ</h2>
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
             <tbody>
-                <tr><th>��񋤗L</th><td>@Model.Project.InformationSharingLevel.ToString("0.0")</td></tr>
-                <tr><th>������</th><td>@Model.Project.CooperationLevel.ToString("0.0")</td></tr>
-                <tr><th>������</th><td>@Model.Project.CompetitionLevel.ToString("0.0")</td></tr>
-                <tr><th>�S���I���S��</th><td>@Model.Project.PsychologicalSafetyLevel.ToString("0.0")</td></tr>
-                <tr><th>�w�K�u��</th><td>@Model.Project.LearningOrientationLevel.ToString("0.0")</td></tr>
-                <tr><th>�ڋq�u��</th><td>@Model.Project.CustomerOrientationLevel.ToString("0.0")</td></tr>
-                <tr><th>�Z�����ʈ���</th><td>@Model.Project.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
-                <tr><th>�����M��臒l</th><td>@Model.Project.EffectiveTrustThreshold.ToString("0.00")</td></tr>
-                <tr><th>�m���~��</th><td>@Model.Project.KnowledgeStock.ToString("0.00")</td></tr>
-                <tr><th>�m�����l��</th><td>@Model.Project.KnowledgeDiversity.ToString("0.00")</td></tr>
-                <tr><th>�O���h�����x��</th><td>@Model.Project.ExternalShockLevel.ToString("0.00")</td></tr>
-                <tr><th>�ٕ���ڐG�x</th><td>@Model.Project.CrossDomainExposure.ToString("0.00")</td></tr>
-                <tr><th>�Ĕz�����x</th><td>@Model.Project.RewiringSensitivity.ToString("0.00")</td></tr>
-                <tr><th>�O���h����L����</th><td>@(Model.Project.EnableExternalShock ? "Yes" : "No")</td></tr>
-                <tr><th>�O���h��Step</th><td>@Model.Project.ShockStep</td></tr>
-                <tr><th>�O���h���^�C�v</th><td>@Model.Project.ShockType</td></tr>
-                <tr><th>�O���h������</th><td>@(string.IsNullOrWhiteSpace(Model.Project.ShockDescription) ? "-" : Model.Project.ShockDescription)</td></tr>
+                <tr><th>情報共有</th><td>@Model.Project.InformationSharingLevel.ToString("0.0")</td></tr>
+                <tr><th>協調性</th><td>@Model.Project.CooperationLevel.ToString("0.0")</td></tr>
+                <tr><th>競争性</th><td>@Model.Project.CompetitionLevel.ToString("0.0")</td></tr>
+                <tr><th>心理的安全性</th><td>@Model.Project.PsychologicalSafetyLevel.ToString("0.0")</td></tr>
+                <tr><th>学習志向</th><td>@Model.Project.LearningOrientationLevel.ToString("0.0")</td></tr>
+                <tr><th>顧客志向</th><td>@Model.Project.CustomerOrientationLevel.ToString("0.0")</td></tr>
+                <tr><th>短期成果圧力</th><td>@Model.Project.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
+                <tr><th>実効信頼閾値</th><td>@Model.Project.EffectiveTrustThreshold.ToString("0.00")</td></tr>
+                <tr><th>知識蓄積</th><td>@Model.Project.KnowledgeStock.ToString("0.00")</td></tr>
+                <tr><th>知識多様性</th><td>@Model.Project.KnowledgeDiversity.ToString("0.00")</td></tr>
+                <tr><th>外部刺激レベル</th><td>@Model.Project.ExternalShockLevel.ToString("0.00")</td></tr>
+                <tr><th>異分野接触度</th><td>@Model.Project.CrossDomainExposure.ToString("0.00")</td></tr>
+                <tr><th>再配線感度</th><td>@Model.Project.RewiringSensitivity.ToString("0.00")</td></tr>
+                <tr><th>外部刺激を有効化</th><td>@(Model.Project.EnableExternalShock ? "Yes" : "No")</td></tr>
+                <tr><th>外部刺激Step</th><td>@Model.Project.ShockStep</td></tr>
+                <tr><th>外部刺激タイプ</th><td>@Model.Project.ShockType</td></tr>
+                <tr><th>外部刺激説明</th><td>@(string.IsNullOrWhiteSpace(Model.Project.ShockDescription) ? "-" : Model.Project.ShockDescription)</td></tr>
             </tbody>
         </table>
     </div>
@@ -514,8 +514,8 @@
 <section class="log-section mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="h5 mb-1">絁E��評価持E��E</h2>
-            <p class="text-muted small mb-0">Run All 完亁E��点の最終集計です、E</p>
+            <h2 class="h5 mb-1">組織評価指標</h2>
+            <p class="text-muted small mb-0">Run All 実行時の最終集計です。</p>
         </div>
     </div>
     <div class="table-responsive">
@@ -524,13 +524,13 @@
                 <tr>
                     <th>最終相</th>
                     <td>@FormatPhase(Model.Project.Metrics?.FinalPhase ?? Model.Project.Phase)</td>
-                    <th>平坁E��頼度</th>
+                    <th>平均信頼度</th>
                     <td>@FormatMetric(Model.FinalNetworkMetrics?.AverageTrust)</td>
                 </tr>
                 <tr>
-                    <th>ネットワーク寁E��</th>
+                    <th>ネットワーク密度</th>
                     <td>@FormatMetric(Model.FinalNetworkMetrics?.NetworkDensity, "0.000")</td>
-                    <th>実効ネットワーク寁E��</th>
+                    <th>実効ネットワーク密度</th>
                     <td>@FormatMetric(Model.FinalNetworkMetrics?.EffectiveNetworkDensity, "0.000")</td>
                 </tr>
                 <tr>
@@ -552,25 +552,25 @@
                     <td>@FormatMetric(Model.FinalNetworkMetrics?.IsolatedCount)</td>
                 </tr>
                 <tr>
-                    <th>ハブエージェンチE</th>
+                    <th>ハブエージェント</th>
                     <td>@(Model.FinalNetworkMetrics?.HubAgentName ?? "--")</td>
                     <th>ハブスコア</th>
                     <td>@FormatMetric(Model.FinalNetworkMetrics?.HubScore)</td>
                 </tr>
                 <tr>
-                    <th>惁E��共有率</th>
+                    <th>情報共有率</th>
                     <td>@FormatMetric(Model.Project.Metrics?.ShareInfoRate, "0.000")</td>
-                    <th>アイチE��提案率</th>
+                    <th>アイデア提案率</th>
                     <td>@FormatMetric(Model.Project.Metrics?.ProposeIdeaRate, "0.000")</td>
                 </tr>
                 <tr>
                     <th>批判 / 支援 比率</th>
                     <td>@FormatMetric(Model.Project.Metrics?.CriticizeSupportRatio, "0.000")</td>
-                    <th>Learning到達スチE��チE</th>
+                    <th>Learning到達ステップ</th>
                     <td>@FormatMetric(Model.Project.Metrics?.StepsToLearning)</td>
                 </tr>
                 <tr>
-                    <th>Emergent到達スチE��チE</th>
+                    <th>Emergent到達ステップ</th>
                     <td>@FormatMetric(Model.Project.Metrics?.StepsToEmergent)</td>
                     <th>相変化回数</th>
                     <td>@FormatMetric(Model.Project.Metrics?.PhaseChangeCount)</td>
@@ -595,7 +595,7 @@
     </div>
     @if (Model.PhaseHistory.Count == 0)
     {
-        <p class="text-muted mb-0">まだ phase 履歴はありません、EスチE��プ実行後に表示されます、E</p>
+        <p class="text-muted mb-0">まだ phase 履歴はありません。ステップ実行後に表示されます。</p>
     }
     else
     {
@@ -606,13 +606,13 @@
 <section class="log-section mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="h5 mb-1">実効信頼閾値スイーチE</h2>
-            <p class="text-muted small mb-0">信頼閾値を変化させたとき、実効ネットワークがどのように刁E��されるかを確認します、E</p>
+            <h2 class="h5 mb-1">実効信頼閾値スイープ</h2>
+            <p class="text-muted small mb-0">信頼閾値を変化させたとき、実効ネットワークがどのように分断されるかを確認します。</p>
         </div>
     </div>
     @if (Model.ThresholdSweep.Count == 0)
     {
-        <p class="text-muted mb-0">まだ threshold sweep を表示できる trust 状態がありません、E</p>
+        <p class="text-muted mb-0">まだ threshold sweep を表示できる trust 状態がありません。</p>
     }
     else
     {
@@ -621,10 +621,10 @@
                 <thead>
                     <tr>
                         <th>閾値</th>
-                        <th>実効ネットワーク寁E��</th>
+                        <th>実効ネットワーク密度</th>
                         <th>Strong Links</th>
                         <th>Weak Links</th>
-                        <th>連結�E刁E��</th>
+                        <th>連結成分数</th>
                         <th>孤立エージェント数</th>
                     </tr>
                 </thead>
@@ -652,19 +652,19 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="h5 mb-1">信頼ネットワーク</h2>
-            <p class="text-muted small mb-0">吁E��チE��プ時点のエージェント間信頼度をネチE��ワークとして表示します。実効信頼閾値以上�E接続を強ぁE��ンクとして扱ぁE��す、E</p>
+            <p class="text-muted small mb-0">各ステップ時点のエージェント間信頼度をネットワークとして表示します。実効信頼閾値以上の接続を強いリンクとして扱います。</p>
         </div>
     </div>
 
     @if (Model.NetworkSnapshots.Count == 0)
     {
-        <p class="text-muted mb-0">まだネットワークを表示できる step がありません、E</p>
+        <p class="text-muted mb-0">まだネットワークを表示できる step がありません。</p>
     }
     else
     {
         <div class="network-controls mb-3">
             <div class="network-slider-row">
-                <label class="form-label mb-0" for="networkStepSlider">表示スチE��チE/label>
+                <label class="form-label mb-0" for="networkStepSlider">表示ステップ</label>
                 <input class="form-range" type="range" id="networkStepSlider" min="1" max="@Model.Project.CurrentStep" value="@Model.Project.CurrentStep" />
                 <span class="network-step-badge" id="networkStepBadge">@Model.Project.CurrentStep</span>
             </div>
@@ -678,7 +678,7 @@
 
         <div class="network-stats-grid mb-3">
             <div class="network-stat-card">
-                <div class="network-stat-label">表示スチE��チE</div>
+                <div class="network-stat-label">表示ステップ</div>
                 <div class="network-stat-value" id="networkInfoStep">-</div>
             </div>
             <div class="network-stat-card">
@@ -686,7 +686,7 @@
                 <div class="network-stat-value" id="networkInfoPhase">-</div>
             </div>
             <div class="network-stat-card">
-                <div class="network-stat-label">平坁E��頼度</div>
+                <div class="network-stat-label">平均信頼度</div>
                 <div class="network-stat-value" id="networkInfoAverageTrust">-</div>
             </div>
             <div class="network-stat-card">
@@ -698,12 +698,12 @@
                 <div class="network-stat-value" id="networkInfoIsolated">-</div>
             </div>
             <div class="network-stat-card">
-                <div class="network-stat-label">連結�E刁E��</div>
+                <div class="network-stat-label">連結成分数</div>
                 <div class="network-stat-value" id="networkInfoComponents">-</div>
             </div>
         </div>
 
-        <p class="text-muted small mb-3">青線�E strong link、薄ぁE�E線�E閾値未満の weak link です、E</p>
+        <p class="text-muted small mb-3">薄線は weak link、太線は strong link です。</p>
 
         <div class="network-svg-shell">
             <svg id="trustNetworkSvg" viewBox="0 0 700 450" role="img" aria-label="Trust network visualization"></svg>
@@ -715,7 +715,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="h5 mb-1">Agent Trust Summary</h2>
-            <p class="text-muted small mb-0">現在の TrustJson と Agent 属性の一覧です、E</p>
+            <p class="text-muted small mb-0">現在の TrustJson と Agent 属性の一覧です。</p>
         </div>
     </div>
     <div class="table-responsive">
@@ -751,12 +751,12 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="h5 mb-1">信頼変化ログ</h2>
-            <p class="text-muted small mb-0">吁EAgentAction に対して保存された trust の before / delta / after です、E</p>
+            <p class="text-muted small mb-0">各 AgentAction に対して保存された trust の before / delta / after です。</p>
         </div>
     </div>
     @if (Model.TrustChangeLogs.Count == 0)
     {
-        <p class="text-muted mb-0">まだ trust change log はありません、E</p>
+        <p class="text-muted mb-0">まだ trust change log はありません。</p>
     }
     else
     {
@@ -826,7 +826,7 @@
         {
             <div class="empty-state">
                 <h2 class="h5">Step Log はまだありません</h2>
-                <p>1スチE��プ実行すると message, memory, action, target が保存されます、E</p>
+                <p>1ステップ実行すると message, memory, action, target が保存されます。</p>
             </div>
         }
         else
@@ -909,11 +909,11 @@
 
         @if (Model.SelectedAgentId is null)
         {
-            <p class="text-muted">履歴を確認すめEAgent を選択してください、E</p>
+            <p class="text-muted">履歴を確認する Agent を選択してください。</p>
         }
         else if (Model.AgentHistory.Count == 0)
         {
-            <p class="text-muted">こ�E Agent の履歴はまだありません、E</p>
+            <p class="text-muted">この Agent の履歴はまだありません。</p>
         }
         else
         {
@@ -1038,13 +1038,13 @@
                     data: {
                         labels: points.map(point => point.stepNo),
                         datasets: [
-                            buildRateDataset('��񋤗L', points.map(point => point.shareInfoRate), '#2563eb'),
-                            buildRateDataset('���k', points.map(point => point.askHelpRate), '#2f855a'),
-                            buildRateDataset('�A�C�f�A���', points.map(point => point.proposeIdeaRate), '#d97706'),
+                            buildRateDataset('情報共有', points.map(point => point.shareInfoRate), '#2563eb'),
+                            buildRateDataset('相談', points.map(point => point.askHelpRate), '#2f855a'),
+                            buildRateDataset('アイデア提案', points.map(point => point.proposeIdeaRate), '#d97706'),
                             buildRateDataset('批判', points.map(point => point.criticizeRate), '#c2410c'),
                             buildRateDataset('単独作業', points.map(point => point.workAloneRate), '#6b7280'),
                             buildRateDataset('支援', points.map(point => point.supportOtherRate), '#0f766e'),
-                            buildRateDataset('�ҋ@', points.map(point => point.waitRate), '#7c3aed')
+                            buildRateDataset('待機', points.map(point => point.waitRate), '#7c3aed')
                         ]
                     },
                     options: {
@@ -1407,7 +1407,7 @@
                         labels: points.map(point => Number(point.threshold).toFixed(2)),
                         datasets: [
                             {
-                                label: '連結�E刁E��',
+                                label: '騾｣邨先・蛻・焚',
                                 data: points.map(point => point.componentCount),
                                 borderColor: '#a86d14',
                                 backgroundColor: 'rgba(168, 109, 20, 0.12)',
@@ -1417,7 +1417,7 @@
                                 pointRadius: 4
                             },
                             {
-                                label: '実効ネットワーク寁E��',
+                                label: '実効ネットワーク密度',
                                 data: points.map(point => point.effectiveNetworkDensity),
                                 borderColor: '#1c4b8f',
                                 backgroundColor: 'rgba(28, 75, 143, 0.12)',

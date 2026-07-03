@@ -6,7 +6,7 @@
 
 @if (Model.Scenario is null)
 {
-    <div class="alert alert-warning">シナリオが見つかりません、E</div>
+    <div class="alert alert-warning">シナリオが見つかりません。</div>
     return;
 }
 
@@ -17,19 +17,19 @@
         <div class="text-muted">@Model.Scenario.Description</div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-primary" asp-page="/Experiments/Create" asp-route-scenarioId="@Model.Scenario.Id">こ�Eシナリオから実験を作�E</a>
-        <a class="btn btn-outline-secondary" asp-page="/Scenarios/Edit" asp-route-id="@Model.Scenario.Id">編雁E</a>
+        <a class="btn btn-primary" asp-page="/Experiments/Create" asp-route-scenarioId="@Model.Scenario.Id">このシナリオから実験を作成</a>
+        <a class="btn btn-outline-secondary" asp-page="/Scenarios/Edit" asp-route-id="@Model.Scenario.Id">編集</a>
         <a class="btn btn-outline-danger" asp-page="/Scenarios/Delete" asp-route-id="@Model.Scenario.Id">削除</a>
     </div>
 </div>
 
 <section class="summary-grid mb-4">
     <div>
-        <h2 class="h6">目皁E</h2>
+        <h2 class="h6">目的</h2>
         <p>@Model.Scenario.Purpose</p>
     </div>
     <div>
-        <h2 class="h6">墁E��条件</h2>
+        <h2 class="h6">境界条件</h2>
         <p>@Model.Scenario.BoundaryConditions</p>
     </div>
     <div>
@@ -53,37 +53,37 @@
         <p>@Model.Scenario.LlmProvider</p>
     </div>
     <div>
-        <h2 class="h6">LLMモチE��</h2>
+        <h2 class="h6">LLMモデル</h2>
         <p>@Model.Scenario.LlmModel</p>
     </div>
     <div>
-        <h2 class="h6">参�EExperiment数</h2>
+        <h2 class="h6">関連Experiment数</h2>
         <p>@Model.ExperimentCount</p>
     </div>
 </section>
 
 <section class="log-section">
-    <h2 class="h5 mb-3">墁E��条件パラメータ</h2>
+    <h2 class="h5 mb-3">境界条件パラメータ</h2>
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
             <tbody>
-                <tr><th>惁E��共朁E</th><td>@Model.Scenario.InformationSharingLevel.ToString("0.0")</td></tr>
+                <tr><th>情報共有</th><td>@Model.Scenario.InformationSharingLevel.ToString("0.0")</td></tr>
                 <tr><th>協調性</th><td>@Model.Scenario.CooperationLevel.ToString("0.0")</td></tr>
                 <tr><th>競争性</th><td>@Model.Scenario.CompetitionLevel.ToString("0.0")</td></tr>
-                <tr><th>忁E��皁E���E性</th><td>@Model.Scenario.PsychologicalSafetyLevel.ToString("0.0")</td></tr>
+                <tr><th>心理的安全性</th><td>@Model.Scenario.PsychologicalSafetyLevel.ToString("0.0")</td></tr>
                 <tr><th>学習志向</th><td>@Model.Scenario.LearningOrientationLevel.ToString("0.0")</td></tr>
                 <tr><th>顧客志向</th><td>@Model.Scenario.CustomerOrientationLevel.ToString("0.0")</td></tr>
-                <tr><th>短期�E果圧劁E</th><td>@Model.Scenario.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
+                <tr><th>短期成果圧力</th><td>@Model.Scenario.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
                 <tr><th>実効信頼閾値</th><td>@Model.Scenario.EffectiveTrustThreshold.ToString("0.00")</td></tr>
-                <tr><th>�m���~��</th><td>@Model.Scenario.KnowledgeStock.ToString("0.00")</td></tr>
-                <tr><th>�m�����l��</th><td>@Model.Scenario.KnowledgeDiversity.ToString("0.00")</td></tr>
-                <tr><th>�O���h�����x��</th><td>@Model.Scenario.ExternalShockLevel.ToString("0.00")</td></tr>
-                <tr><th>�ٕ���ڐG�x</th><td>@Model.Scenario.CrossDomainExposure.ToString("0.00")</td></tr>
-                <tr><th>�Ĕz�����x</th><td>@Model.Scenario.RewiringSensitivity.ToString("0.00")</td></tr>
-                <tr><th>�O���h����L����</th><td>@(Model.Scenario.EnableExternalShock ? "Yes" : "No")</td></tr>
-                <tr><th>�O���h��Step</th><td>@Model.Scenario.ShockStep</td></tr>
-                <tr><th>�O���h���^�C�v</th><td>@Model.Scenario.ShockType</td></tr>
-                <tr><th>�O���h������</th><td>@(string.IsNullOrWhiteSpace(Model.Scenario.ShockDescription) ? "-" : Model.Scenario.ShockDescription)</td></tr>
+                <tr><th>知識蓄積</th><td>@Model.Scenario.KnowledgeStock.ToString("0.00")</td></tr>
+                <tr><th>知識多様性</th><td>@Model.Scenario.KnowledgeDiversity.ToString("0.00")</td></tr>
+                <tr><th>外部刺激レベル</th><td>@Model.Scenario.ExternalShockLevel.ToString("0.00")</td></tr>
+                <tr><th>異分野接触度</th><td>@Model.Scenario.CrossDomainExposure.ToString("0.00")</td></tr>
+                <tr><th>再配線感度</th><td>@Model.Scenario.RewiringSensitivity.ToString("0.00")</td></tr>
+                <tr><th>外部刺激を有効化</th><td>@(Model.Scenario.EnableExternalShock ? "Yes" : "No")</td></tr>
+                <tr><th>外部刺激Step</th><td>@Model.Scenario.ShockStep</td></tr>
+                <tr><th>外部刺激タイプ</th><td>@Model.Scenario.ShockType</td></tr>
+                <tr><th>外部刺激説明</th><td>@(string.IsNullOrWhiteSpace(Model.Scenario.ShockDescription) ? "-" : Model.Scenario.ShockDescription)</td></tr>
             </tbody>
         </table>
     </div>
