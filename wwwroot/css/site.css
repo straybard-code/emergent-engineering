@@ -230,6 +230,60 @@ code {
   border-color: #e5e8ec;
 }
 
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 5.75rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.status-pending {
+  background: #f3f4f6;
+  color: #4b5563;
+  border-color: #d7dbe0;
+}
+
+.status-running {
+  background: #e9f3ff;
+  color: #1d4f91;
+  border-color: #c9ddfb;
+}
+
+.status-completed {
+  background: #edf8f0;
+  color: #23663a;
+  border-color: #d2ead8;
+}
+
+.status-failed {
+  background: #fceeee;
+  color: #943838;
+  border-color: #f2d0d0;
+}
+
+.status-cancelled {
+  background: #fff5e6;
+  color: #8b5b13;
+  border-color: #efd6a8;
+}
+
+.experiment-status-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.experiment-running > * {
+  background: #f5f9ff !important;
+}
+
 .log-filter {
   display: flex;
   gap: 0.75rem;
@@ -319,6 +373,11 @@ textarea.form-control {
   .network-slider-row,
   .network-stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .experiment-status-summary {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .d-flex.justify-content-between {

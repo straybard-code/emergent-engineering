@@ -5,24 +5,48 @@
 }
 
 @functions {
-    private static string FormatStatus(string? status) => status switch
+    private static string FormatStatus(string? status) => IndexModel.GetStatusCategory(status) switch
     {
-        "Created" => "Created（作成済み）",
-        "Running" => "Running（実行中）",
-        "StopRequested" => "StopRequested（停止要求）",
-        "Stopped" => "Stopped（停止済み）",
-        "Completed" => "Completed（完了）",
-        _ => status ?? "-"
+        ExperimentStatusCategory.Pending => "未実行",
+        ExperimentStatusCategory.Running => "実行中",
+        ExperimentStatusCategory.Completed => "完了",
+        ExperimentStatusCategory.Failed => "失敗",
+        ExperimentStatusCategory.Cancelled => "停止",
+        _ => "-"
+    };
+
+    private static string GetStatusBadgeClass(string? status) => IndexModel.GetStatusCategory(status) switch
+    {
+        ExperimentStatusCategory.Pending => "status-badge status-pending",
+        ExperimentStatusCategory.Running => "status-badge status-running",
+        ExperimentStatusCategory.Completed => "status-badge status-completed",
+        ExperimentStatusCategory.Failed => "status-badge status-failed",
+        ExperimentStatusCategory.Cancelled => "status-badge status-cancelled",
+        _ => "status-badge status-pending"
+    };
+
+    private static string GetRowClass(string? status) => IndexModel.GetStatusCategory(status) switch
+    {
+        ExperimentStatusCategory.Running => "experiment-running",
+        _ => ""
     };
 }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h1 class="h2 mb-1">Experiments</h1>
-        <p class="text-muted mb-0">同じ条件で複数回の実行結果を比較し、Phase 遷移と Trust 状態を観察します。</p>
+        <p class="text-muted mb-0">同じ条件で複数回の実行結果を比較し、Phase 遷移と Trust 状態を確認します。</p>
     </div>
     <a class="btn btn-primary" asp-page="/Experiments/Create">新規 Experiment</a>
 </div>
+
+<section class="experiment-status-summary mb-4">
+    <span class="status-badge status-running">実行中: @Model.RunningCount</span>
+    <span class="status-badge status-completed">完了: @Model.CompletedCount</span>
+    <span class="status-badge status-pending">未実行: @Model.PendingCount</span>
+    <span class="status-badge status-failed">失敗: @Model.FailedCount</span>
+    <span class="status-badge status-cancelled">停止: @Model.CancelledCount</span>
+</section>
 
 @if (Model.Experiments.Count == 0)
 {
@@ -49,12 +73,12 @@ else
             <tbody>
             @foreach (var experiment in Model.Experiments)
             {
-                <tr>
+                <tr class="@GetRowClass(experiment.Status)">
                     <td>
                         <strong>@experiment.Name</strong>
                         <div class="text-muted small">@experiment.Description</div>
                     </td>
-                    <td><span class="badge text-bg-secondary">@FormatStatus(experiment.Status)</span></td>
+                    <td><span class="@GetStatusBadgeClass(experiment.Status)">@FormatStatus(experiment.Status)</span></td>
                     <td>@experiment.RunCount</td>
                     <td>@experiment.AgentCount</td>
                     <td>@experiment.TotalSteps</td>
