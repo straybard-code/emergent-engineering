@@ -12,18 +12,10 @@ builder.Services.AddSingleton(databaseConnectionOptions);
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
     options.UseSqlServer(serviceProvider.GetRequiredService<DatabaseConnectionOptions>().ConnectionString));
 builder.Services.AddHttpClient();
-
-var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-if (string.IsNullOrWhiteSpace(openAiApiKey))
-{
-    builder.Services.AddScoped<ILlmService, MockLlmService>();
-}
-else
-{
-    builder.Services.AddScoped<ILlmService, OpenAiLlmService>();
-}
-
+builder.Services.AddScoped<MockLlmService>();
+builder.Services.AddScoped<OpenAiLlmService>();
 builder.Services.AddScoped<ISimulationRunner, SimulationRunner>();
+builder.Services.AddScoped<IExperimentExecutionService, ExperimentExecutionService>();
 
 var app = builder.Build();
 
@@ -58,6 +50,8 @@ app.MapGet("/api/simulations", async (AppDbContext db) =>
             project.Id,
             project.Name,
             project.Purpose,
+            project.LlmProvider,
+            project.LlmModel,
             project.AgentCount,
             project.TotalSteps,
             project.CurrentStep,
@@ -72,6 +66,7 @@ app.MapGet("/api/simulations/{id:int}", async (int id, AppDbContext db) =>
     var project = await db.SimulationProjects
         .Include(project => project.Agents)
         .Include(project => project.Steps)
+        .Include(project => project.Metrics)
         .FirstOrDefaultAsync(project => project.Id == id);
 
     return project is null ? Results.NotFound() : Results.Ok(project);

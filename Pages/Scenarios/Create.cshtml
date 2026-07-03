@@ -1,0 +1,23 @@
+@page
+@model EmergentEngineering.Pages.Scenarios.CreateModel
+@{
+    ViewData["Title"] = "新規シナリオ";
+}
+
+<div class="page-heading">
+    <h1 class="h2">新規シナリオ</h1>
+    <p class="text-muted">再利用可能な実験条件テンプレートを作成します。</p>
+</div>
+
+<form method="post" class="simulation-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <partial name="_ScenarioFormFields" model="Model.Input" />
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">作成</button>
+        <a asp-page="/Scenarios/Index" class="btn btn-outline-secondary">キャンセル</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

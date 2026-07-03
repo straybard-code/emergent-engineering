@@ -9,6 +9,8 @@ public sealed class Agent
     public string Role { get; set; } = "";
     public string Memory { get; set; } = "";
     public string TrustJson { get; set; } = "{}";
+    public string Personality { get; set; } = "";
+    public string Orientation { get; set; } = "";
     public double PositionX { get; set; }
     public double PositionY { get; set; }
     public List<AgentAction> Actions { get; set; } = [];

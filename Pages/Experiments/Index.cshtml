@@ -1,0 +1,73 @@
+@page
+@model EmergentEngineering.Pages.Experiments.IndexModel
+@{
+    ViewData["Title"] = "Experiments";
+}
+
+@functions {
+    private static string FormatStatus(string? status) => status switch
+    {
+        "Created" => "Created（作成済み）",
+        "Running" => "Running（実行中）",
+        "StopRequested" => "StopRequested（停止要求）",
+        "Stopped" => "Stopped（停止済み）",
+        "Completed" => "Completed（完了）",
+        _ => status ?? "-"
+    };
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h2 mb-1">Experiments</h1>
+        <p class="text-muted mb-0">同じ条件で複数回の実行結果を比較し、Phase 遷移と Trust 状態を観察します。</p>
+    </div>
+    <a class="btn btn-primary" asp-page="/Experiments/Create">新規 Experiment</a>
+</div>
+
+@if (Model.Experiments.Count == 0)
+{
+    <div class="empty-state">
+        <h2 class="h5">Experiment はまだありません</h2>
+        <p>比較したい条件セットを作成してから複数 Run を実行します。</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Run Count</th>
+                    <th>Agents</th>
+                    <th>Steps</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var experiment in Model.Experiments)
+            {
+                <tr>
+                    <td>
+                        <strong>@experiment.Name</strong>
+                        <div class="text-muted small">@experiment.Description</div>
+                    </td>
+                    <td><span class="badge text-bg-secondary">@FormatStatus(experiment.Status)</span></td>
+                    <td>@experiment.RunCount</td>
+                    <td>@experiment.AgentCount</td>
+                    <td>@experiment.TotalSteps</td>
+                    <td>@experiment.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-2 flex-wrap">
+                            <a class="btn btn-sm btn-outline-primary" asp-page="/Experiments/Details" asp-route-id="@experiment.Id">詳細</a>
+                            <a class="btn btn-sm btn-outline-danger" asp-page="/Experiments/Delete" asp-route-id="@experiment.Id">削除</a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

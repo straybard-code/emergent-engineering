@@ -1,0 +1,112 @@
+@model EmergentEngineering.Models.Scenario
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label">シナリオ名</label>
+    <input asp-for="Name" class="form-control" />
+    <span asp-validation-for="Name" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Description" class="form-label">説明</label>
+    <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+    <span asp-validation-for="Description" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Purpose" class="form-label">目的</label>
+    <textarea asp-for="Purpose" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Purpose" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="BoundaryConditions" class="form-label">境界条件</label>
+    <textarea asp-for="BoundaryConditions" class="form-control" rows="4"></textarea>
+    <span asp-validation-for="BoundaryConditions" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="KpiDefinition" class="form-label">KPI</label>
+    <textarea asp-for="KpiDefinition" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="KpiDefinition" class="text-danger"></span>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="LlmProvider" class="form-label">LLMプロバイダー</label>
+        <select asp-for="LlmProvider" class="form-select">
+            <option value="Mock">Mock（高速・無料）</option>
+            <option value="OpenAI">OpenAI（高精度・有料）</option>
+        </select>
+        <span asp-validation-for="LlmProvider" class="text-danger"></span>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="LlmModel" class="form-label">LLMモデル</label>
+        <select asp-for="LlmModel" class="form-select">
+            <option value="mock-v1">mock-v1</option>
+            <option value="gpt-4o-mini">gpt-4o-mini</option>
+            <option value="gpt-4o">gpt-4o</option>
+            <option value="gpt-5.5">gpt-5.5</option>
+            <option value="gpt-5.6">gpt-5.6</option>
+        </select>
+        <span asp-validation-for="LlmModel" class="text-danger"></span>
+    </div>
+</div>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">境界条件パラメータ</h2>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="InformationSharingLevel" class="form-label">情報共有</label>
+            <input asp-for="InformationSharingLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <span asp-validation-for="InformationSharingLevel" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="CooperationLevel" class="form-label">協調性</label>
+            <input asp-for="CooperationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <span asp-validation-for="CooperationLevel" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="CompetitionLevel" class="form-label">競争性</label>
+            <input asp-for="CompetitionLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <span asp-validation-for="CompetitionLevel" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="PsychologicalSafetyLevel" class="form-label">心理的安全性</label>
+            <input asp-for="PsychologicalSafetyLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <span asp-validation-for="PsychologicalSafetyLevel" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="LearningOrientationLevel" class="form-label">学習志向</label>
+            <input asp-for="LearningOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <span asp-validation-for="LearningOrientationLevel" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="CustomerOrientationLevel" class="form-label">顧客志向</label>
+            <input asp-for="CustomerOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <span asp-validation-for="CustomerOrientationLevel" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ShortTermResultPressureLevel" class="form-label">短期成果圧力</label>
+            <input asp-for="ShortTermResultPressureLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <span asp-validation-for="ShortTermResultPressureLevel" class="text-danger"></span>
+        </div>
+    </div>
+</section>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="AgentCount" class="form-label">Agent数</label>
+        <input asp-for="AgentCount" class="form-control" type="number" min="1" max="20" />
+        <span asp-validation-for="AgentCount" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="TotalSteps" class="form-label">Step数</label>
+        <input asp-for="TotalSteps" class="form-control" type="number" min="1" max="100" />
+        <span asp-validation-for="TotalSteps" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="RunCount" class="form-label">Run回数</label>
+        <input asp-for="RunCount" class="form-control" type="number" min="1" max="20" />
+        <span asp-validation-for="RunCount" class="text-danger"></span>
+    </div>
+</div>

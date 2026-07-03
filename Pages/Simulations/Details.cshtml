@@ -1,68 +1,183 @@
 @page "{id:int}"
 @model EmergentEngineering.Pages.Simulations.DetailsModel
 @{
-    ViewData["Title"] = Model.Project?.Name ?? "Simulation";
+    ViewData["Title"] = Model.Project?.Name ?? "Simulation詳細";
+}
+
+@functions {
+    private static string FormatPhase(string? phase) => phase switch
+    {
+        "Forming" => "Forming\uFF08\u5F62\u6210\u671F\uFF09",
+        "Learning" => "Learning\uFF08\u5B66\u7FD2\u671F\uFF09",
+        "Stable" => "Stable\uFF08\u5B89\u5B9A\u671F\uFF09",
+        "Emergent" => "Emergent\uFF08\u5275\u767A\u671F\uFF09",
+        "Silo" => "Silo\uFF08\u30B5\u30A4\u30ED\u5316\uFF09",
+        "Chaos" => "Chaos\uFF08\u6DF7\u4E71\uFF09",
+        "Collapse" => "Collapse\uFF08\u5D29\u58CA\uFF09",
+        _ => phase ?? "-"
+    };
+
+    private static string FormatStatus(string? status) => status switch
+    {
+        "Created" => "Created\uFF08\u4F5C\u6210\u6E08\u307F\uFF09",
+        "Running" => "Running\uFF08\u5B9F\u884C\u4E2D\uFF09",
+        "Completed" => "Completed\uFF08\u5B8C\u4E86\uFF09",
+        _ => status ?? "-"
+    };
+
+    private static string FormatMetric(double? value, string format = "0.00")
+    {
+        return value.HasValue ? value.Value.ToString(format) : "--";
+    }
+
+    private static string FormatMetric(int? value)
+    {
+        return value.HasValue ? value.Value.ToString() : "--";
+    }
 }
 
 @if (Model.Project is null)
 {
-    <div class="alert alert-warning">Simulation not found.</div>
+    <div class="alert alert-warning">Simulation が見つかりません。</div>
     return;
 }
 
 <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
     <div>
-        <a asp-page="/Index" class="text-decoration-none small">&larr; Back to simulations</a>
+        <a asp-page="/Index" class="text-decoration-none small">&larr; Simulation一覧</a>
         <h1 class="h2 mt-2 mb-1">@Model.Project.Name</h1>
-        <div class="text-muted">CurrentStep @Model.Project.CurrentStep / @Model.Project.TotalSteps - @Model.Project.Status - Phase @Model.Project.Phase</div>
+        <div class="text-muted">現在ステップ @Model.Project.CurrentStep / @Model.Project.TotalSteps ・ 状態 @FormatStatus(Model.Project.Status) ・ 相 @FormatPhase(Model.Project.Phase)</div>
     </div>
     <div class="d-flex gap-2">
         <form method="post" asp-page-handler="RunOne" asp-route-id="@Model.Project.Id">
-            <button class="btn btn-primary" type="submit" disabled="@Model.IsCompleted">Run one step</button>
+            <button class="btn btn-primary" type="submit" disabled="@Model.IsCompleted">1ステップ実行</button>
         </form>
         <form method="post" asp-page-handler="RunAll" asp-route-id="@Model.Project.Id">
-            <button class="btn btn-outline-primary" type="submit" disabled="@Model.IsCompleted">Run all</button>
+            <button class="btn btn-outline-primary" type="submit" disabled="@Model.IsCompleted">最後まで実行</button>
         </form>
+        <a class="btn btn-outline-danger" asp-page="/Simulations/Delete" asp-route-id="@Model.Project.Id">シミュレーション削除</a>
     </div>
 </div>
 
 <section class="summary-grid mb-4">
     <div>
-        <h2 class="h6">CurrentStep</h2>
+        <h2 class="h6">現在ステップ</h2>
         <p>@Model.Project.CurrentStep / @Model.Project.TotalSteps</p>
     </div>
     <div>
-        <h2 class="h6">Status</h2>
-        <p>@Model.Project.Status</p>
+        <h2 class="h6">状態</h2>
+        <p>@FormatStatus(Model.Project.Status)</p>
     </div>
     <div>
-        <h2 class="h6">Phase</h2>
-        <p><span class="phase-pill">@Model.Project.Phase</span></p>
+        <h2 class="h6">相</h2>
+        <p><span class="phase-pill">@FormatPhase(Model.Project.Phase)</span></p>
     </div>
     <div>
-        <h2 class="h6">Purpose</h2>
+        <h2 class="h6">目的</h2>
         <p>@Model.Project.Purpose</p>
     </div>
     <div>
-        <h2 class="h6">Culture and Boundary Conditions</h2>
+        <h2 class="h6">境界条件</h2>
         <p>@Model.Project.BoundaryConditions</p>
     </div>
     <div>
         <h2 class="h6">KPI</h2>
         <p>@Model.Project.KpiDefinition</p>
     </div>
+    <div>
+        <h2 class="h6">LLMプロバイダー</h2>
+        <p>@Model.Project.LlmProvider</p>
+    </div>
+    <div>
+        <h2 class="h6">LLMモデル</h2>
+        <p>@Model.Project.LlmModel</p>
+    </div>
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">境界条件パラメータ</h2>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <tbody>
+                <tr><th>情報共有</th><td>@Model.Project.InformationSharingLevel.ToString("0.0")</td></tr>
+                <tr><th>協調性</th><td>@Model.Project.CooperationLevel.ToString("0.0")</td></tr>
+                <tr><th>競争性</th><td>@Model.Project.CompetitionLevel.ToString("0.0")</td></tr>
+                <tr><th>心理的安全性</th><td>@Model.Project.PsychologicalSafetyLevel.ToString("0.0")</td></tr>
+                <tr><th>学習志向</th><td>@Model.Project.LearningOrientationLevel.ToString("0.0")</td></tr>
+                <tr><th>顧客志向</th><td>@Model.Project.CustomerOrientationLevel.ToString("0.0")</td></tr>
+                <tr><th>短期成果圧力</th><td>@Model.Project.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">組織評価指標</h2>
+            <p class="text-muted small mb-0">Run All 完了時点の最終集計です。</p>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <tbody>
+                <tr>
+                    <th>最終相</th>
+                    <td>@FormatPhase(Model.Project.Metrics?.FinalPhase ?? Model.Project.Phase)</td>
+                    <th>平均信頼度</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.AverageTrust)</td>
+                </tr>
+                <tr>
+                    <th>ネットワーク密度</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.NetworkDensity, "0.000")</td>
+                    <th>孤立エージェント数</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.IsolatedAgentCount)</td>
+                </tr>
+                <tr>
+                    <th>ハブエージェント</th>
+                    <td>@(Model.Project.Metrics?.HubAgentName ?? "--")</td>
+                    <th>ハブスコア</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.HubScore)</td>
+                </tr>
+                <tr>
+                    <th>情報共有率</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.ShareInfoRate, "0.000")</td>
+                    <th>アイデア提案率</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.ProposeIdeaRate, "0.000")</td>
+                </tr>
+                <tr>
+                    <th>批判 / 支援 比率</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.CriticizeSupportRatio, "0.000")</td>
+                    <th>Learning到達ステップ</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.StepsToLearning)</td>
+                </tr>
+                <tr>
+                    <th>Emergent到達ステップ</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.StepsToEmergent)</td>
+                    <th>相変化回数</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.PhaseChangeCount)</td>
+                </tr>
+                <tr>
+                    <th>相安定度</th>
+                    <td>@FormatMetric(Model.Project.Metrics?.PhaseStability, "0.000")</td>
+                    <th></th>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </section>
 
 <section class="chart-panel mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="h5 mb-1">Phase timeline</h2>
-            <p class="text-muted small mb-0">Forming 0, Learning 1, Stable 2, Emergent 3, Silo -1, Chaos -2, Collapse -3</p>
+            <h2 class="h5 mb-1">Phase Timeline</h2>
+            <p class="text-muted small mb-0">Forming=0, Learning=1, Stable=2, Emergent=3, Silo=-1, Chaos=-2, Collapse=-3</p>
         </div>
     </div>
     @if (Model.PhaseHistory.Count == 0)
     {
-        <p class="text-muted mb-0">Run at least one step to create phase history.</p>
+        <p class="text-muted mb-0">まだ phase 履歴はありません。1ステップ実行後に表示されます。</p>
     }
     else
     {
@@ -73,16 +188,76 @@
 <section class="log-section mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="h5 mb-1">Trust overview</h2>
-            <p class="text-muted small mb-0">AverageTrust is the average of values stored in each agent's TrustJson.</p>
+            <h2 class="h5 mb-1">信頼ネットワーク</h2>
+            <p class="text-muted small mb-0">各ステップ時点のエージェント間信頼度をネットワークとして表示します。</p>
+        </div>
+    </div>
+
+    @if (Model.NetworkSnapshots.Count == 0)
+    {
+        <p class="text-muted mb-0">まだネットワークを表示できる step がありません。</p>
+    }
+    else
+    {
+        <div class="network-controls mb-3">
+            <div class="network-slider-row">
+                <label class="form-label mb-0" for="networkStepSlider">表示ステップ</label>
+                <input class="form-range" type="range" id="networkStepSlider" min="1" max="@Model.Project.CurrentStep" value="@Model.Project.CurrentStep" />
+                <span class="network-step-badge" id="networkStepBadge">@Model.Project.CurrentStep</span>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="networkReplayFirst">先頭へ</button>
+                <button type="button" class="btn btn-primary btn-sm" id="networkReplayPlay">再生</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="networkReplayStop">停止</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="networkReplayLast">最後へ</button>
+            </div>
+        </div>
+
+        <div class="network-stats-grid mb-3">
+            <div class="network-stat-card">
+                <div class="network-stat-label">表示ステップ</div>
+                <div class="network-stat-value" id="networkInfoStep">-</div>
+            </div>
+            <div class="network-stat-card">
+                <div class="network-stat-label">相</div>
+                <div class="network-stat-value" id="networkInfoPhase">-</div>
+            </div>
+            <div class="network-stat-card">
+                <div class="network-stat-label">平均信頼度</div>
+                <div class="network-stat-value" id="networkInfoAverageTrust">-</div>
+            </div>
+            <div class="network-stat-card">
+                <div class="network-stat-label">ハブ</div>
+                <div class="network-stat-value" id="networkInfoHub">-</div>
+            </div>
+            <div class="network-stat-card">
+                <div class="network-stat-label">孤立エージェント数</div>
+                <div class="network-stat-value" id="networkInfoIsolated">-</div>
+            </div>
+        </div>
+
+        <div class="network-svg-shell">
+            <svg id="trustNetworkSvg" viewBox="0 0 700 450" role="img" aria-label="Trust network visualization"></svg>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Agent Trust Summary</h2>
+            <p class="text-muted small mb-0">現在の TrustJson と Agent 属性の一覧です。</p>
         </div>
     </div>
     <div class="table-responsive">
         <table class="table table-sm align-middle">
             <thead>
                 <tr>
-                    <th>AgentName</th>
-                    <th>AverageTrust</th>
+                    <th>Agent</th>
+                    <th>Role</th>
+                    <th>Personality</th>
+                    <th>Orientation</th>
+                    <th>Average Trust</th>
                     <th>TrustJson</th>
                 </tr>
             </thead>
@@ -91,6 +266,9 @@
             {
                 <tr>
                     <td>@trust.AgentName</td>
+                    <td>@trust.Role</td>
+                    <td>@trust.Personality</td>
+                    <td>@trust.Orientation</td>
                     <td>@trust.AverageTrust.ToString("0.00")</td>
                     <td><code>@trust.TrustJson</code></td>
                 </tr>
@@ -100,15 +278,60 @@
     </div>
 </section>
 
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">信頼変化ログ</h2>
+            <p class="text-muted small mb-0">各 AgentAction に対して保存された trust の before / delta / after です。</p>
+        </div>
+    </div>
+    @if (Model.TrustChangeLogs.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ trust change log はありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Agent</th>
+                        <th>Action</th>
+                        <th>Trust Before</th>
+                        <th>Delta Trust</th>
+                        <th>Trust After</th>
+                        <th>Phase</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var log in Model.TrustChangeLogs)
+                {
+                    <tr>
+                        <td>@log.StepNo</td>
+                        <td>@log.AgentName</td>
+                        <td><span class="action-chip @Model.GetActionCssClass(log.Action)">@log.Action</span></td>
+                        <td><span class="trust-pill @Model.GetTrustDeltaCssClass(log.TrustBefore)">@Model.FormatTrustValue(log.TrustBefore)</span></td>
+                        <td><span class="trust-pill @Model.GetTrustDeltaCssClass(log.TrustDelta)">@Model.FormatTrustValue(log.TrustDelta, includeSign: true)</span></td>
+                        <td><span class="trust-pill @Model.GetTrustDeltaCssClass(log.TrustAfter)">@Model.FormatTrustValue(log.TrustAfter)</span></td>
+                        <td><span class="phase-pill">@FormatPhase(log.Phase)</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
 <ul class="nav nav-tabs mb-3" id="simulationTabs" role="tablist">
     <li class="nav-item" role="presentation">
-        <button class="nav-link @(Model.SelectedView == "logs" ? "active" : "")" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">Step logs</button>
+        <button class="nav-link @(Model.SelectedView == "logs" ? "active" : "")" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">Step Log</button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="agents-tab" data-bs-toggle="tab" data-bs-target="#agents" type="button" role="tab">Agents</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link @(Model.SelectedView == "history" ? "active" : "")" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">Agent history</button>
+        <button class="nav-link @(Model.SelectedView == "history" ? "active" : "")" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">Agent History</button>
     </li>
 </ul>
 
@@ -118,23 +341,23 @@
             <div>
                 <input type="hidden" name="id" value="@Model.Project.Id" />
                 <input type="hidden" name="view" value="logs" />
-                <label class="form-label" for="agentId">Agent filter</label>
+                <label class="form-label" for="agentId">Agent Filter</label>
                 <select class="form-select" id="agentId" name="agentId">
-                    <option value="">All agents</option>
+                    <option value="">All Agents</option>
                     @foreach (var agent in Model.Project.Agents.OrderBy(agent => agent.Id))
                     {
                         <option value="@agent.Id" selected="@(Model.SelectedAgentId == agent.Id ? "selected" : null)">@agent.Name - @agent.Role</option>
                     }
                 </select>
             </div>
-            <button class="btn btn-outline-primary" type="submit">Apply</button>
+            <button class="btn btn-outline-primary" type="submit">適用</button>
         </form>
 
         @if (Model.Actions.Count == 0)
         {
             <div class="empty-state">
-                <h2 class="h5">No step logs yet</h2>
-                <p>Run one step to generate messages, actions, memory updates, and state JSON.</p>
+                <h2 class="h5">Step Log はまだありません</h2>
+                <p>1ステップ実行すると message, memory, action, target が保存されます。</p>
             </div>
         }
         else
@@ -144,10 +367,10 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr>
-                                <th>StepNo</th>
-                                <th>AgentName</th>
+                                <th>Step</th>
+                                <th>Agent</th>
                                 <th>Action</th>
-                                <th>TargetAgentName</th>
+                                <th>Target</th>
                                 <th>Message</th>
                                 <th>Memory</th>
                             </tr>
@@ -181,14 +404,17 @@
                         <h2 class="h5">@agent.Name</h2>
                         <span class="badge text-bg-light">@agent.Role</span>
                     </div>
-                    <p class="mb-2">@agent.Memory</p>
-                    <dl class="row small mb-0">
+                    <dl class="row small mb-3">
+                        <dt class="col-4">Personality</dt>
+                        <dd class="col-8">@agent.Personality</dd>
+                        <dt class="col-4">Orientation</dt>
+                        <dd class="col-8">@agent.Orientation</dd>
                         <dt class="col-4">Position</dt>
                         <dd class="col-8">@agent.PositionX, @agent.PositionY</dd>
-                        <dt class="col-4">TrustJson</dt>
-                        <dd class="col-8"><code>@agent.TrustJson</code></dd>
                     </dl>
-                    <a class="btn btn-sm btn-outline-secondary mt-3" asp-page="/Simulations/Details" asp-route-id="@Model.Project.Id" asp-route-agentId="@agent.Id" asp-route-view="history">View history</a>
+                    <p class="mb-2">@agent.Memory</p>
+                    <div class="small"><strong>TrustJson:</strong> <code>@agent.TrustJson</code></div>
+                    <a class="btn btn-sm btn-outline-secondary mt-3" asp-page="/Simulations/Details" asp-route-id="@Model.Project.Id" asp-route-agentId="@agent.Id" asp-route-view="history">履歴を見る</a>
                 </article>
             </div>
         }
@@ -200,33 +426,45 @@
             <div>
                 <input type="hidden" name="id" value="@Model.Project.Id" />
                 <input type="hidden" name="view" value="history" />
-                <label class="form-label" for="agentId">Agent</label>
-                <select class="form-select" id="agentId" name="agentId">
-                    <option value="">Select agent</option>
+                <label class="form-label" for="historyAgentId">Agent</label>
+                <select class="form-select" id="historyAgentId" name="agentId">
+                    <option value="">Select an Agent</option>
                     @foreach (var agent in Model.Project.Agents.OrderBy(agent => agent.Id))
                     {
                         <option value="@agent.Id" selected="@(Model.SelectedAgentId == agent.Id ? "selected" : null)">@agent.Name - @agent.Role</option>
                     }
                 </select>
             </div>
-            <button class="btn btn-outline-primary" type="submit">Show</button>
+            <button class="btn btn-outline-primary" type="submit">表示</button>
         </form>
 
         @if (Model.SelectedAgentId is null)
         {
-            <p class="text-muted">Choose an agent to inspect its action and memory history.</p>
+            <p class="text-muted">履歴を確認する Agent を選択してください。</p>
         }
         else if (Model.AgentHistory.Count == 0)
         {
-            <p class="text-muted">No history for this agent yet.</p>
+            <p class="text-muted">この Agent の履歴はまだありません。</p>
         }
         else
         {
+            if (Model.SelectedAgent is not null)
+            {
+                <section class="log-section mb-3">
+                    <div class="row g-3 small">
+                        <div class="col-md-3"><strong>Agent:</strong> @Model.SelectedAgent.Name</div>
+                        <div class="col-md-3"><strong>Role:</strong> @Model.SelectedAgent.Role</div>
+                        <div class="col-md-3"><strong>Personality:</strong> @Model.SelectedAgent.Personality</div>
+                        <div class="col-md-3"><strong>Orientation:</strong> @Model.SelectedAgent.Orientation</div>
+                    </div>
+                </section>
+            }
+
             <div class="timeline">
             @foreach (var action in Model.AgentHistory)
             {
                 <article class="timeline-item">
-                    <div class="small text-muted">Step @action.StepNo - <span class="action-chip @Model.GetActionCssClass(action.Action)">@action.Action</span></div>
+                    <div class="small text-muted">Step @action.StepNo ・ <span class="action-chip @Model.GetActionCssClass(action.Action)">@action.Action</span></div>
                     <h2 class="h6">@action.Agent?.Name</h2>
                     <p>@action.Message</p>
                     <p class="small"><strong>Memory:</strong> @action.Memory</p>
@@ -241,68 +479,267 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         (() => {
-            const points = @Html.Raw(Model.GetPhaseHistoryJson());
-            const canvas = document.getElementById('phaseTimelineChart');
-            if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
-                return;
-            }
+            const phasePoints = @Html.Raw(Model.GetPhaseHistoryJson());
+            const networkSnapshots = @Html.Raw(Model.GetNetworkSnapshotsJson());
 
-            const phaseLabels = {
-                '-3': 'Collapse',
-                '-2': 'Chaos',
-                '-1': 'Silo',
-                '0': 'Forming',
-                '1': 'Learning',
-                '2': 'Stable',
-                '3': 'Emergent'
-            };
+            renderPhaseTimeline(phasePoints);
+            renderTrustNetwork(networkSnapshots);
 
-            new Chart(canvas, {
-                type: 'line',
-                data: {
-                    labels: points.map(point => point.stepNo),
-                    datasets: [{
-                        label: 'Phase',
-                        data: points.map(point => point.phaseValue),
-                        borderColor: '#1c4b8f',
-                        backgroundColor: 'rgba(28, 75, 143, 0.14)',
-                        tension: 0.2,
-                        fill: true,
-                        pointRadius: 4,
-                        pointHoverRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        y: {
-                            min: -3,
-                            max: 3,
-                            ticks: {
-                                stepSize: 1,
-                                callback: value => phaseLabels[String(value)] ?? value
+            function renderPhaseTimeline(points) {
+                const canvas = document.getElementById('phaseTimelineChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                const phaseLabels = {
+                    '-3': 'Collapse',
+                    '-2': 'Chaos',
+                    '-1': 'Silo',
+                    '0': 'Forming',
+                    '1': 'Learning',
+                    '2': 'Stable',
+                    '3': 'Emergent'
+                };
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [{
+                            label: 'Phase',
+                            data: points.map(point => point.phaseValue),
+                            borderColor: '#1c4b8f',
+                            backgroundColor: 'rgba(28, 75, 143, 0.14)',
+                            tension: 0.2,
+                            fill: true,
+                            pointRadius: 4,
+                            pointHoverRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: {
+                                min: -3,
+                                max: 3,
+                                ticks: {
+                                    stepSize: 1,
+                                    callback: value => phaseLabels[String(value)] ?? value
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Step'
+                                }
                             }
                         },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'StepNo'
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: context => {
-                                    const point = points[context.dataIndex];
-                                    return ` ${point.phase} (${point.phaseValue})`;
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: context => {
+                                        const point = points[context.dataIndex];
+                                        return ` ${point.phase} (${point.phaseValue})`;
+                                    }
                                 }
                             }
                         }
                     }
+                });
+            }
+
+            function renderTrustNetwork(snapshots) {
+                const svg = document.getElementById('trustNetworkSvg');
+                const slider = document.getElementById('networkStepSlider');
+                const stepBadge = document.getElementById('networkStepBadge');
+                const firstButton = document.getElementById('networkReplayFirst');
+                const playButton = document.getElementById('networkReplayPlay');
+                const stopButton = document.getElementById('networkReplayStop');
+                const lastButton = document.getElementById('networkReplayLast');
+
+                if (!svg || !slider || !snapshots || snapshots.length === 0) {
+                    return;
                 }
-            });
+
+                const phaseMap = {
+                    Forming: 'Forming\uFF08\u5F62\u6210\u671F\uFF09',
+                    Learning: 'Learning\uFF08\u5B66\u7FD2\u671F\uFF09',
+                    Stable: 'Stable\uFF08\u5B89\u5B9A\u671F\uFF09',
+                    Emergent: 'Emergent\uFF08\u5275\u767A\u671F\uFF09',
+                    Silo: 'Silo\uFF08\u30B5\u30A4\u30ED\u5316\uFF09',
+                    Chaos: 'Chaos\uFF08\u6DF7\u4E71\uFF09',
+                    Collapse: 'Collapse\uFF08\u5D29\u58CA\uFF09'
+                };
+
+                const snapshotsByStep = new Map(snapshots.map(snapshot => [snapshot.stepNo, snapshot]));
+                const maxStep = Math.max(...snapshots.map(snapshot => snapshot.stepNo));
+                let currentStep = maxStep;
+                let replayTimer = null;
+
+                slider.min = '1';
+                slider.max = String(maxStep);
+                slider.value = String(currentStep);
+
+                slider.addEventListener('input', () => {
+                    currentStep = Number(slider.value);
+                    drawCurrentStep();
+                });
+
+                firstButton?.addEventListener('click', () => {
+                    currentStep = 1;
+                    stopReplay();
+                    drawCurrentStep();
+                });
+
+                lastButton?.addEventListener('click', () => {
+                    currentStep = maxStep;
+                    stopReplay();
+                    drawCurrentStep();
+                });
+
+                playButton?.addEventListener('click', () => {
+                    if (replayTimer !== null) {
+                        return;
+                    }
+
+                    replayTimer = window.setInterval(() => {
+                        if (currentStep >= maxStep) {
+                            stopReplay();
+                            return;
+                        }
+
+                        currentStep += 1;
+                        drawCurrentStep();
+                    }, 500);
+                });
+
+                stopButton?.addEventListener('click', () => {
+                    stopReplay();
+                });
+
+                drawCurrentStep();
+
+                function stopReplay() {
+                    if (replayTimer !== null) {
+                        window.clearInterval(replayTimer);
+                        replayTimer = null;
+                    }
+                }
+
+                function getSnapshot(stepNo) {
+                    if (snapshotsByStep.has(stepNo)) {
+                        return snapshotsByStep.get(stepNo);
+                    }
+
+                    const sorted = [...snapshots].sort((left, right) => left.stepNo - right.stepNo);
+                    let fallback = sorted[0];
+                    for (const snapshot of sorted) {
+                        if (snapshot.stepNo > stepNo) {
+                            break;
+                        }
+
+                        fallback = snapshot;
+                    }
+
+                    return fallback;
+                }
+
+                function drawCurrentStep() {
+                    const snapshot = getSnapshot(currentStep);
+                    if (!snapshot) {
+                        return;
+                    }
+
+                    slider.value = String(snapshot.stepNo);
+                    if (stepBadge) {
+                        stepBadge.textContent = String(snapshot.stepNo);
+                    }
+
+                    setText('networkInfoStep', String(snapshot.stepNo));
+                    setText('networkInfoPhase', phaseMap[snapshot.phase] ?? snapshot.phase ?? '-');
+                    setText('networkInfoAverageTrust', Number(snapshot.averageTrust ?? 0).toFixed(2));
+                    setText('networkInfoHub', snapshot.hubAgentName && snapshot.hubAgentName !== '' ? snapshot.hubAgentName : '-');
+                    setText('networkInfoIsolated', String(snapshot.isolatedCount ?? 0));
+
+                    svg.innerHTML = '';
+
+                    const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    background.setAttribute('x', '0');
+                    background.setAttribute('y', '0');
+                    background.setAttribute('width', '700');
+                    background.setAttribute('height', '450');
+                    background.setAttribute('rx', '12');
+                    background.setAttribute('fill', '#f8fafc');
+                    background.setAttribute('stroke', '#d9dee7');
+                    svg.appendChild(background);
+
+                    for (const edge of snapshot.edges ?? []) {
+                        const source = (snapshot.nodes ?? []).find(node => node.agentName === edge.sourceAgentName);
+                        const target = (snapshot.nodes ?? []).find(node => node.agentName === edge.targetAgentName);
+                        if (!source || !target) {
+                            continue;
+                        }
+
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', String(source.x));
+                        line.setAttribute('y1', String(source.y));
+                        line.setAttribute('x2', String(target.x));
+                        line.setAttribute('y2', String(target.y));
+                        line.setAttribute('stroke', edge.strokeColor ?? '#8bb8ef');
+                        line.setAttribute('stroke-opacity', '0.75');
+                        line.setAttribute('stroke-width', String(edge.strokeWidth ?? 1));
+                        line.setAttribute('stroke-linecap', 'round');
+                        svg.appendChild(line);
+                    }
+
+                    if ((snapshot.edges ?? []).length === 0) {
+                        const noEdges = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        noEdges.setAttribute('x', '350');
+                        noEdges.setAttribute('y', '225');
+                        noEdges.setAttribute('text-anchor', 'middle');
+                        noEdges.setAttribute('fill', '#6b7280');
+                        noEdges.setAttribute('font-size', '15');
+                        noEdges.textContent = '\u898B\u3048\u308B trust edge \u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093';
+                        svg.appendChild(noEdges);
+                    }
+
+                    for (const node of snapshot.nodes ?? []) {
+                        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        circle.setAttribute('cx', String(node.x));
+                        circle.setAttribute('cy', String(node.y));
+                        circle.setAttribute('r', node.isHub ? '26' : '22');
+                        circle.setAttribute('fill', '#ffffff');
+                        circle.setAttribute('stroke', node.isHub ? '#2459a6' : '#5b8fcf');
+                        circle.setAttribute('stroke-width', node.isHub ? '4' : '2');
+
+                        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                        title.textContent = `${node.agentName}\n${node.role}\n${node.personality} / ${node.orientation}`;
+                        circle.appendChild(title);
+                        group.appendChild(circle);
+
+                        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        label.setAttribute('x', String(node.x));
+                        label.setAttribute('y', String(node.y + 42));
+                        label.setAttribute('text-anchor', 'middle');
+                        label.setAttribute('fill', '#1f2937');
+                        label.setAttribute('font-size', '13');
+                        label.textContent = node.agentName;
+                        group.appendChild(label);
+
+                        svg.appendChild(group);
+                    }
+                }
+
+                function setText(id, value) {
+                    const target = document.getElementById(id);
+                    if (target) {
+                        target.textContent = value;
+                    }
+                }
+            }
         })();
     </script>
 }

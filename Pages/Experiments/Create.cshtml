@@ -1,0 +1,147 @@
+@page
+@model EmergentEngineering.Pages.Experiments.CreateModel
+@{
+    ViewData["Title"] = "New Experiment";
+}
+
+<div class="page-heading">
+    <h1 class="h2">新規 Experiment</h1>
+    <p class="text-muted">Scenario から条件を読み込むか、手動入力で実験条件を作成します。</p>
+</div>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">Scenario選択</h2>
+    <form method="get" class="d-flex gap-2 align-items-end flex-wrap">
+        <div>
+            <label class="form-label" for="scenarioId">登録済みScenario</label>
+            <select class="form-select" id="scenarioId" name="scenarioId">
+                <option value="">手動入力</option>
+                @foreach (var scenario in Model.Scenarios)
+                {
+                    <option value="@scenario.Id" selected="@(Model.ScenarioId == scenario.Id ? "selected" : null)">@scenario.Name</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-outline-primary">読み込む</button>
+    </form>
+    @if (Model.ScenarioId.HasValue)
+    {
+        <p class="small text-muted mt-2 mb-0">選択したScenarioの値を初期入力値として読み込んでいます。</p>
+    }
+</section>
+
+<form method="post" class="simulation-form">
+    <input type="hidden" asp-for="ScenarioId" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Name" class="form-label">Name</label>
+        <input asp-for="Input.Name" class="form-control" />
+        <span asp-validation-for="Input.Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Description" class="form-label">Description</label>
+        <textarea asp-for="Input.Description" class="form-control" rows="2"></textarea>
+        <span asp-validation-for="Input.Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Purpose" class="form-label">Purpose</label>
+        <textarea asp-for="Input.Purpose" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Input.Purpose" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.BoundaryConditions" class="form-label">Boundary Conditions</label>
+        <textarea asp-for="Input.BoundaryConditions" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Input.BoundaryConditions" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.KpiDefinition" class="form-label">KPI</label>
+        <textarea asp-for="Input.KpiDefinition" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Input.KpiDefinition" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.LlmProvider" class="form-label">LLMプロバイダー</label>
+            <select asp-for="Input.LlmProvider" class="form-select">
+                <option value="Mock">Mock（高速・無料）</option>
+                <option value="OpenAI">OpenAI（高精度・有料）</option>
+            </select>
+            <div class="form-text">条件探索や大規模 Run は Mock、重要条件の検証は OpenAI を推奨します。</div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.LlmModel" class="form-label">LLMモデル</label>
+            <select asp-for="Input.LlmModel" class="form-select">
+                <option value="mock-v1">mock-v1</option>
+                <option value="gpt-4o-mini">gpt-4o-mini</option>
+                <option value="gpt-4o">gpt-4o</option>
+                <option value="gpt-5.5">gpt-5.5</option>
+                <option value="gpt-5.6">gpt-5.6</option>
+            </select>
+            <div class="form-text">Mock のときは mock-v1 推奨、OpenAI のときは gpt-4o-mini 推奨です。</div>
+        </div>
+    </div>
+
+    <section class="log-section mb-4">
+        <h2 class="h5 mb-3">境界条件パラメータ</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.InformationSharingLevel" class="form-label">情報共有</label>
+                <input asp-for="Input.InformationSharingLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.CooperationLevel" class="form-label">協調性</label>
+                <input asp-for="Input.CooperationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.CompetitionLevel" class="form-label">競争性</label>
+                <input asp-for="Input.CompetitionLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.PsychologicalSafetyLevel" class="form-label">心理的安全性</label>
+                <input asp-for="Input.PsychologicalSafetyLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.LearningOrientationLevel" class="form-label">学習志向</label>
+                <input asp-for="Input.LearningOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.CustomerOrientationLevel" class="form-label">顧客志向</label>
+                <input asp-for="Input.CustomerOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.ShortTermResultPressureLevel" class="form-label">短期成果圧力</label>
+                <input asp-for="Input.ShortTermResultPressureLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+        </div>
+    </section>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.AgentCount" class="form-label">Agent Count</label>
+            <input asp-for="Input.AgentCount" class="form-control" type="number" min="1" max="20" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.TotalSteps" class="form-label">Total Steps</label>
+            <input asp-for="Input.TotalSteps" class="form-control" type="number" min="1" max="100" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.RunCount" class="form-label">Run Count</label>
+            <input asp-for="Input.RunCount" class="form-control" type="number" min="1" max="20" />
+            <div class="form-text">最初は 3〜5 回程度を推奨します。</div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-page="/Experiments/Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

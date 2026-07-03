@@ -1,0 +1,39 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.ParameterSweeps.DeleteModel
+@{
+    ViewData["Title"] = Model.Sweep?.Name ?? "パラメータスイープ削除";
+}
+
+@if (Model.Sweep is null)
+{
+    <div class="alert alert-warning">パラメータスイープが見つかりません。</div>
+    return;
+}
+
+<div class="page-heading">
+    <a asp-page="/ParameterSweeps/Details" asp-route-id="@Model.Sweep.Id" class="text-decoration-none small">&larr; パラメータスイープ詳細</a>
+    <h1 class="h2 mt-2">パラメータスイープ削除</h1>
+    <p class="text-muted mb-0">この操作は元に戻せません。</p>
+</div>
+
+<section class="log-section mb-4">
+    <dl class="row mb-0">
+        <dt class="col-sm-4">Sweep名</dt>
+        <dd class="col-sm-8">@Model.Sweep.Name</dd>
+
+        <dt class="col-sm-4">SweepRun数</dt>
+        <dd class="col-sm-8">@Model.SweepRunCount</dd>
+
+        <dt class="col-sm-4">関連Experiment数</dt>
+        <dd class="col-sm-8">@Model.ExperimentCount</dd>
+    </dl>
+</section>
+
+<div class="alert alert-danger">
+    ParameterSweepRun に紐づく Experiment もあわせて削除します。
+</div>
+
+<form method="post" class="d-flex gap-2 flex-wrap">
+    <button type="submit" class="btn btn-danger">削除を確定</button>
+    <a asp-page="/ParameterSweeps/Details" asp-route-id="@Model.Sweep.Id" class="btn btn-outline-secondary">キャンセル</a>
+</form>

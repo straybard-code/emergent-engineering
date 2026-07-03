@@ -61,8 +61,26 @@ body {
   margin-bottom: 0;
 }
 
+code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .log-section {
   margin-bottom: 1rem;
+}
+
+.agent-card {
+  height: 100%;
+}
+
+.agent-card dl,
+.log-section table {
+  font-variant-numeric: tabular-nums;
+}
+
+.agent-card dd {
+  margin-bottom: 0.4rem;
 }
 
 .timeline {
@@ -144,6 +162,40 @@ body {
   border-color: #dde1e6;
 }
 
+.trust-pill {
+  display: inline-block;
+  min-width: 4.6rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+}
+
+.trust-positive {
+  background: #edf8f0;
+  color: #23663a;
+  border-color: #d2ead8;
+}
+
+.trust-negative {
+  background: #fceeee;
+  color: #943838;
+  border-color: #f2d0d0;
+}
+
+.trust-neutral {
+  background: #f4f5f7;
+  color: #5b6470;
+  border-color: #dde1e6;
+}
+
+.trust-null {
+  background: #fafbfc;
+  color: #7b8390;
+  border-color: #e5e8ec;
+}
+
 .log-filter {
   display: flex;
   gap: 0.75rem;
@@ -152,6 +204,68 @@ body {
 
 .log-filter > div {
   min-width: 280px;
+}
+
+.network-controls {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.network-slider-row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+}
+
+.network-step-badge {
+  min-width: 3rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid #d9dee7;
+  border-radius: 999px;
+  background: #f8fafc;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.network-stats-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.network-stat-card {
+  background: #f8fafc;
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+}
+
+.network-stat-label {
+  color: #637083;
+  font-size: 0.82rem;
+  margin-bottom: 0.2rem;
+}
+
+.network-stat-value {
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.network-svg-shell {
+  overflow-x: auto;
+  border: 1px solid #d9dee7;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0.75rem;
+}
+
+.network-svg-shell svg {
+  display: block;
+  width: 100%;
+  min-width: 700px;
+  height: auto;
 }
 
 textarea.form-control {
@@ -166,6 +280,11 @@ textarea.form-control {
   .log-filter {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .network-slider-row,
+  .network-stats-grid {
+    grid-template-columns: 1fr;
   }
 
   .d-flex.justify-content-between {

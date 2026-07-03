@@ -2,7 +2,10 @@ namespace EmergentEngineering.Services;
 
 public interface ILlmService
 {
-    Task<LlmAgentResponse> CompleteAgentTurnAsync(string prompt, CancellationToken cancellationToken = default);
+    Task<LlmAgentResponse> CompleteAgentTurnAsync(
+        string prompt,
+        string modelName,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class LlmAgentResponse

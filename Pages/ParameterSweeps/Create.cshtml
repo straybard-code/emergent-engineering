@@ -1,0 +1,117 @@
+@page
+@model EmergentEngineering.Pages.ParameterSweeps.CreateModel
+@{
+    ViewData["Title"] = "新規パラメータスイープ";
+}
+
+<div class="page-heading">
+    <h1 class="h2">新規パラメータスイープ</h1>
+    <p class="text-muted">基準シナリオをもとに、1つの境界条件パラメータだけを段階的に変化させます。</p>
+</div>
+
+<form method="post" class="simulation-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Name" class="form-label">名前</label>
+        <input asp-for="Input.Name" class="form-control" />
+        <span asp-validation-for="Input.Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Description" class="form-label">説明</label>
+        <textarea asp-for="Input.Description" class="form-control" rows="2"></textarea>
+        <span asp-validation-for="Input.Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.ScenarioId" class="form-label">基準シナリオ</label>
+        <select asp-for="Input.ScenarioId" class="form-select">
+            <option value="0">選択してください</option>
+            @foreach (var scenario in Model.Scenarios)
+            {
+                <option value="@scenario.Id">@scenario.Name</option>
+            }
+        </select>
+        <span asp-validation-for="Input.ScenarioId" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.TargetParameter" class="form-label">対象パラメータ</label>
+            <select asp-for="Input.TargetParameter" class="form-select">
+                @foreach (var parameterName in EmergentEngineering.Models.BoundaryParameterNames.All)
+                {
+                    <option value="@parameterName">@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(parameterName)</option>
+                }
+            </select>
+            <span asp-validation-for="Input.TargetParameter" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.RunCountPerValue" class="form-label">各値の実行回数</label>
+            <input asp-for="Input.RunCountPerValue" class="form-control" type="number" min="1" step="1" />
+            <span asp-validation-for="Input.RunCountPerValue" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.StartValue" class="form-label">開始値</label>
+            <input asp-for="Input.StartValue" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <span asp-validation-for="Input.StartValue" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.EndValue" class="form-label">終了値</label>
+            <input asp-for="Input.EndValue" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <span asp-validation-for="Input.EndValue" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.StepValue" class="form-label">刻み幅</label>
+            <input asp-for="Input.StepValue" class="form-control" type="number" min="0.01" max="1" step="0.01" />
+            <span asp-validation-for="Input.StepValue" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.AgentCount" class="form-label">エージェント数</label>
+            <input asp-for="Input.AgentCount" class="form-control" type="number" min="2" step="1" />
+            <span asp-validation-for="Input.AgentCount" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.TotalSteps" class="form-label">総ステップ数</label>
+            <input asp-for="Input.TotalSteps" class="form-control" type="number" min="1" step="1" />
+            <span asp-validation-for="Input.TotalSteps" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.LlmProvider" class="form-label">LLMプロバイダー</label>
+            <select asp-for="Input.LlmProvider" class="form-select">
+                <option value="Mock">Mock（高速・無料）</option>
+                <option value="OpenAI">OpenAI（高精度・有料）</option>
+            </select>
+            <span asp-validation-for="Input.LlmProvider" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.LlmModel" class="form-label">LLMモデル</label>
+            <select asp-for="Input.LlmModel" class="form-select">
+                @foreach (var modelName in EmergentEngineering.Models.LlmDefaults.AvailableModels)
+                {
+                    <option value="@modelName">@modelName</option>
+                }
+            </select>
+            <span asp-validation-for="Input.LlmModel" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">作成</button>
+        <a asp-page="/ParameterSweeps/Index" class="btn btn-outline-secondary">キャンセル</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,31 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.Scenarios.DeleteModel
+@{
+    ViewData["Title"] = Model.Scenario?.Name ?? "シナリオ削除";
+}
+
+@if (Model.Scenario is null)
+{
+    <div class="alert alert-warning">シナリオが見つかりません。</div>
+    return;
+}
+
+<div class="page-heading">
+    <a asp-page="/Scenarios/Details" asp-route-id="@Model.Scenario.Id" class="text-decoration-none small">&larr; シナリオ詳細</a>
+    <h1 class="h2 mt-2">シナリオ削除</h1>
+    <p class="text-muted mb-0">この操作は元に戻せません。ただし既存Experimentは削除されません。</p>
+</div>
+
+<section class="log-section mb-4">
+    <dl class="row mb-0">
+        <dt class="col-sm-4">シナリオ名</dt>
+        <dd class="col-sm-8">@Model.Scenario.Name</dd>
+        <dt class="col-sm-4">このシナリオを参照しているExperiment数</dt>
+        <dd class="col-sm-8">@Model.ExperimentCount</dd>
+    </dl>
+</section>
+
+<form method="post" class="d-flex gap-2 flex-wrap">
+    <button type="submit" class="btn btn-danger">削除を確定</button>
+    <a asp-page="/Scenarios/Details" asp-route-id="@Model.Scenario.Id" class="btn btn-outline-secondary">キャンセル</a>
+</form>

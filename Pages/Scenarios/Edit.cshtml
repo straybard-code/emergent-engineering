@@ -1,0 +1,23 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.Scenarios.EditModel
+@{
+    ViewData["Title"] = Model.Input.Name == "" ? "シナリオ編集" : $"{Model.Input.Name} - シナリオ編集";
+}
+
+<div class="page-heading">
+    <a asp-page="/Scenarios/Index" class="text-decoration-none small">&larr; シナリオ一覧</a>
+    <h1 class="h2 mt-2">シナリオ編集</h1>
+</div>
+
+<form method="post" class="simulation-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <partial name="_ScenarioFormFields" model="Model.Input" />
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">保存</button>
+        <a asp-page="/Scenarios/Details" asp-route-id="@Model.Input.Id" class="btn btn-outline-secondary">キャンセル</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

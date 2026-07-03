@@ -1,0 +1,22 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.ParameterSweeps.RunModel
+@{
+    ViewData["Title"] = Model.Sweep?.Name ?? "パラメータスイープ実行";
+}
+
+@if (Model.Sweep is null)
+{
+    <div class="alert alert-warning">パラメータスイープが見つかりません。</div>
+    return;
+}
+
+<div class="page-heading">
+    <a asp-page="/ParameterSweeps/Details" asp-route-id="@Model.Sweep.Id" class="text-decoration-none small">&larr; パラメータスイープ詳細</a>
+    <h1 class="h2 mt-2">@Model.Sweep.Name</h1>
+    <p class="text-muted">基準シナリオ「@Model.ScenarioName」をもとに、@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(Model.Sweep.TargetParameter) を @Model.Sweep.StartValue.ToString("0.00") から @Model.Sweep.EndValue.ToString("0.00") まで変化させます。</p>
+    <p class="text-muted mb-0">各値につき @Model.Sweep.RunCountPerValue 回の実験を実行します。最初は Mock で小さめの Sweep を推奨します。</p>
+</div>
+
+<form method="post">
+    <button type="submit" class="btn btn-primary">スイープ実行</button>
+</form>

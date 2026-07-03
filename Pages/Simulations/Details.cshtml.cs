@@ -1,23 +1,30 @@
+using System.Text.Json;
 using EmergentEngineering.Data;
 using EmergentEngineering.Models;
 using EmergentEngineering.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace EmergentEngineering.Pages.Simulations;
 
 public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : PageModel
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private const double TrustDisplayThreshold = 0.01;
+    private const double SvgCenterX = 350;
+    private const double SvgCenterY = 220;
+    private const double SvgRadius = 150;
 
     public string SelectedView { get; private set; } = "logs";
     public SimulationProject? Project { get; private set; }
+    public Agent? SelectedAgent { get; private set; }
     public List<AgentAction> Actions { get; private set; } = [];
     public List<AgentAction> AgentHistory { get; private set; } = [];
     public List<PhasePoint> PhaseHistory { get; private set; } = [];
     public List<AgentTrustSummary> AgentTrustSummaries { get; private set; } = [];
+    public List<TrustChangeLogRow> TrustChangeLogs { get; private set; } = [];
+    public List<NetworkSnapshot> NetworkSnapshots { get; private set; } = [];
     public int? SelectedAgentId { get; private set; }
     public bool IsCompleted => Project is not null && Project.CurrentStep >= Project.TotalSteps;
 
@@ -45,6 +52,7 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
     {
         Project = await db.SimulationProjects
             .Include(project => project.Agents)
+            .Include(project => project.Metrics)
             .FirstOrDefaultAsync(project => project.Id == id);
 
         if (Project is null)
@@ -52,12 +60,17 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
             return;
         }
 
-        Actions = await db.AgentActions
+        var orderedActions = await db.AgentActions
             .Include(action => action.Agent)
             .Where(action => action.SimulationProjectId == id)
+            .OrderBy(action => action.StepNo)
+            .ThenBy(action => action.Id)
+            .ToListAsync();
+
+        Actions = orderedActions
             .OrderByDescending(action => action.StepNo)
             .ThenBy(action => action.AgentId)
-            .ToListAsync();
+            .ToList();
 
         PhaseHistory = await db.SimulationSteps
             .Where(step => step.SimulationProjectId == id)
@@ -70,20 +83,51 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
             })
             .ToListAsync();
 
+        var phaseByStep = PhaseHistory.ToDictionary(point => point.StepNo, point => point.Phase);
+        var trustSnapshots = await db.TrustSnapshots
+            .Where(snapshot => snapshot.SimulationProjectId == id)
+            .OrderBy(snapshot => snapshot.StepNo)
+            .ThenBy(snapshot => snapshot.SourceAgentId)
+            .ThenBy(snapshot => snapshot.TargetAgentId)
+            .ToListAsync();
+
+        NetworkSnapshots = BuildNetworkSnapshots(Project, trustSnapshots, phaseByStep);
+
         AgentTrustSummaries = Project.Agents
             .OrderBy(agent => agent.Id)
             .Select(agent => new AgentTrustSummary
             {
                 AgentName = agent.Name,
-                AverageTrust = CalculateAverageTrust(agent.TrustJson),
+                Role = agent.Role,
+                Personality = agent.Personality,
+                Orientation = agent.Orientation,
+                AverageTrust = TrustJsonUtility.CalculateAverage(agent.TrustJson),
                 TrustJson = agent.TrustJson
+            })
+            .ToList();
+
+        TrustChangeLogs = Actions
+            .Select(action => new TrustChangeLogRow
+            {
+                StepNo = action.StepNo,
+                AgentName = action.Agent?.Name ?? "",
+                Action = action.Action,
+                TrustBefore = action.TrustBefore,
+                TrustDelta = action.TrustDelta,
+                TrustAfter = action.TrustAfter,
+                Phase = phaseByStep.GetValueOrDefault(action.StepNo, SimulationPhase.Forming)
             })
             .ToList();
 
         if (agentId.HasValue)
         {
+            SelectedAgent = Project.Agents.FirstOrDefault(agent => agent.Id == agentId.Value);
             Actions = Actions
                 .Where(action => action.AgentId == agentId.Value)
+                .ToList();
+
+            TrustChangeLogs = TrustChangeLogs
+                .Where(log => string.Equals(log.AgentName, SelectedAgent?.Name, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             AgentHistory = Actions
@@ -112,6 +156,41 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
         return JsonSerializer.Serialize(PhaseHistory, JsonOptions);
     }
 
+    public string GetNetworkSnapshotsJson()
+    {
+        return JsonSerializer.Serialize(NetworkSnapshots, JsonOptions);
+    }
+
+    public string FormatTrustValue(double? value, bool includeSign = false)
+    {
+        if (!value.HasValue)
+        {
+            return "\u2014";
+        }
+
+        return includeSign ? value.Value.ToString("+0.00;-0.00;0.00") : value.Value.ToString("0.00");
+    }
+
+    public string GetTrustDeltaCssClass(double? value)
+    {
+        if (!value.HasValue)
+        {
+            return "trust-null";
+        }
+
+        if (value.Value > 0)
+        {
+            return "trust-positive";
+        }
+
+        if (value.Value < 0)
+        {
+            return "trust-negative";
+        }
+
+        return "trust-neutral";
+    }
+
     private static int MapPhase(string phase)
     {
         return phase switch
@@ -127,51 +206,166 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
         };
     }
 
-    private static double CalculateAverageTrust(string trustJson)
+    private static List<NetworkSnapshot> BuildNetworkSnapshots(
+        SimulationProject project,
+        IReadOnlyCollection<TrustSnapshot> trustSnapshots,
+        IReadOnlyDictionary<int, string> phaseByStep)
     {
-        if (string.IsNullOrWhiteSpace(trustJson))
+        if (project.Agents.Count == 0 || project.CurrentStep <= 0)
         {
-            return 0;
+            return [];
         }
 
-        try
+        if (trustSnapshots.Count == 0)
         {
-            using var document = JsonDocument.Parse(trustJson);
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            return BuildFallbackNetworkSnapshots(project, phaseByStep);
+        }
+
+        return trustSnapshots
+            .GroupBy(snapshot => snapshot.StepNo)
+            .OrderBy(group => group.Key)
+            .Select(group => CreateSnapshotFromRows(
+                group.Key,
+                phaseByStep.GetValueOrDefault(group.Key, group.Key <= 2 ? SimulationPhase.Forming : project.Phase),
+                project.Agents,
+                group.Select(snapshot => new TrustRow(
+                    snapshot.SourceAgentId,
+                    snapshot.TargetAgentId,
+                    snapshot.SourceAgentName,
+                    snapshot.TargetAgentName,
+                    TrustJsonUtility.Clamp(snapshot.TrustValue)))
+                    .ToList()))
+            .ToList();
+    }
+
+    private static List<NetworkSnapshot> BuildFallbackNetworkSnapshots(
+        SimulationProject project,
+        IReadOnlyDictionary<int, string> phaseByStep)
+    {
+        var rows = CreateTrustRowsFromCurrentState(project.Agents);
+        List<NetworkSnapshot> snapshots = [];
+
+        for (var stepNo = 1; stepNo <= project.CurrentStep; stepNo++)
+        {
+            snapshots.Add(CreateSnapshotFromRows(
+                stepNo,
+                phaseByStep.GetValueOrDefault(stepNo, stepNo <= 2 ? SimulationPhase.Forming : project.Phase),
+                project.Agents,
+                rows));
+        }
+
+        return snapshots;
+    }
+
+    private static List<TrustRow> CreateTrustRowsFromCurrentState(IReadOnlyCollection<Agent> agents)
+    {
+        var trustMaps = agents.ToDictionary(agent => agent.Id, agent => TrustJsonUtility.Deserialize(agent.TrustJson));
+        List<TrustRow> rows = [];
+
+        foreach (var sourceAgent in agents)
+        {
+            foreach (var targetAgent in agents.Where(agent => agent.Id != sourceAgent.Id))
             {
-                return 0;
+                var trustMap = trustMaps[sourceAgent.Id];
+                var trustValue = trustMap.TryGetValue(targetAgent.Name, out var value) ? value : 0;
+                rows.Add(new TrustRow(
+                    sourceAgent.Id,
+                    targetAgent.Id,
+                    sourceAgent.Name,
+                    targetAgent.Name,
+                    TrustJsonUtility.Clamp(trustValue)));
+            }
+        }
+
+        return rows;
+    }
+
+    private static NetworkSnapshot CreateSnapshotFromRows(
+        int stepNo,
+        string phase,
+        IReadOnlyCollection<Agent> agents,
+        IReadOnlyCollection<TrustRow> rows)
+    {
+        var agentList = agents.OrderBy(agent => agent.Id).ToList();
+        var activityScores = agentList.ToDictionary(agent => agent.Id, _ => 0.0);
+        var connectedAgents = agentList.ToDictionary(agent => agent.Id, _ => false);
+        List<double> trustValues = [];
+        List<double> absTrustValues = [];
+        List<NetworkEdge> edges = [];
+
+        foreach (var row in rows)
+        {
+            var trust = TrustJsonUtility.Clamp(row.TrustValue);
+            trustValues.Add(trust);
+            absTrustValues.Add(Math.Abs(trust));
+
+            if (Math.Abs(trust) <= TrustDisplayThreshold)
+            {
+                continue;
             }
 
-            List<double> values = [];
-            foreach (var property in document.RootElement.EnumerateObject())
+            activityScores[row.SourceAgentId] += Math.Abs(trust);
+            activityScores[row.TargetAgentId] += Math.Abs(trust);
+            connectedAgents[row.SourceAgentId] = true;
+            connectedAgents[row.TargetAgentId] = true;
+            edges.Add(new NetworkEdge
             {
-                if (TryReadTrustValue(property.Value, out var value))
+                SourceAgentId = row.SourceAgentId,
+                TargetAgentId = row.TargetAgentId,
+                SourceAgentName = row.SourceAgentName,
+                TargetAgentName = row.TargetAgentName,
+                Trust = Math.Round(trust, 2),
+                StrokeWidth = Math.Round(1 + (Math.Clamp(Math.Abs(trust), 0, 1) * 6), 2),
+                StrokeColor = trust < 0 ? "#d06a6a" : "#8bb8ef"
+            });
+        }
+
+        var hubAgentId = activityScores
+            .OrderByDescending(item => item.Value)
+            .ThenBy(item => item.Key)
+            .FirstOrDefault().Key;
+        var hubAgentName = activityScores.GetValueOrDefault(hubAgentId) > 0
+            ? agentList.FirstOrDefault(agent => agent.Id == hubAgentId)?.Name ?? "-"
+            : "-";
+
+        var nodes = agentList
+            .Select((agent, index) =>
+            {
+                var angle = agentList.Count == 1
+                    ? 0
+                    : (-Math.PI / 2) + ((Math.PI * 2 * index) / agentList.Count);
+
+                return new NetworkNode
                 {
-                    values.Add(value);
-                }
-            }
+                    AgentId = agent.Id,
+                    AgentName = agent.Name,
+                    Role = agent.Role,
+                    Personality = agent.Personality,
+                    Orientation = agent.Orientation,
+                    X = Math.Round(SvgCenterX + (SvgRadius * Math.Cos(angle)), 2),
+                    Y = Math.Round(SvgCenterY + (SvgRadius * Math.Sin(angle)), 2),
+                    IsHub = hubAgentId == agent.Id && hubAgentName != "-"
+                };
+            })
+            .ToList();
 
-            return values.Count == 0 ? 0 : Math.Round(values.Average(), 2);
-        }
-        catch
+        return new NetworkSnapshot
         {
-            return 0;
-        }
+            StepNo = stepNo,
+            Phase = phase,
+            AverageTrust = trustValues.Count == 0 ? 0 : Math.Round(trustValues.Average(), 2),
+            AverageAbsTrust = absTrustValues.Count == 0 ? 0 : Math.Round(absTrustValues.Average(), 2),
+            HubAgentName = hubAgentName,
+            IsolatedCount = connectedAgents.Count(pair => !pair.Value),
+            Nodes = nodes,
+            Edges = edges
+        };
     }
 
-    private static bool TryReadTrustValue(JsonElement element, out double value)
-    {
-        switch (element.ValueKind)
-        {
-            case JsonValueKind.Number:
-                return element.TryGetDouble(out value);
-
-            case JsonValueKind.String:
-                return double.TryParse(element.GetString(), out value);
-
-            default:
-                value = 0;
-                return false;
-        }
-    }
+    private sealed record TrustRow(
+        int SourceAgentId,
+        int TargetAgentId,
+        string SourceAgentName,
+        string TargetAgentName,
+        double TrustValue);
 }

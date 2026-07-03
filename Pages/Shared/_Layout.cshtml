@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,26 +10,36 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom mb-3">
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom mb-3">
             <div class="container">
-                <a class="navbar-brand fw-semibold" asp-area="" asp-page="/Index">Emergence Engineering Lab</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                <a class="navbar-brand fw-semibold" asp-page="/Index">Emergence Engineering Lab</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarNav"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Simulations</a>
+                            <a class="nav-link text-dark" asp-page="/Index">Simulations</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Simulations/Create">New</a>
+                            <a class="nav-link text-dark" asp-page="/Simulations/Create">New Simulation</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-page="/Experiments/Index">Experiments</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-page="/Scenarios/Index">シナリオ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-page="/ParameterSweeps/Index">パラメータスイープ</a>
                         </li>
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container app-shell">
         <main role="main" class="pb-4">
             @RenderBody()
@@ -45,7 +55,6 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

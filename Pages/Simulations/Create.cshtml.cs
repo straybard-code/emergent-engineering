@@ -12,11 +12,20 @@ public sealed class CreateModel(AppDbContext db) : PageModel
     public CreateSimulationRequest Input { get; set; } = new()
     {
         Name = "Emergence Engineering Lab MVP",
-        Purpose = "小さなAI組織が、境界条件とKPIに応じてどのように組織化されるかを観察する。",
-        BoundaryConditions = "情報共有を重視する。困ったときは相談してよい。失敗は学習材料として扱う。互いに支援することを推奨する。",
-        KpiDefinition = "市場学習、品質、リピート率、顧客成功",
+        Purpose = "Observe how a small AI team self-organizes under a shared goal, boundary conditions, and KPI.",
+        BoundaryConditions = "Information sharing is encouraged. Asking for help is acceptable. Feedback should remain constructive and support learning.",
+        KpiDefinition = "Market learning, quality, repeat use, customer success",
         AgentCount = 4,
-        TotalSteps = 5
+        TotalSteps = 5,
+        LlmProvider = LlmProviderType.Mock,
+        LlmModel = LlmDefaults.MockModel,
+        InformationSharingLevel = BoundaryParameterDefaults.Level,
+        CooperationLevel = BoundaryParameterDefaults.Level,
+        CompetitionLevel = BoundaryParameterDefaults.Level,
+        PsychologicalSafetyLevel = BoundaryParameterDefaults.Level,
+        LearningOrientationLevel = BoundaryParameterDefaults.Level,
+        CustomerOrientationLevel = BoundaryParameterDefaults.Level,
+        ShortTermResultPressureLevel = BoundaryParameterDefaults.Level
     };
 
     public async Task<IActionResult> OnPostAsync()

@@ -9,19 +9,18 @@ public sealed class OpenAiLlmService(IHttpClientFactory httpClientFactory) : ILl
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public async Task<LlmAgentResponse> CompleteAgentTurnAsync(string prompt, CancellationToken cancellationToken = default)
+    public async Task<LlmAgentResponse> CompleteAgentTurnAsync(
+        string prompt,
+        string modelName,
+        CancellationToken cancellationToken = default)
     {
-        var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+        var apiKey = Environment.GetEnvironmentVariable("ORGSIM_OPENAI_API_KEY");
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            throw new InvalidOperationException("OPENAI_API_KEY is not set.");
+            throw new InvalidOperationException("ORGSIM_OPENAI_API_KEY is not set.");
         }
 
-        var model = Environment.GetEnvironmentVariable("OPENAI_MODEL");
-        if (string.IsNullOrWhiteSpace(model))
-        {
-            model = "gpt-4o-mini";
-        }
+        var model = string.IsNullOrWhiteSpace(modelName) ? LlmDefaults.OpenAiRecommendedModel : modelName.Trim();
 
         var client = httpClientFactory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);

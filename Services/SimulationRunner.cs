@@ -5,7 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EmergentEngineering.Services;
 
-public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : ISimulationRunner
+public sealed class SimulationRunner(
+    AppDbContext db,
+    MockLlmService mockLlmService,
+    OpenAiLlmService openAiLlmService) : ISimulationRunner
 {
     private const int PhaseWindowSize = 10;
     private static readonly string[] ConstructiveCriticismKeywords = ["\u5fc3\u7406\u7684\u5b89\u5168\u6027", "\u5931\u6557\u3092\u8a31\u5bb9", "\u5efa\u8a2d\u7684\u6279\u5224"];
@@ -38,7 +41,7 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
         foreach (var agent in project.Agents)
         {
             var prompt = BuildPrompt(project, agent, recentActions);
-            var llm = await llmService.CompleteAgentTurnAsync(prompt, cancellationToken);
+            var llm = await CompleteAgentTurnAsync(project, prompt, cancellationToken);
             if (!AgentActionType.All.Contains(llm.Action))
             {
                 llm.Action = AgentActionType.Wait;
@@ -51,15 +54,18 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
                 SimulationProjectId = project.Id,
                 StepNo = stepNo,
                 AgentId = agent.Id,
-                Message = llm.Message.Trim(),
+                Message = string.IsNullOrWhiteSpace(llm.Message) ? $"{agent.Name} waits for the next clear signal." : llm.Message.Trim(),
                 Memory = agent.Memory,
                 Action = llm.Action,
-                TargetAgentName = llm.TargetAgentName.Trim(),
+                TargetAgentName = llm.TargetAgentName?.Trim() ?? "",
                 RawLlmResponse = string.IsNullOrWhiteSpace(llm.RawResponse) ? JsonSerializer.Serialize(llm, JsonOptions) : llm.RawResponse,
                 CreatedAt = DateTime.UtcNow
             };
 
-            ApplyTrustUpdate(project, agent, agentAction);
+            var trustMetrics = ApplyTrustUpdate(project, agent, agentAction);
+            agentAction.TrustBefore = trustMetrics.Before;
+            agentAction.TrustDelta = trustMetrics.Delta;
+            agentAction.TrustAfter = trustMetrics.After;
             currentStepActions.Add(agentAction);
             db.AgentActions.Add(agentAction);
         }
@@ -80,11 +86,22 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
             project.Purpose,
             project.BoundaryConditions,
             project.KpiDefinition,
+            project.LlmProvider,
+            project.LlmModel,
+            project.InformationSharingLevel,
+            project.CooperationLevel,
+            project.CompetitionLevel,
+            project.PsychologicalSafetyLevel,
+            project.LearningOrientationLevel,
+            project.CustomerOrientationLevel,
+            project.ShortTermResultPressureLevel,
             Agents = project.Agents.Select(agent => new
             {
                 agent.Id,
                 agent.Name,
                 agent.Role,
+                agent.Personality,
+                agent.Orientation,
                 agent.Memory,
                 agent.TrustJson,
                 agent.PositionX,
@@ -101,9 +118,38 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
             CreatedAt = DateTime.UtcNow
         };
 
+        await SaveTrustSnapshotsAsync(project, stepNo, cancellationToken);
         db.SimulationSteps.Add(step);
         await db.SaveChangesAsync(cancellationToken);
         return step;
+    }
+
+    private async Task<LlmAgentResponse> CompleteAgentTurnAsync(
+        SimulationProject project,
+        string prompt,
+        CancellationToken cancellationToken)
+    {
+        var provider = string.IsNullOrWhiteSpace(project.LlmProvider)
+            ? LlmDefaults.Provider
+            : project.LlmProvider.Trim();
+        var model = string.IsNullOrWhiteSpace(project.LlmModel)
+            ? GetDefaultModel(provider)
+            : project.LlmModel.Trim();
+
+        if (string.Equals(provider, LlmProviderType.OpenAI, StringComparison.OrdinalIgnoreCase))
+        {
+            var apiKey = Environment.GetEnvironmentVariable("ORGSIM_OPENAI_API_KEY");
+            if (!string.IsNullOrWhiteSpace(apiKey))
+            {
+                return await openAiLlmService.CompleteAgentTurnAsync(prompt, model, cancellationToken);
+            }
+
+            var fallback = await mockLlmService.CompleteAgentTurnAsync(prompt, model, cancellationToken);
+            fallback.RawResponse = $"[Fallback: requested provider=OpenAI, model={model}, reason=ORGSIM_OPENAI_API_KEY is not set] {fallback.RawResponse}";
+            return fallback;
+        }
+
+        return await mockLlmService.CompleteAgentTurnAsync(prompt, model, cancellationToken);
     }
 
     public async Task<SimulationProject?> RunAllAsync(int simulationId, CancellationToken cancellationToken = default)
@@ -121,7 +167,11 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
         }
         while (project is not null && project.CurrentStep < project.TotalSteps);
 
-        return await db.SimulationProjects.FirstOrDefaultAsync(item => item.Id == simulationId, cancellationToken);
+        await SaveMetricsAsync(simulationId, cancellationToken);
+
+        return await db.SimulationProjects
+            .Include(item => item.Metrics)
+            .FirstOrDefaultAsync(item => item.Id == simulationId, cancellationToken);
     }
 
     private static string BuildPrompt(SimulationProject project, Agent agent, IReadOnlyCollection<AgentAction> recentActions)
@@ -130,6 +180,10 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
             ? "No previous messages."
             : string.Join("\n", recentActions.Select(action => $"- {action.Agent?.Name ?? "Unknown"}: {action.Message} (action: {action.Action})"));
         var roster = string.Join(", ", project.Agents.Where(item => item.Id != agent.Id).OrderBy(item => item.Id).Select(item => item.Name));
+        if (string.IsNullOrWhiteSpace(roster))
+        {
+            roster = "None";
+        }
 
         return $$"""
         Simulation purpose:
@@ -145,6 +199,33 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
         Name: {{agent.Name}}
         Role: {{agent.Role}}
         Memory: {{agent.Memory}}
+        Your personality: {{agent.Personality}}
+        Your orientation: {{agent.Orientation}}
+
+        Personality guidance:
+        - Conservative: prefer safe and proven actions, avoid unnecessary risk.
+        - Challenger: actively propose new ideas and challenge assumptions.
+        - Coordinator: connect agents and align discussions.
+        - Critic: identify risks, contradictions, and weak assumptions constructively.
+        - Supporter: support others and maintain trust.
+        - Analyst: organize information and evaluate evidence.
+
+        Orientation guidance:
+        - CustomerFocused: prioritize customer success and market response.
+        - FieldFocused: prioritize practical operation and real-world constraints.
+        - QualityFocused: prioritize quality, reproducibility, and reliability.
+        - SpeedFocused: prioritize fast execution and decision speed.
+        - CostFocused: prioritize cost, efficiency, and resource constraints.
+        - LearningFocused: prioritize feedback loops and organizational learning.
+
+        Boundary condition parameters:
+        - InformationSharingLevel: {{project.InformationSharingLevel.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}}
+        - CooperationLevel: {{project.CooperationLevel.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}}
+        - CompetitionLevel: {{project.CompetitionLevel.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}}
+        - PsychologicalSafetyLevel: {{project.PsychologicalSafetyLevel.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}}
+        - LearningOrientationLevel: {{project.LearningOrientationLevel.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}}
+        - CustomerOrientationLevel: {{project.CustomerOrientationLevel.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}}
+        - ShortTermResultPressureLevel: {{project.ShortTermResultPressureLevel.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}}
 
         Other agents:
         {{roster}}
@@ -235,19 +316,20 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
         return SimulationPhase.Stable;
     }
 
-    private void ApplyTrustUpdate(SimulationProject project, Agent actor, AgentAction agentAction)
+    private TrustChangeMetrics ApplyTrustUpdate(SimulationProject project, Agent actor, AgentAction agentAction)
     {
         var targetName = NormalizeTarget(agentAction.TargetAgentName);
         var targetAgent = project.Agents.FirstOrDefault(candidate =>
             candidate.Name.Equals(targetName, StringComparison.OrdinalIgnoreCase));
         var constructiveCriticism = ContainsAny(project.BoundaryConditions, ConstructiveCriticismKeywords);
+        List<TrustPairChange> actorSideChanges = [];
 
         switch (agentAction.Action)
         {
             case AgentActionType.SupportOther:
                 if (targetAgent is not null)
                 {
-                    UpdateTrust(actor, targetAgent, 0.10);
+                    actorSideChanges.Add(UpdateTrust(actor, targetAgent, 0.10));
                     UpdateTrust(targetAgent, actor, 0.15);
                 }
                 break;
@@ -255,7 +337,7 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
             case AgentActionType.AskHelp:
                 if (targetAgent is not null)
                 {
-                    UpdateTrust(actor, targetAgent, 0.05);
+                    actorSideChanges.Add(UpdateTrust(actor, targetAgent, 0.05));
                     UpdateTrust(targetAgent, actor, 0.05);
                 }
                 break;
@@ -263,7 +345,7 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
             case AgentActionType.ShareInfo:
                 foreach (var otherAgent in project.Agents.Where(candidate => candidate.Id != actor.Id))
                 {
-                    UpdateTrust(actor, otherAgent, 0.03);
+                    actorSideChanges.Add(UpdateTrust(actor, otherAgent, 0.03));
                     UpdateTrust(otherAgent, actor, 0.03);
                 }
                 break;
@@ -271,7 +353,7 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
             case AgentActionType.ProposeIdea:
                 foreach (var otherAgent in project.Agents.Where(candidate => candidate.Id != actor.Id))
                 {
-                    UpdateTrust(actor, otherAgent, 0.02);
+                    actorSideChanges.Add(UpdateTrust(actor, otherAgent, 0.02));
                 }
                 break;
 
@@ -280,17 +362,114 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
                 {
                     if (constructiveCriticism)
                     {
-                        UpdateTrust(actor, targetAgent, 0.02);
+                        actorSideChanges.Add(UpdateTrust(actor, targetAgent, 0.02));
                         UpdateTrust(targetAgent, actor, 0.02);
                     }
                     else
                     {
-                        UpdateTrust(actor, targetAgent, -0.05);
+                        actorSideChanges.Add(UpdateTrust(actor, targetAgent, -0.05));
                         UpdateTrust(targetAgent, actor, -0.10);
                     }
                 }
                 break;
         }
+
+        return CalculateTrustMetrics(actorSideChanges);
+    }
+
+    private async Task SaveMetricsAsync(int simulationId, CancellationToken cancellationToken)
+    {
+        var project = await db.SimulationProjects
+            .Include(item => item.Agents.OrderBy(agent => agent.Id))
+            .Include(item => item.Metrics)
+            .FirstOrDefaultAsync(item => item.Id == simulationId, cancellationToken);
+
+        if (project is null)
+        {
+            return;
+        }
+
+        var steps = await db.SimulationSteps
+            .Where(step => step.SimulationProjectId == simulationId)
+            .OrderBy(step => step.StepNo)
+            .ToListAsync(cancellationToken);
+
+        var actions = await db.AgentActions
+            .Where(action => action.SimulationProjectId == simulationId)
+            .OrderBy(action => action.StepNo)
+            .ThenBy(action => action.AgentId)
+            .ToListAsync(cancellationToken);
+
+        var metrics = project.Metrics ?? new SimulationMetrics
+        {
+            SimulationProjectId = project.Id,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        metrics.FinalPhase = project.Phase;
+        metrics.AverageTrust = CalculateAverageTrust(project.Agents);
+        metrics.NetworkDensity = CalculateNetworkDensity(project.Agents);
+        metrics.IsolatedAgentCount = CalculateIsolatedAgentCount(project.Agents);
+        var hub = CalculateHub(project.Agents);
+        metrics.HubAgentName = hub.Name;
+        metrics.HubScore = hub.Score;
+        metrics.ShareInfoRate = CalculateActionRate(actions, AgentActionType.ShareInfo);
+        metrics.ProposeIdeaRate = CalculateActionRate(actions, AgentActionType.ProposeIdea);
+        metrics.CriticizeSupportRatio = CalculateCriticizeSupportRatio(actions);
+        metrics.StepsToEmergent = FindFirstPhaseStep(steps, SimulationPhase.Emergent);
+        metrics.StepsToLearning = FindFirstPhaseStep(steps, SimulationPhase.Learning);
+        metrics.PhaseChangeCount = CalculatePhaseChangeCount(steps);
+        metrics.PhaseStability = CalculatePhaseStability(steps, metrics.PhaseChangeCount);
+
+        if (project.Metrics is null)
+        {
+            db.SimulationMetrics.Add(metrics);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SaveTrustSnapshotsAsync(
+        SimulationProject project,
+        int stepNo,
+        CancellationToken cancellationToken)
+    {
+        var existingSnapshots = await db.TrustSnapshots
+            .Where(snapshot => snapshot.SimulationProjectId == project.Id && snapshot.StepNo == stepNo)
+            .ToListAsync(cancellationToken);
+
+        if (existingSnapshots.Count > 0)
+        {
+            db.TrustSnapshots.RemoveRange(existingSnapshots);
+        }
+
+        List<TrustSnapshot> snapshots = [];
+        var trustMaps = project.Agents.ToDictionary(
+            agent => agent.Id,
+            agent => TrustJsonUtility.Deserialize(agent.TrustJson));
+
+        foreach (var sourceAgent in project.Agents)
+        {
+            foreach (var targetAgent in project.Agents.Where(agent => agent.Id != sourceAgent.Id))
+            {
+                var trustMap = trustMaps[sourceAgent.Id];
+                var trustValue = trustMap.TryGetValue(targetAgent.Name, out var value) ? value : 0;
+
+                snapshots.Add(new TrustSnapshot
+                {
+                    SimulationProjectId = project.Id,
+                    StepNo = stepNo,
+                    SourceAgentId = sourceAgent.Id,
+                    TargetAgentId = targetAgent.Id,
+                    SourceAgentName = sourceAgent.Name,
+                    TargetAgentName = targetAgent.Name,
+                    TrustValue = TrustJsonUtility.Clamp(trustValue),
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+        }
+
+        db.TrustSnapshots.AddRange(snapshots);
     }
 
     private static string NormalizeTarget(string value)
@@ -298,73 +477,198 @@ public sealed class SimulationRunner(AppDbContext db, ILlmService llmService) : 
         return string.IsNullOrWhiteSpace(value) || value.Trim() == "-" ? "" : value.Trim();
     }
 
+    private static string GetDefaultModel(string provider)
+    {
+        return string.Equals(provider, LlmProviderType.OpenAI, StringComparison.OrdinalIgnoreCase)
+            ? LlmDefaults.OpenAiRecommendedModel
+            : LlmDefaults.MockModel;
+    }
+
     private static bool ContainsAny(string source, IReadOnlyCollection<string> keywords)
     {
         return keywords.Any(keyword => source.Contains(keyword, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static void UpdateTrust(Agent sourceAgent, Agent targetAgent, double delta)
+    private static TrustPairChange UpdateTrust(Agent sourceAgent, Agent targetAgent, double delta)
     {
         if (sourceAgent.Id == targetAgent.Id)
         {
-            return;
+            return new TrustPairChange(null, null);
         }
 
-        var trustMap = DeserializeTrust(sourceAgent.TrustJson);
-        trustMap[targetAgent.Name] = ClampTrust(trustMap.GetValueOrDefault(targetAgent.Name) + delta);
+        var trustMap = TrustJsonUtility.Deserialize(sourceAgent.TrustJson);
+        var before = trustMap.TryGetValue(targetAgent.Name, out var currentValue) ? currentValue : 0;
+        var after = TrustJsonUtility.Clamp(before + delta);
+        trustMap[targetAgent.Name] = after;
         sourceAgent.TrustJson = JsonSerializer.Serialize(trustMap, JsonOptions);
+        return new TrustPairChange(before, after);
     }
 
-    private static Dictionary<string, double> DeserializeTrust(string json)
+    private static TrustChangeMetrics CalculateTrustMetrics(IReadOnlyCollection<TrustPairChange> changes)
     {
-        if (string.IsNullOrWhiteSpace(json))
+        var appliedChanges = changes
+            .Where(change => change.Before.HasValue && change.After.HasValue)
+            .ToList();
+
+        if (appliedChanges.Count == 0)
         {
-            return new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+            return new TrustChangeMetrics(null, null, null);
         }
 
-        try
-        {
-            using var document = JsonDocument.Parse(json);
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                return new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-            }
+        var before = Math.Round(appliedChanges.Average(change => change.Before!.Value), 2);
+        var after = Math.Round(appliedChanges.Average(change => change.After!.Value), 2);
+        var delta = Math.Round(after - before, 2);
 
-            var trustMap = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-            foreach (var property in document.RootElement.EnumerateObject())
+        return new TrustChangeMetrics(before, delta, after);
+    }
+
+    private static double CalculateAverageTrust(IEnumerable<Agent> agents)
+    {
+        List<double> values = [];
+        foreach (var agent in agents)
+        {
+            values.AddRange(TrustJsonUtility.Deserialize(agent.TrustJson).Values);
+        }
+
+        return values.Count == 0 ? 0 : Math.Round(values.Average(), 2);
+    }
+
+    private static double CalculateNetworkDensity(IReadOnlyCollection<Agent> agents)
+    {
+        var maxEdges = agents.Count * (agents.Count - 1);
+        if (maxEdges <= 0)
+        {
+            return 0;
+        }
+
+        var agentNames = agents.Select(agent => agent.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var positiveEdgeCount = agents.Sum(agent =>
+            TrustJsonUtility.Deserialize(agent.TrustJson)
+                .Count(entry =>
+                    !string.Equals(entry.Key, agent.Name, StringComparison.OrdinalIgnoreCase) &&
+                    agentNames.Contains(entry.Key) &&
+                    entry.Value > 0));
+
+        return Math.Round(positiveEdgeCount / (double)maxEdges, 3);
+    }
+
+    private static int CalculateIsolatedAgentCount(IReadOnlyCollection<Agent> agents)
+    {
+        var outboundPositiveCounts = agents.ToDictionary(agent => agent.Name, _ => 0, StringComparer.OrdinalIgnoreCase);
+        var inboundPositiveCounts = agents.ToDictionary(agent => agent.Name, _ => 0, StringComparer.OrdinalIgnoreCase);
+        var agentNames = agents.Select(agent => agent.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var agent in agents)
+        {
+            foreach (var entry in TrustJsonUtility.Deserialize(agent.TrustJson))
             {
-                if (TryReadTrustValue(property.Value, out var value))
+                if (entry.Value <= 0 ||
+                    !agentNames.Contains(entry.Key) ||
+                    string.Equals(entry.Key, agent.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    trustMap[property.Name] = ClampTrust(value);
+                    continue;
                 }
+
+                outboundPositiveCounts[agent.Name]++;
+                inboundPositiveCounts[entry.Key]++;
             }
+        }
 
-            return trustMap;
-        }
-        catch
-        {
-            return new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-        }
+        return agents.Count(agent => outboundPositiveCounts[agent.Name] == 0 && inboundPositiveCounts[agent.Name] == 0);
     }
 
-    private static bool TryReadTrustValue(JsonElement element, out double value)
+    private static HubMetrics CalculateHub(IReadOnlyCollection<Agent> agents)
     {
-        switch (element.ValueKind)
+        var inboundScores = agents.ToDictionary(agent => agent.Name, _ => 0.0, StringComparer.OrdinalIgnoreCase);
+        var agentNames = agents.Select(agent => agent.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var agent in agents)
         {
-            case JsonValueKind.Number:
-                return element.TryGetDouble(out value);
+            foreach (var entry in TrustJsonUtility.Deserialize(agent.TrustJson))
+            {
+                if (entry.Value <= 0 ||
+                    !agentNames.Contains(entry.Key) ||
+                    string.Equals(entry.Key, agent.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
 
-            case JsonValueKind.String:
-                return double.TryParse(element.GetString(), out value);
-
-            default:
-                value = 0;
-                return false;
+                inboundScores[entry.Key] += entry.Value;
+            }
         }
+
+        var best = inboundScores
+            .OrderByDescending(pair => pair.Value)
+            .ThenBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
+
+        return best.Value > 0
+            ? new HubMetrics(best.Key, Math.Round(best.Value, 2))
+            : new HubMetrics("-", 0);
     }
 
-    private static double ClampTrust(double value)
+    private static double CalculateActionRate(IReadOnlyCollection<AgentAction> actions, string actionType)
     {
-        return Math.Clamp(Math.Round(value, 2), -1.0, 1.0);
+        if (actions.Count == 0)
+        {
+            return 0;
+        }
+
+        return Math.Round(actions.Count(action => action.Action == actionType) / (double)actions.Count, 3);
     }
+
+    private static double CalculateCriticizeSupportRatio(IReadOnlyCollection<AgentAction> actions)
+    {
+        var criticizeCount = actions.Count(action => action.Action == AgentActionType.Criticize);
+        var supportCount = actions.Count(action => action.Action == AgentActionType.SupportOther);
+
+        if (supportCount == 0)
+        {
+            return criticizeCount == 0 ? 0 : criticizeCount;
+        }
+
+        return Math.Round(criticizeCount / (double)supportCount, 3);
+    }
+
+    private static int? FindFirstPhaseStep(IReadOnlyCollection<SimulationStep> steps, string phase)
+    {
+        return steps
+            .OrderBy(step => step.StepNo)
+            .FirstOrDefault(step => string.Equals(step.Phase, phase, StringComparison.OrdinalIgnoreCase))
+            ?.StepNo;
+    }
+
+    private static int CalculatePhaseChangeCount(IReadOnlyList<SimulationStep> steps)
+    {
+        if (steps.Count <= 1)
+        {
+            return 0;
+        }
+
+        var count = 0;
+        for (var index = 1; index < steps.Count; index++)
+        {
+            if (!string.Equals(steps[index - 1].Phase, steps[index].Phase, StringComparison.OrdinalIgnoreCase))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static double CalculatePhaseStability(IReadOnlyList<SimulationStep> steps, int phaseChangeCount)
+    {
+        var totalTransitions = Math.Max(0, steps.Count - 1);
+        if (totalTransitions == 0)
+        {
+            return 1.0;
+        }
+
+        return Math.Round(1.0 - (phaseChangeCount / (double)totalTransitions), 3);
+    }
+
+    private sealed record TrustPairChange(double? Before, double? After);
+    private sealed record TrustChangeMetrics(double? Before, double? Delta, double? After);
+    private sealed record HubMetrics(string Name, double Score);
 }

@@ -1,0 +1,319 @@
+﻿@page "{id:int}"
+@model EmergentEngineering.Pages.Experiments.DetailsModel
+@{
+    ViewData["Title"] = Model.Experiment?.Name ?? "Experiment Details";
+}
+
+@functions {
+    private static string FormatPhase(string? phase) => phase switch
+    {
+        "Forming" => "Forming",
+        "Learning" => "Learning",
+        "Stable" => "Stable",
+        "Emergent" => "Emergent",
+        "Silo" => "Silo",
+        "Chaos" => "Chaos",
+        "Collapse" => "Collapse",
+        _ => phase ?? "-"
+    };
+
+    private static string FormatStatus(string? status) => status switch
+    {
+        "Created" => "Created（作成済み）",
+        "Running" => "Running（実行中）",
+        "StopRequested" => "StopRequested（停止要求）",
+        "Stopped" => "Stopped（停止済み）",
+        "Completed" => "Completed（完了）",
+        _ => status ?? "-"
+    };
+}
+
+@if (Model.Experiment is null)
+{
+    <div class="alert alert-warning">Experiment が見つかりません。</div>
+    return;
+}
+
+<div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+    <div>
+        <a asp-page="/Experiments/Index" class="text-decoration-none small">&larr; Experiments</a>
+        <h1 class="h2 mt-2 mb-1">@Model.Experiment.Name</h1>
+        <div class="text-muted">@Model.Experiment.Description</div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-primary" asp-page="/Experiments/Run" asp-route-id="@Model.Experiment.Id">実験実行</a>
+        @if (Model.Experiment.Status == EmergentEngineering.Models.ExperimentStatus.Running)
+        {
+            <form method="post" asp-page-handler="Stop" asp-route-id="@Model.Experiment.Id">
+                <button type="submit" class="btn btn-outline-warning">実験停止</button>
+            </form>
+        }
+        <a class="btn btn-outline-danger" asp-page="/Experiments/Delete" asp-route-id="@Model.Experiment.Id">削除</a>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.ExperimentMessage))
+{
+    <div class="alert alert-info">@Model.ExperimentMessage</div>
+}
+
+<section class="summary-grid mb-4">
+    <div>
+        <h2 class="h6">Status</h2>
+        <p>@FormatStatus(Model.Experiment.Status)</p>
+    </div>
+    <div>
+        <h2 class="h6">Purpose</h2>
+        <p>@Model.Experiment.Purpose</p>
+    </div>
+    <div>
+        <h2 class="h6">Scenario</h2>
+        <p>
+            @if (Model.Experiment.ScenarioId.HasValue && Model.Experiment.Scenario is not null)
+            {
+                <a asp-page="/Scenarios/Details" asp-route-id="@Model.Experiment.ScenarioId">@Model.Experiment.Scenario.Name</a>
+            }
+            else
+            {
+                <span>-</span>
+            }
+        </p>
+    </div>
+    <div>
+        <h2 class="h6">Boundary Conditions</h2>
+        <p>@Model.Experiment.BoundaryConditions</p>
+    </div>
+    <div>
+        <h2 class="h6">KPI</h2>
+        <p>@Model.Experiment.KpiDefinition</p>
+    </div>
+    <div>
+        <h2 class="h6">LLMプロバイダー</h2>
+        <p>@Model.Experiment.LlmProvider</p>
+    </div>
+    <div>
+        <h2 class="h6">LLMモデル</h2>
+        <p>@Model.Experiment.LlmModel</p>
+    </div>
+    <div>
+        <h2 class="h6">Agent Count</h2>
+        <p>@Model.Experiment.AgentCount</p>
+    </div>
+    <div>
+        <h2 class="h6">Total Steps</h2>
+        <p>@Model.Experiment.TotalSteps</p>
+    </div>
+    <div>
+        <h2 class="h6">Run Count</h2>
+        <p>@Model.Experiment.RunCount</p>
+    </div>
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">境界条件パラメータ</h2>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <tbody>
+                <tr><th>情報共有</th><td>@Model.Experiment.InformationSharingLevel.ToString("0.0")</td></tr>
+                <tr><th>協調性</th><td>@Model.Experiment.CooperationLevel.ToString("0.0")</td></tr>
+                <tr><th>競争性</th><td>@Model.Experiment.CompetitionLevel.ToString("0.0")</td></tr>
+                <tr><th>心理的安全性</th><td>@Model.Experiment.PsychologicalSafetyLevel.ToString("0.0")</td></tr>
+                <tr><th>学習志向</th><td>@Model.Experiment.LearningOrientationLevel.ToString("0.0")</td></tr>
+                <tr><th>顧客志向</th><td>@Model.Experiment.CustomerOrientationLevel.ToString("0.0")</td></tr>
+                <tr><th>短期成果圧力</th><td>@Model.Experiment.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Run Summary</h2>
+            <p class="text-muted small mb-0">Average Trust across runs: @Model.AverageTrustOverall.ToString("0.00")</p>
+        </div>
+    </div>
+    @if (Model.Runs.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ Run はありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Run</th>
+                        <th>Simulation</th>
+                        <th>LLM</th>
+                        <th>Final Phase</th>
+                        <th>Average Trust</th>
+                        <th>Network Density</th>
+                        <th>Isolated</th>
+                        <th>Hub</th>
+                        <th>ShareInfo Rate</th>
+                        <th>ProposeIdea Rate</th>
+                        <th>Phase Stability</th>
+                        <th>Steps</th>
+                        <th>Created</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var run in Model.Runs)
+                {
+                    <tr>
+                        <td>@run.RunNo</td>
+                        <td>@run.SimulationProject?.Name</td>
+                        <td>@(run.SimulationProject is null ? "-" : $"{run.SimulationProject.LlmProvider} / {run.SimulationProject.LlmModel}")</td>
+                        <td><span class="phase-pill">@FormatPhase(run.FinalPhase)</span></td>
+                        <td>@run.AverageTrust.ToString("0.00")</td>
+                        <td>@run.NetworkDensity.ToString("0.000")</td>
+                        <td>@run.IsolatedAgentCount</td>
+                        <td>@run.HubAgentName (@run.HubScore.ToString("0.00"))</td>
+                        <td>@run.ShareInfoRate.ToString("0.000")</td>
+                        <td>@run.ProposeIdeaRate.ToString("0.000")</td>
+                        <td>@run.PhaseStability.ToString("0.000")</td>
+                        <td>@run.CompletedSteps</td>
+                        <td>@run.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2 flex-wrap">
+                                <a class="btn btn-sm btn-outline-primary" asp-page="/Simulations/Details" asp-route-id="@run.SimulationProjectId">詳細</a>
+                                <form method="post" asp-page-handler="DeleteRun" asp-route-id="@Model.Experiment.Id" asp-route-runId="@run.Id" onsubmit="return confirm('このRunと関連シミュレーションを削除します。よろしいですか。');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">このRunを削除</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <section class="log-section h-100">
+            <h2 class="h5 mb-3">Final Phase Distribution</h2>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Phase</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var row in Model.PhaseDistribution)
+                    {
+                        <tr>
+                            <td>@FormatPhase(row.Phase)</td>
+                            <td>@row.Count</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    <div class="col-lg-6">
+        <section class="log-section h-100">
+            <h2 class="h5 mb-3">Phase Transitions</h2>
+            @if (Model.PhaseTransitions.Count == 0)
+            {
+                <p class="text-muted mb-0">まだ phase transition データはありません。</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var transition in Model.PhaseTransitions)
+                        {
+                            <tr>
+                                <td>@FormatPhase(transition.FromPhase)</td>
+                                <td>@FormatPhase(transition.ToPhase)</td>
+                                <td>@transition.Count</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+</div>
+
+<section class="log-section mt-4">
+    <h2 class="h5 mb-3">Average Trust Delta by Step</h2>
+    @if (Model.TrustTrend.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ trust delta データはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Average Trust Delta</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.TrustTrend)
+                {
+                    <tr>
+                        <td>@point.StepNo</td>
+                        <td>@point.AverageTrustDelta.ToString("+0.00;-0.00;0.00")</td>
+                        <td>@point.Count</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mt-4">
+    <h2 class="h5 mb-3">ステップ別 平均信頼度</h2>
+    @if (Model.TrustStateTrend.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ trust state データはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>StepNo</th>
+                        <th>AverageTrust</th>
+                        <th>AverageAbsTrust</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.TrustStateTrend)
+                {
+                    <tr>
+                        <td>@point.StepNo</td>
+                        <td>@point.AverageTrust.ToString("+0.00;-0.00;0.00")</td>
+                        <td>@point.AverageAbsTrust.ToString("0.00")</td>
+                        <td>@point.Count</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

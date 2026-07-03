@@ -4,20 +4,42 @@
     ViewData["Title"] = "Simulations";
 }
 
+@functions {
+    private static string FormatPhase(string? phase) => phase switch
+    {
+        "Forming" => "Forming",
+        "Learning" => "Learning",
+        "Stable" => "Stable",
+        "Emergent" => "Emergent",
+        "Silo" => "Silo",
+        "Chaos" => "Chaos",
+        "Collapse" => "Collapse",
+        _ => phase ?? "-"
+    };
+
+    private static string FormatStatus(string? status) => status switch
+    {
+        "Created" => "Created",
+        "Running" => "Running",
+        "Completed" => "Completed",
+        _ => status ?? "-"
+    };
+}
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <h1 class="h2 mb-1">Emergence Engineering Lab</h1>
-        <p class="text-muted mb-0">Observe how multi-agent organizations form, learn, silo, or emerge under different constraints.</p>
+        <h1 class="h2 mb-1">Simulation Projects</h1>
+        <p class="text-muted mb-0">目的、境界条件、KPI に従って AI エージェントの組織形成過程を記録します。</p>
     </div>
-    <a class="btn btn-primary" asp-page="/Simulations/Create">New Simulation</a>
+    <a class="btn btn-primary" asp-page="/Simulations/Create">新規 Simulation</a>
 </div>
 
 @if (Model.Projects.Count == 0)
 {
     <div class="empty-state">
-        <h2 class="h5">No simulations yet</h2>
-        <p>Create an MVP scenario, run it with the mock LLM, and inspect the persisted logs.</p>
-        <a class="btn btn-primary" asp-page="/Simulations/Create">Create first simulation</a>
+        <h2 class="h5">Simulation はまだありません</h2>
+        <p>まず 1 件作成して、step ごとの発言、Trust、Phase の変化を確認してください。</p>
+        <a class="btn btn-primary" asp-page="/Simulations/Create">作成する</a>
     </div>
 }
 else
@@ -43,13 +65,16 @@ else
                         <strong>@project.Name</strong>
                         <div class="text-muted small">@project.Purpose</div>
                     </td>
-                    <td><span class="badge text-bg-secondary">@project.Status</span></td>
-                    <td><span class="phase-pill">@project.Phase</span></td>
+                    <td><span class="badge text-bg-secondary">@FormatStatus(project.Status)</span></td>
+                    <td><span class="phase-pill">@FormatPhase(project.Phase)</span></td>
                     <td>@project.CurrentStep / @project.TotalSteps</td>
                     <td>@project.AgentCount</td>
                     <td>@project.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                     <td class="text-end">
-                        <a class="btn btn-sm btn-outline-primary" asp-page="/Simulations/Details" asp-route-id="@project.Id">Open</a>
+                        <div class="d-flex justify-content-end gap-2 flex-wrap">
+                            <a class="btn btn-sm btn-outline-primary" asp-page="/Simulations/Details" asp-route-id="@project.Id">詳細</a>
+                            <a class="btn btn-sm btn-outline-danger" asp-page="/Simulations/Delete" asp-route-id="@project.Id">削除</a>
+                        </div>
                     </td>
                 </tr>
             }

@@ -1,0 +1,237 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.ParameterSweeps.DetailsModel
+@{
+    ViewData["Title"] = Model.Sweep?.Name ?? "パラメータスイープ詳細";
+    var phases = new[]
+    {
+        EmergentEngineering.Models.SimulationPhase.Forming,
+        EmergentEngineering.Models.SimulationPhase.Learning,
+        EmergentEngineering.Models.SimulationPhase.Stable,
+        EmergentEngineering.Models.SimulationPhase.Emergent,
+        EmergentEngineering.Models.SimulationPhase.Silo,
+        EmergentEngineering.Models.SimulationPhase.Chaos,
+        EmergentEngineering.Models.SimulationPhase.Collapse
+    };
+}
+
+@if (Model.Sweep is null)
+{
+    <div class="alert alert-warning">パラメータスイープが見つかりません。</div>
+    return;
+}
+
+<div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+    <div>
+        <a asp-page="/ParameterSweeps/Index" class="text-decoration-none small">&larr; パラメータスイープ一覧</a>
+        <h1 class="h2 mt-2 mb-1">@Model.Sweep.Name</h1>
+        <div class="text-muted">@Model.Sweep.Description</div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-primary" asp-page="/ParameterSweeps/Run" asp-route-id="@Model.Sweep.Id">スイープ実行</a>
+        @if (Model.Sweep.Status == EmergentEngineering.Models.ParameterSweepStatus.Running)
+        {
+            <form method="post" asp-page-handler="Stop" asp-route-id="@Model.Sweep.Id">
+                <button type="submit" class="btn btn-outline-warning">スイープ停止</button>
+            </form>
+        }
+        <a class="btn btn-outline-danger" asp-page="/ParameterSweeps/Delete" asp-route-id="@Model.Sweep.Id">削除</a>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.SweepMessage))
+{
+    <div class="alert alert-info">@Model.SweepMessage</div>
+}
+
+<section class="summary-grid mb-4">
+    <div><h2 class="h6">名前</h2><p>@Model.Sweep.Name</p></div>
+    <div><h2 class="h6">基準シナリオ</h2><p>@Model.ScenarioName</p></div>
+    <div><h2 class="h6">対象パラメータ</h2><p>@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(Model.Sweep.TargetParameter)</p></div>
+    <div><h2 class="h6">開始値</h2><p>@Model.Sweep.StartValue.ToString("0.00")</p></div>
+    <div><h2 class="h6">終了値</h2><p>@Model.Sweep.EndValue.ToString("0.00")</p></div>
+    <div><h2 class="h6">刻み幅</h2><p>@Model.Sweep.StepValue.ToString("0.00")</p></div>
+    <div><h2 class="h6">各値の実行回数</h2><p>@Model.Sweep.RunCountPerValue</p></div>
+    <div><h2 class="h6">エージェント数</h2><p>@Model.Sweep.AgentCount</p></div>
+    <div><h2 class="h6">総ステップ数</h2><p>@Model.Sweep.TotalSteps</p></div>
+    <div><h2 class="h6">LLMプロバイダー</h2><p>@Model.Sweep.LlmProvider</p></div>
+    <div><h2 class="h6">LLMモデル</h2><p>@Model.Sweep.LlmModel</p></div>
+    <div><h2 class="h6">状態</h2><p>@Model.FormatStatus(Model.Sweep.Status)</p></div>
+</section>
+
+<section class="chart-panel mb-4">
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <h2 class="h5 mb-3">パラメータ値ごとの平均絶対信頼度</h2>
+            @if (Model.Runs.Count == 0)
+            {
+                <p class="text-muted mb-0">まだスイープ結果はありません。</p>
+            }
+            else
+            {
+                <canvas id="averageAbsTrustChart" height="180"></canvas>
+            }
+        </div>
+        <div class="col-lg-6">
+            <h2 class="h5 mb-3">パラメータ値ごとの創発相到達数</h2>
+            @if (Model.Runs.Count == 0)
+            {
+                <p class="text-muted mb-0">まだスイープ結果はありません。</p>
+            }
+            else
+            {
+                <canvas id="emergentCountChart" height="180"></canvas>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">Sweep結果一覧</h2>
+    @if (Model.Runs.Count == 0)
+    {
+        <p class="text-muted mb-0">まだスイープ結果はありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>ParameterValue</th>
+                        <th>Experiment</th>
+                        <th>FinalPhaseSummary</th>
+                        <th>AverageTrust</th>
+                        <th>AverageAbsTrust</th>
+                        <th>CreatedAt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var run in Model.Runs)
+                {
+                    <tr>
+                        <td>@run.ParameterValue.ToString("0.00")</td>
+                        <td><a asp-page="/Experiments/Details" asp-route-id="@run.ExperimentId">@Model.GetExperimentName(run.ExperimentId)</a></td>
+                        <td>@Model.FormatPhaseSummary(run.FinalPhaseSummaryJson)</td>
+                        <td>@run.AverageTrust.ToString("0.00")</td>
+                        <td>@run.AverageAbsTrust.ToString("0.00")</td>
+                        <td>@run.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">Phase分布比較</h2>
+    @if (Model.PhaseComparison.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ Phase 分布比較データはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>ParameterValue</th>
+                        @foreach (var phase in phases)
+                        {
+                            <th>@phase</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.PhaseComparison)
+                {
+                    <tr>
+                        <td>@row.ParameterValue.ToString("0.00")</td>
+                        @foreach (var phase in phases)
+                        {
+                            <td>@row.GetCount(phase)</td>
+                        }
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section">
+    <h2 class="h5 mb-3">信頼度比較</h2>
+    @if (Model.Runs.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ信頼度比較データはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ParameterValue</th>
+                        <th>AverageTrust</th>
+                        <th>AverageAbsTrust</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var run in Model.Runs)
+                {
+                    <tr>
+                        <td>@run.ParameterValue.ToString("0.00")</td>
+                        <td>@run.AverageTrust.ToString("0.00")</td>
+                        <td>@run.AverageAbsTrust.ToString("0.00")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (() => {
+            if (typeof Chart === 'undefined') {
+                return;
+            }
+
+            const trustPoints = @Html.Raw(Model.GetTrustChartJson());
+            const emergentPoints = @Html.Raw(Model.GetEmergentChartJson());
+
+            renderLineChart('averageAbsTrustChart', trustPoints, 'averageAbsTrust', '平均絶対信頼度', '#1c4b8f');
+            renderLineChart('emergentCountChart', emergentPoints, 'emergentCount', '創発相到達数', '#2d7d46');
+
+            function renderLineChart(canvasId, points, valueKey, label, color) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas || !points || points.length === 0) {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.parameterValue),
+                        datasets: [{
+                            label,
+                            data: points.map(point => point[valueKey]),
+                            borderColor: color,
+                            backgroundColor: `${color}22`,
+                            fill: true,
+                            tension: 0.2,
+                            pointRadius: 4,
+                            pointHoverRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true
+                    }
+                });
+            }
+        })();
+    </script>
+}

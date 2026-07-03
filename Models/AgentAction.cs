@@ -11,6 +11,9 @@ public sealed class AgentAction
     public string Memory { get; set; } = "";
     public string Action { get; set; } = AgentActionType.Wait;
     public string TargetAgentName { get; set; } = "";
+    public double? TrustBefore { get; set; }
+    public double? TrustDelta { get; set; }
+    public double? TrustAfter { get; set; }
     public string RawLlmResponse { get; set; } = "";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

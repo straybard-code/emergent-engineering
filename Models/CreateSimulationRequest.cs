@@ -22,4 +22,33 @@ public sealed class CreateSimulationRequest
 
     [Range(1, 100)]
     public int TotalSteps { get; set; } = 5;
+
+    [Required]
+    [StringLength(40)]
+    public string LlmProvider { get; set; } = LlmDefaults.Provider;
+
+    [Required]
+    [StringLength(120)]
+    public string LlmModel { get; set; } = LlmDefaults.MockModel;
+
+    [Range(0, 1)]
+    public double InformationSharingLevel { get; set; } = BoundaryParameterDefaults.Level;
+
+    [Range(0, 1)]
+    public double CooperationLevel { get; set; } = BoundaryParameterDefaults.Level;
+
+    [Range(0, 1)]
+    public double CompetitionLevel { get; set; } = BoundaryParameterDefaults.Level;
+
+    [Range(0, 1)]
+    public double PsychologicalSafetyLevel { get; set; } = BoundaryParameterDefaults.Level;
+
+    [Range(0, 1)]
+    public double LearningOrientationLevel { get; set; } = BoundaryParameterDefaults.Level;
+
+    [Range(0, 1)]
+    public double CustomerOrientationLevel { get; set; } = BoundaryParameterDefaults.Level;
+
+    [Range(0, 1)]
+    public double ShortTermResultPressureLevel { get; set; } = BoundaryParameterDefaults.Level;
 }

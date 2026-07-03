@@ -1,0 +1,48 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.Simulations.DeleteModel
+@{
+    ViewData["Title"] = Model.Project?.Name ?? "Simulation Delete";
+}
+
+@if (Model.Project is null)
+{
+    <div class="alert alert-warning">Simulation が見つかりません。</div>
+    return;
+}
+
+<div class="page-heading">
+    <a asp-page="/Simulations/Details" asp-route-id="@Model.Project.Id" class="text-decoration-none small">&larr; Simulation Details</a>
+    <h1 class="h2 mt-2">シミュレーション削除</h1>
+    <p class="text-muted mb-0">この操作は元に戻せません。</p>
+</div>
+
+<section class="log-section mb-4">
+    <dl class="row mb-0">
+        <dt class="col-sm-4">Simulation名</dt>
+        <dd class="col-sm-8">@Model.Project.Name</dd>
+
+        <dt class="col-sm-4">ExperimentRun参照数</dt>
+        <dd class="col-sm-8">@Model.ExperimentRunCount</dd>
+
+        <dt class="col-sm-4">Agents件数</dt>
+        <dd class="col-sm-8">@Model.AgentCount</dd>
+
+        <dt class="col-sm-4">AgentActions件数</dt>
+        <dd class="col-sm-8">@Model.AgentActionCount</dd>
+
+        <dt class="col-sm-4">SimulationSteps件数</dt>
+        <dd class="col-sm-8">@Model.SimulationStepCount</dd>
+
+        <dt class="col-sm-4">TrustSnapshots件数</dt>
+        <dd class="col-sm-8">@Model.TrustSnapshotCount</dd>
+    </dl>
+</section>
+
+<div class="alert alert-danger">
+    関連する Agents、AgentActions、SimulationSteps、TrustSnapshots、ExperimentRun 参照も削除されます。
+</div>
+
+<form method="post" class="d-flex gap-2 flex-wrap">
+    <button type="submit" class="btn btn-danger">削除を確定</button>
+    <a asp-page="/Simulations/Details" asp-route-id="@Model.Project.Id" class="btn btn-outline-secondary">キャンセル</a>
+</form>

@@ -1,0 +1,69 @@
+@page
+@model EmergentEngineering.Pages.ParameterSweeps.IndexModel
+@{
+    ViewData["Title"] = "パラメータスイープ";
+}
+
+@functions {
+    private static string FormatStatus(string? status) => status switch
+    {
+        "Created" => "Created（作成済み）",
+        "Running" => "Running（実行中）",
+        "Completed" => "Completed（完了）",
+        "Failed" => "Failed（失敗）",
+        "StopRequested" => "StopRequested（停止要求）",
+        "Stopped" => "Stopped（停止済み）",
+        _ => status ?? "-"
+    };
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h2 mb-1">パラメータスイープ</h1>
+        <p class="text-muted mb-0">基準シナリオから1つの境界条件パラメータだけを変化させ、感度分析を行います。</p>
+    </div>
+    <a class="btn btn-primary" asp-page="/ParameterSweeps/Create">新規スイープ</a>
+</div>
+
+@if (Model.Sweeps.Count == 0)
+{
+    <div class="empty-state">
+        <h2 class="h5">パラメータスイープはまだありません</h2>
+        <p>Scenario を基準に、1パラメータずつ変化させた比較実験を作成できます。</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>名前</th>
+                    <th>基準シナリオ</th>
+                    <th>対象パラメータ</th>
+                    <th>状態</th>
+                    <th>作成日時</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var sweep in Model.Sweeps)
+            {
+                <tr>
+                    <td><strong>@sweep.Name</strong></td>
+                    <td>@sweep.ScenarioName</td>
+                    <td>@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(sweep.TargetParameter)</td>
+                    <td><span class="badge text-bg-secondary">@FormatStatus(sweep.Status)</span></td>
+                    <td>@sweep.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-2 flex-wrap">
+                            <a class="btn btn-sm btn-outline-primary" asp-page="/ParameterSweeps/Details" asp-route-id="@sweep.Id">詳細</a>
+                            <a class="btn btn-sm btn-outline-danger" asp-page="/ParameterSweeps/Delete" asp-route-id="@sweep.Id">削除</a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

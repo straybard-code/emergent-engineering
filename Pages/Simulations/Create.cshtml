@@ -5,31 +5,31 @@
 }
 
 <div class="page-heading">
-    <h1 class="h2">New Simulation</h1>
-    <p class="text-muted">Define the organizational context. Agents will be generated automatically.</p>
+    <h1 class="h2">新規 Simulation</h1>
+    <p class="text-muted">境界条件、KPI、LLM条件、境界条件パラメータを設定して単発シミュレーションを作成します。</p>
 </div>
 
 <form method="post" class="simulation-form">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="mb-3">
-        <label asp-for="Input.Name" class="form-label"></label>
+        <label asp-for="Input.Name" class="form-label">Name</label>
         <input asp-for="Input.Name" class="form-control" />
         <span asp-validation-for="Input.Name" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Input.Purpose" class="form-label"></label>
+        <label asp-for="Input.Purpose" class="form-label">Purpose</label>
         <textarea asp-for="Input.Purpose" class="form-control" rows="3"></textarea>
         <span asp-validation-for="Input.Purpose" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Input.BoundaryConditions" class="form-label">Culture and boundary conditions</label>
+        <label asp-for="Input.BoundaryConditions" class="form-label">Boundary Conditions</label>
         <textarea asp-for="Input.BoundaryConditions" class="form-control" rows="4"></textarea>
         <span asp-validation-for="Input.BoundaryConditions" class="text-danger"></span>
         <div class="sample-panel mt-2">
-            <div class="small fw-semibold mb-2">BoundaryConditions examples</div>
+            <div class="small fw-semibold mb-2">入力例</div>
             <ul class="small mb-0">
                 <li>協調・情報共有型: 「情報共有を重視する。困ったときは相談してよい。失敗は学習材料として扱う。互いに支援することを推奨する。」</li>
                 <li>競争・個人成果型: 「個人成果を重視する。各自が自分の成果を最大化する。情報共有は任意とする。」</li>
@@ -43,7 +43,7 @@
         <textarea asp-for="Input.KpiDefinition" class="form-control" rows="3"></textarea>
         <span asp-validation-for="Input.KpiDefinition" class="text-danger"></span>
         <div class="sample-panel mt-2">
-            <div class="small fw-semibold mb-2">KPI examples</div>
+            <div class="small fw-semibold mb-2">入力例</div>
             <ul class="small mb-0">
                 <li>「採用率、短期売上」</li>
                 <li>「市場学習、品質、リピート率、顧客成功」</li>
@@ -54,12 +54,68 @@
 
     <div class="row">
         <div class="col-md-6 mb-3">
-            <label asp-for="Input.AgentCount" class="form-label">Agent count</label>
+            <label asp-for="Input.LlmProvider" class="form-label">LLMプロバイダー</label>
+            <select asp-for="Input.LlmProvider" class="form-select">
+                <option value="Mock">Mock（高速・無料）</option>
+                <option value="OpenAI">OpenAI（高精度・有料）</option>
+            </select>
+            <div class="form-text">大規模確認は Mock、小規模検証は OpenAI を想定しています。</div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.LlmModel" class="form-label">LLMモデル</label>
+            <select asp-for="Input.LlmModel" class="form-select">
+                <option value="mock-v1">mock-v1</option>
+                <option value="gpt-4o-mini">gpt-4o-mini</option>
+                <option value="gpt-4o">gpt-4o</option>
+                <option value="gpt-5.5">gpt-5.5</option>
+                <option value="gpt-5.6">gpt-5.6</option>
+            </select>
+            <div class="form-text">Mock のときは mock-v1 推奨、OpenAI のときは gpt-4o-mini 推奨です。</div>
+        </div>
+    </div>
+
+    <section class="log-section mb-4">
+        <h2 class="h5 mb-3">境界条件パラメータ</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.InformationSharingLevel" class="form-label">情報共有</label>
+                <input asp-for="Input.InformationSharingLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.CooperationLevel" class="form-label">協調性</label>
+                <input asp-for="Input.CooperationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.CompetitionLevel" class="form-label">競争性</label>
+                <input asp-for="Input.CompetitionLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.PsychologicalSafetyLevel" class="form-label">心理的安全性</label>
+                <input asp-for="Input.PsychologicalSafetyLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.LearningOrientationLevel" class="form-label">学習志向</label>
+                <input asp-for="Input.LearningOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.CustomerOrientationLevel" class="form-label">顧客志向</label>
+                <input asp-for="Input.CustomerOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.ShortTermResultPressureLevel" class="form-label">短期成果圧力</label>
+                <input asp-for="Input.ShortTermResultPressureLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            </div>
+        </div>
+    </section>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.AgentCount" class="form-label">Agent Count</label>
             <input asp-for="Input.AgentCount" class="form-control" type="number" min="1" max="20" />
             <span asp-validation-for="Input.AgentCount" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
-            <label asp-for="Input.TotalSteps" class="form-label">Step count</label>
+            <label asp-for="Input.TotalSteps" class="form-label">Total Steps</label>
             <input asp-for="Input.TotalSteps" class="form-control" type="number" min="1" max="100" />
             <span asp-validation-for="Input.TotalSteps" class="text-danger"></span>
         </div>

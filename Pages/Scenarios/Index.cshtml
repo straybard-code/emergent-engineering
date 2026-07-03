@@ -1,0 +1,62 @@
+@page
+@model EmergentEngineering.Pages.Scenarios.IndexModel
+@{
+    ViewData["Title"] = "シナリオ";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h2 mb-1">シナリオ</h1>
+        <p class="text-muted mb-0">再利用可能な実験条件テンプレートを管理します。</p>
+    </div>
+    <a class="btn btn-primary" asp-page="/Scenarios/Create">新規シナリオ</a>
+</div>
+
+@if (Model.Scenarios.Count == 0)
+{
+    <div class="empty-state">
+        <h2 class="h5">シナリオはまだありません</h2>
+        <p>境界条件、KPI、Agent構成、LLM条件、境界条件パラメータをまとめて保存できます。</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>シナリオ名</th>
+                    <th>Agent数</th>
+                    <th>Step数</th>
+                    <th>Run回数</th>
+                    <th>LLM</th>
+                    <th>作成日時</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var scenario in Model.Scenarios)
+            {
+                <tr>
+                    <td>
+                        <strong>@scenario.Name</strong>
+                        <div class="text-muted small">@scenario.Description</div>
+                    </td>
+                    <td>@scenario.AgentCount</td>
+                    <td>@scenario.TotalSteps</td>
+                    <td>@scenario.RunCount</td>
+                    <td>@scenario.LlmProvider / @scenario.LlmModel</td>
+                    <td>@scenario.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-2 flex-wrap">
+                            <a class="btn btn-sm btn-outline-primary" asp-page="/Scenarios/Details" asp-route-id="@scenario.Id">詳細</a>
+                            <a class="btn btn-sm btn-outline-secondary" asp-page="/Scenarios/Edit" asp-route-id="@scenario.Id">編集</a>
+                            <a class="btn btn-sm btn-outline-danger" asp-page="/Scenarios/Delete" asp-route-id="@scenario.Id">削除</a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

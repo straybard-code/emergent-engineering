@@ -1,0 +1,80 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.Scenarios.DetailsModel
+@{
+    ViewData["Title"] = Model.Scenario?.Name ?? "シナリオ詳細";
+}
+
+@if (Model.Scenario is null)
+{
+    <div class="alert alert-warning">シナリオが見つかりません。</div>
+    return;
+}
+
+<div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+    <div>
+        <a asp-page="/Scenarios/Index" class="text-decoration-none small">&larr; シナリオ一覧</a>
+        <h1 class="h2 mt-2 mb-1">@Model.Scenario.Name</h1>
+        <div class="text-muted">@Model.Scenario.Description</div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-primary" asp-page="/Experiments/Create" asp-route-scenarioId="@Model.Scenario.Id">このシナリオから実験を作成</a>
+        <a class="btn btn-outline-secondary" asp-page="/Scenarios/Edit" asp-route-id="@Model.Scenario.Id">編集</a>
+        <a class="btn btn-outline-danger" asp-page="/Scenarios/Delete" asp-route-id="@Model.Scenario.Id">削除</a>
+    </div>
+</div>
+
+<section class="summary-grid mb-4">
+    <div>
+        <h2 class="h6">目的</h2>
+        <p>@Model.Scenario.Purpose</p>
+    </div>
+    <div>
+        <h2 class="h6">境界条件</h2>
+        <p>@Model.Scenario.BoundaryConditions</p>
+    </div>
+    <div>
+        <h2 class="h6">KPI</h2>
+        <p>@Model.Scenario.KpiDefinition</p>
+    </div>
+    <div>
+        <h2 class="h6">Agent数</h2>
+        <p>@Model.Scenario.AgentCount</p>
+    </div>
+    <div>
+        <h2 class="h6">Step数</h2>
+        <p>@Model.Scenario.TotalSteps</p>
+    </div>
+    <div>
+        <h2 class="h6">Run回数</h2>
+        <p>@Model.Scenario.RunCount</p>
+    </div>
+    <div>
+        <h2 class="h6">LLMプロバイダー</h2>
+        <p>@Model.Scenario.LlmProvider</p>
+    </div>
+    <div>
+        <h2 class="h6">LLMモデル</h2>
+        <p>@Model.Scenario.LlmModel</p>
+    </div>
+    <div>
+        <h2 class="h6">参照Experiment数</h2>
+        <p>@Model.ExperimentCount</p>
+    </div>
+</section>
+
+<section class="log-section">
+    <h2 class="h5 mb-3">境界条件パラメータ</h2>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <tbody>
+                <tr><th>情報共有</th><td>@Model.Scenario.InformationSharingLevel.ToString("0.0")</td></tr>
+                <tr><th>協調性</th><td>@Model.Scenario.CooperationLevel.ToString("0.0")</td></tr>
+                <tr><th>競争性</th><td>@Model.Scenario.CompetitionLevel.ToString("0.0")</td></tr>
+                <tr><th>心理的安全性</th><td>@Model.Scenario.PsychologicalSafetyLevel.ToString("0.0")</td></tr>
+                <tr><th>学習志向</th><td>@Model.Scenario.LearningOrientationLevel.ToString("0.0")</td></tr>
+                <tr><th>顧客志向</th><td>@Model.Scenario.CustomerOrientationLevel.ToString("0.0")</td></tr>
+                <tr><th>短期成果圧力</th><td>@Model.Scenario.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
