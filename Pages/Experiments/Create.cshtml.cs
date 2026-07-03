@@ -41,7 +41,15 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         EnableExternalShock = KnowledgeDefaults.EnableExternalShock,
         ShockStep = KnowledgeDefaults.ShockStep,
         ShockType = KnowledgeDefaults.ShockType,
-        ShockDescription = KnowledgeDefaults.ShockDescription
+        ShockDescription = KnowledgeDefaults.ShockDescription,
+        EnableChallengeEvent = ChallengeDefaults.EnableChallengeEvent,
+        ChallengeType = ChallengeDefaults.ChallengeType,
+        ChallengeStep = ChallengeDefaults.ChallengeStep,
+        ChallengeLevel = ChallengeDefaults.ChallengeLevel,
+        ChallengeDescription = ChallengeDefaults.ChallengeDescription,
+        RequiredKnowledgeDiversity = ChallengeDefaults.RequiredKnowledgeDiversity,
+        RequiredCrossDomainExposure = ChallengeDefaults.RequiredCrossDomainExposure,
+        RequiredRewiringScore = ChallengeDefaults.RequiredRewiringScore
     };
 
     public List<ScenarioOption> Scenarios { get; private set; } = [];
@@ -119,7 +127,15 @@ public sealed class CreateModel(AppDbContext db) : PageModel
             EnableExternalShock = scenario.EnableExternalShock,
             ShockStep = scenario.ShockStep,
             ShockType = scenario.ShockType,
-            ShockDescription = scenario.ShockDescription
+            ShockDescription = scenario.ShockDescription,
+            EnableChallengeEvent = scenario.EnableChallengeEvent,
+            ChallengeType = scenario.ChallengeType,
+            ChallengeStep = scenario.ChallengeStep,
+            ChallengeLevel = scenario.ChallengeLevel,
+            ChallengeDescription = scenario.ChallengeDescription,
+            RequiredKnowledgeDiversity = scenario.RequiredKnowledgeDiversity,
+            RequiredCrossDomainExposure = scenario.RequiredCrossDomainExposure,
+            RequiredRewiringScore = scenario.RequiredRewiringScore
         };
     }
 

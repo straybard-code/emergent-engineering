@@ -1,4 +1,4 @@
-namespace EmergentEngineering.Models;
+﻿namespace EmergentEngineering.Models;
 
 public static class AgentActionType
 {
@@ -78,6 +78,18 @@ public static class KnowledgeDefaults
     public const string ShockDescription = "";
 }
 
+public static class ChallengeDefaults
+{
+    public const bool EnableChallengeEvent = false;
+    public const string ChallengeType = ChallengeTypes.None;
+    public const int ChallengeStep = 0;
+    public const double ChallengeLevel = 0.0;
+    public const string ChallengeDescription = "";
+    public const double RequiredKnowledgeDiversity = 0.5;
+    public const double RequiredCrossDomainExposure = 0.5;
+    public const double RequiredRewiringScore = 0.3;
+}
+
 public static class ShockTypes
 {
     public const string None = "None";
@@ -97,6 +109,28 @@ public static class ShockTypes
         CompetitorMove,
         FailureIncident,
         CultureShock
+    ];
+}
+
+public static class ChallengeTypes
+{
+    public const string None = "None";
+    public const string ExistingMethodFailure = "ExistingMethodFailure";
+    public const string NewMarketRequirement = "NewMarketRequirement";
+    public const string CrossFunctionalProblem = "CrossFunctionalProblem";
+    public const string QualityCrisis = "QualityCrisis";
+    public const string TechnologyShift = "TechnologyShift";
+    public const string CustomerComplexityIncrease = "CustomerComplexityIncrease";
+
+    public static readonly string[] All =
+    [
+        None,
+        ExistingMethodFailure,
+        NewMarketRequirement,
+        CrossFunctionalProblem,
+        QualityCrisis,
+        TechnologyShift,
+        CustomerComplexityIncrease
     ];
 }
 
@@ -183,6 +217,7 @@ public static class SimulationPhase
 {
     public const string Forming = "Forming";
     public const string Learning = "Learning";
+    public const string Adaptation = "Adaptation";
     public const string Emergent = "Emergent";
     public const string Silo = "Silo";
     public const string Chaos = "Chaos";

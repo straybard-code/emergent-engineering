@@ -84,9 +84,16 @@
                 <tr><th>外部刺激Step</th><td>@Model.Scenario.ShockStep</td></tr>
                 <tr><th>外部刺激タイプ</th><td>@Model.Scenario.ShockType</td></tr>
                 <tr><th>外部刺激説明</th><td>@(string.IsNullOrWhiteSpace(Model.Scenario.ShockDescription) ? "-" : Model.Scenario.ShockDescription)</td></tr>
+                <tr><th>Challengeを有効化</th><td>@(Model.Scenario.EnableChallengeEvent ? "Yes" : "No")</td></tr>
+                <tr><th>Challenge発生Step</th><td>@Model.Scenario.ChallengeStep</td></tr>
+                <tr><th>Challengeタイプ</th><td>@Model.Scenario.ChallengeType</td></tr>
+                <tr><th>Challengeレベル</th><td>@Model.Scenario.ChallengeLevel.ToString("0.00")</td></tr>
+                <tr><th>Challenge説明</th><td>@(string.IsNullOrWhiteSpace(Model.Scenario.ChallengeDescription) ? "-" : Model.Scenario.ChallengeDescription)</td></tr>
+                <tr><th>必要知識多様性</th><td>@Model.Scenario.RequiredKnowledgeDiversity.ToString("0.00")</td></tr>
+                <tr><th>必要異分野接触度</th><td>@Model.Scenario.RequiredCrossDomainExposure.ToString("0.00")</td></tr>
+                <tr><th>必要再配線スコア</th><td>@Model.Scenario.RequiredRewiringScore.ToString("0.00")</td></tr>
             </tbody>
         </table>
     </div>
 </section>
-
 

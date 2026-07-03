@@ -35,7 +35,15 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         EnableExternalShock = KnowledgeDefaults.EnableExternalShock,
         ShockStep = KnowledgeDefaults.ShockStep,
         ShockType = KnowledgeDefaults.ShockType,
-        ShockDescription = KnowledgeDefaults.ShockDescription
+        ShockDescription = KnowledgeDefaults.ShockDescription,
+        EnableChallengeEvent = ChallengeDefaults.EnableChallengeEvent,
+        ChallengeType = ChallengeDefaults.ChallengeType,
+        ChallengeStep = ChallengeDefaults.ChallengeStep,
+        ChallengeLevel = ChallengeDefaults.ChallengeLevel,
+        ChallengeDescription = ChallengeDefaults.ChallengeDescription,
+        RequiredKnowledgeDiversity = ChallengeDefaults.RequiredKnowledgeDiversity,
+        RequiredCrossDomainExposure = ChallengeDefaults.RequiredCrossDomainExposure,
+        RequiredRewiringScore = ChallengeDefaults.RequiredRewiringScore
     };
 
     public async Task<IActionResult> OnPostAsync()

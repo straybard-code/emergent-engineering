@@ -51,6 +51,10 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("EnableChallengeEvent")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -107,6 +111,25 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("float")
                         .HasDefaultValue(0.5);
 
+                    b.Property<string>("ChallengeDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("");
+
+                    b.Property<double>("ChallengeLevel")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
+                    b.Property<int>("ChallengeStep")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("ChallengeType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("None");
+
                     b.Property<int>("RunCount")
                         .HasColumnType("int");
 
@@ -130,6 +153,18 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<double>("ShortTermResultPressureLevel")
                         .HasColumnType("float");
+
+                    b.Property<double>("RequiredCrossDomainExposure")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
+
+                    b.Property<double>("RequiredKnowledgeDiversity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
+
+                    b.Property<double>("RequiredRewiringScore")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -608,6 +643,10 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("EnableChallengeEvent")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<double>("EffectiveTrustThreshold")
                         .HasColumnType("float")
                         .HasDefaultValue(0.3);
@@ -671,6 +710,25 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("float")
                         .HasDefaultValue(0.5);
 
+                    b.Property<string>("ChallengeDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("");
+
+                    b.Property<double>("ChallengeLevel")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
+                    b.Property<int>("ChallengeStep")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("ChallengeType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("None");
+
                     b.Property<string>("ShockDescription")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -688,6 +746,18 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<double>("ShortTermResultPressureLevel")
                         .HasColumnType("float");
+
+                    b.Property<double>("RequiredCrossDomainExposure")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
+
+                    b.Property<double>("RequiredKnowledgeDiversity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
+
+                    b.Property<double>("RequiredRewiringScore")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -734,6 +804,10 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("float");
 
                     b.Property<bool>("EnableExternalShock")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("EnableChallengeEvent")
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
@@ -793,6 +867,25 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("float")
                         .HasDefaultValue(0.5);
 
+                    b.Property<string>("ChallengeDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("");
+
+                    b.Property<double>("ChallengeLevel")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
+                    b.Property<int>("ChallengeStep")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("ChallengeType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("None");
+
                     b.Property<int>("RunCount")
                         .HasColumnType("int");
 
@@ -813,6 +906,18 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<double>("ShortTermResultPressureLevel")
                         .HasColumnType("float");
+
+                    b.Property<double>("RequiredCrossDomainExposure")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
+
+                    b.Property<double>("RequiredKnowledgeDiversity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
+
+                    b.Property<double>("RequiredRewiringScore")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<int>("TotalSteps")
                         .HasColumnType("int");

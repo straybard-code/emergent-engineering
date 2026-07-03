@@ -38,7 +38,7 @@ If you are using an existing SQL Server database that was created before the lat
 dotnet ef database update
 ```
 
-This is required for newly added columns such as the Knowledge / Shock / Rewiring fields on `Experiments`, `Scenarios`, and `SimulationProjects`. If this step is skipped, SQL Server will return errors such as `Invalid column name`.
+This is required for newly added columns such as the Knowledge / Shock / Rewiring fields and the Challenge Event fields on `Experiments`, `Scenarios`, and `SimulationProjects`. If this step is skipped, SQL Server will return errors such as `Invalid column name`.
 
 ## Database connection
 
@@ -1377,6 +1377,78 @@ If your local database already exists, `dotnet ef database update` is still requ
 - provider-specific runtime and cost logging
 - Background jobs for large batch runs
 - Dedicated `TrustEvents` table for richer pairwise trust histories
+
+## Challenge Event and Adaptation
+
+`External Shock` and `Challenge Event` are different concepts.
+
+- `External Shock`: outside stimulus that perturbs the current trajectory
+- `Challenge Event`: a structural problem that the current organization cannot solve with its existing knowledge, trust pattern, and action style
+
+Challenge configuration is stored on:
+
+- `Scenario`
+- `Experiment`
+- `SimulationProject`
+
+Fields:
+
+- `EnableChallengeEvent`
+- `ChallengeType`
+- `ChallengeStep`
+- `ChallengeLevel`
+- `ChallengeDescription`
+- `RequiredKnowledgeDiversity`
+- `RequiredCrossDomainExposure`
+- `RequiredRewiringScore`
+
+The migration for these columns is:
+
+- `20260703082000_AddChallengeEventParameters`
+
+### Challenge types
+
+- `ExistingMethodFailure`
+- `NewMarketRequirement`
+- `CrossFunctionalProblem`
+- `QualityCrisis`
+- `TechnologyShift`
+- `CustomerComplexityIncrease`
+
+### Adaptation phase
+
+`Adaptation` is an intermediate phase used after a challenge appears.
+
+It represents a state where:
+
+- the challenge is still active
+- the organization is increasing cross-boundary coordination
+- knowledge rewiring / reconfiguration is rising
+- the system has not yet stabilized into `Emergent`, `Stable`, `Silo`, or `Chaos`
+
+### Challenge metrics
+
+The step state now stores and displays:
+
+- `ChallengeOccurred`
+- `ChallengeActive`
+- `ChallengeResolved`
+- `ChallengeResolutionScore`
+- `ChallengeGap`
+- `KnowledgeReconfigurationScore`
+
+Interpretation:
+
+- `ChallengeResolutionScore`: how well the current organization matches the knowledge / exposure / rewiring requirements implied by the challenge
+- `ChallengeGap`: required level minus achieved resolution score
+- `KnowledgeReconfigurationScore`: a lightweight proxy for whether the organization is actually reorganizing knowledge, not merely accumulating it
+
+Research hypothesis:
+
+> Emergence is not caused only by knowledge accumulation.  
+> It emerges when a challenge forces the organization to reconfigure its knowledge network.
+
+This implementation is still rule-based. It does not use an LLM to explain or solve the challenge.
 
 ## Notes
 

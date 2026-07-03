@@ -1,3 +1,5 @@
+﻿using EmergentEngineering.Models;
+
 namespace EmergentEngineering.Services;
 
 public static class PhaseTransitionInspector
@@ -56,7 +58,13 @@ public static class PhaseTransitionInspector
                 ComponentCountDelta = after.ComponentCount - before.ComponentCount,
                 IsolatedCountBefore = before.IsolatedCount,
                 IsolatedCountAfter = after.IsolatedCount,
-                IsolatedCountDelta = after.IsolatedCount - before.IsolatedCount
+                IsolatedCountDelta = after.IsolatedCount - before.IsolatedCount,
+                ChallengeActive = after.ChallengeActive,
+                ChallengeOccurred = after.ChallengeOccurred,
+                ChallengeResolved = after.ChallengeResolved,
+                ChallengeResolutionScore = after.ChallengeResolutionScore,
+                ChallengeGap = after.ChallengeGap,
+                KnowledgeReconfigurationScore = after.KnowledgeReconfigurationScore
             };
 
             insight.MainActionChange = DescribeMainActionChange(insight);
@@ -135,6 +143,7 @@ public static class PhaseTransitionInspector
     {
         "Forming" => "Forming\uFF08\u5F62\u6210\u671F\uFF09",
         "Learning" => "Learning\uFF08\u5B66\u7FD2\u671F\uFF09",
+        "Adaptation" => "Adaptation\uFF08\u9069\u5FDC\u671F\uFF09",
         "Stable" => "Stable\uFF08\u5B89\u5B9A\u671F\uFF09",
         "Emergent" => "Emergent\uFF08\u5275\u767A\u671F\uFF09",
         "Silo" => "Silo\uFF08\u30B5\u30A4\u30ED\u5316\uFF09",
@@ -425,6 +434,7 @@ public static class PhaseTransitionInspector
 
         var causeText = insight.ToPhase switch
         {
+            "Adaptation" => "\u77e5\u8b58\u518d\u69cb\u6210\u3068\u8de8\u5883\u754c\u5354\u50cd\u304c\u59cb\u307e\u3063\u305f\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059",
             "Emergent" => "\u5C40\u6240\u7684\u306A\u5354\u50CD\u95A2\u4FC2\u304C\u5F37\u307E\u3063\u305F\u3053\u3068\u304C\u5275\u767A\u306E\u5F15\u304D\u91D1\u306B\u306A\u3063\u305F\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059",
             "Learning" => "\u5B66\u7FD2\u7684\u306A\u76F8\u4E92\u4F5C\u7528\u304C\u5F37\u307E\u3063\u305F\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059",
             "Stable" => "\u884C\u52D5\u5206\u5E03\u3068\u30CD\u30C3\u30C8\u30EF\u30FC\u30AF\u304C\u5B89\u5B9A\u5074\u306B\u5BC4\u3063\u305F\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059",
@@ -434,7 +444,25 @@ public static class PhaseTransitionInspector
             _ => "\u884C\u52D5\u3068\u30CD\u30C3\u30C8\u30EF\u30FC\u30AF\u306E\u5FAE\u5C0F\u306A\u5909\u5316\u304C\u79FB\u884C\u306B\u95A2\u4E0E\u3057\u305F\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059"
         };
 
-        return $"Step {insight.StepNo} \u3067 {insight.FromPhaseLabel}\u304B\u3089{insight.ToPhaseLabel}\u3078\u79FB\u884C\u3057\u307E\u3057\u305F\u3002\u76F4\u524D{windowSize}step\u3067\u306F{agentText}\u3001{insight.MainActionChange}\u3002{edgeText}\u3001{causeText}\u3002";
+        var challengeText = "";
+        if (insight.ChallengeResolved && string.Equals(insight.ToPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            challengeText = " Challengeが解決され、再配線された知識ネットワークをもとに創発相へ移行した可能性があります。";
+        }
+        else if (insight.ChallengeActive && string.Equals(insight.ToPhase, SimulationPhase.Adaptation, StringComparison.OrdinalIgnoreCase))
+        {
+            challengeText = " Challenge発生後、知識再構成スコアが上昇し、適応相へ移行した可能性があります。";
+        }
+        else if (!insight.ChallengeResolved && string.Equals(insight.ToPhase, SimulationPhase.Silo, StringComparison.OrdinalIgnoreCase))
+        {
+            challengeText = " ChallengeGapが残ったまま単独作業側へ寄り、サイロ化した可能性があります。";
+        }
+        else if (insight.ChallengeActive || insight.ChallengeOccurred || insight.ChallengeResolved)
+        {
+            challengeText = $" Challenge resolution={insight.ChallengeResolutionScore:0.00}, gap={insight.ChallengeGap:+0.00;-0.00;0.00}, reconfiguration={insight.KnowledgeReconfigurationScore:0.00}.";
+        }
+
+        return $"Step {insight.StepNo} \u3067 {insight.FromPhaseLabel}\u304B\u3089{insight.ToPhaseLabel}\u3078\u79FB\u884C\u3057\u307E\u3057\u305F\u3002\u76F4\u524D{windowSize}step\u3067\u306F{agentText}\u3001{insight.MainActionChange}\u3002{edgeText}\u3001{causeText}\u3002{challengeText}";
     }
 
     private static string FormatEdge(TriggerEdgeChange edge)
@@ -451,11 +479,12 @@ public static class PhaseTransitionInspector
     {
         "Forming" => 0,
         "Learning" => 1,
-        "Stable" => 2,
-        "Emergent" => 3,
-        "Silo" => 4,
-        "Chaos" => 5,
-        "Collapse" => 6,
+        "Adaptation" => 2,
+        "Stable" => 3,
+        "Emergent" => 4,
+        "Silo" => 5,
+        "Chaos" => 6,
+        "Collapse" => 7,
         _ => 99
     };
 }
@@ -479,6 +508,12 @@ public sealed class PhaseTransitionStepState
     public int WeakLinkCount { get; init; }
     public int ComponentCount { get; init; }
     public int IsolatedCount { get; init; }
+    public bool ChallengeOccurred { get; init; }
+    public bool ChallengeActive { get; init; }
+    public bool ChallengeResolved { get; init; }
+    public double ChallengeResolutionScore { get; init; }
+    public double ChallengeGap { get; init; }
+    public double KnowledgeReconfigurationScore { get; init; }
 }
 
 public sealed class PhaseTransitionInsight
@@ -514,6 +549,12 @@ public sealed class PhaseTransitionInsight
     public int IsolatedCountBefore { get; init; }
     public int IsolatedCountAfter { get; init; }
     public int IsolatedCountDelta { get; init; }
+    public bool ChallengeOccurred { get; set; }
+    public bool ChallengeActive { get; set; }
+    public bool ChallengeResolved { get; set; }
+    public double ChallengeResolutionScore { get; set; }
+    public double ChallengeGap { get; set; }
+    public double KnowledgeReconfigurationScore { get; set; }
     public string MainIncreasingAction { get; set; } = "";
     public string MainDecreasingAction { get; set; } = "";
     public string WindowDominantAction { get; set; } = "";

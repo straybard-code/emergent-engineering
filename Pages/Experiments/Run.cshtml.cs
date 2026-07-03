@@ -1,4 +1,4 @@
-using EmergentEngineering.Data;
+﻿using EmergentEngineering.Data;
 using EmergentEngineering.Models;
 using EmergentEngineering.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +27,7 @@ public sealed class RunModel(AppDbContext db, IExperimentExecutionService experi
 
         if (experiment.Status == ExperimentStatus.Stopped)
         {
-            TempData["ExperimentMessage"] = "停止要求を受け付けたため、現在の Run 完了後に実験を停止しました。";
+            TempData["ExperimentMessage"] = "停止要求を受け付けました。現在の Run 完了後に実験を停止しました。";
         }
 
         return RedirectToPage("/Experiments/Details", new { id = experiment.Id });

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using EmergentEngineering.Data;
 using EmergentEngineering.Models;
 using EmergentEngineering.Services;
@@ -40,6 +40,10 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
     public double AverageKnowledgeStockMean { get; private set; }
     public double AverageKnowledgeDiversityMean { get; private set; }
     public double AverageKnowledgeRewiringScoreMean { get; private set; }
+    public double AverageKnowledgeReconfigurationScoreMean { get; private set; }
+    public int ChallengeResolvedRunCount { get; private set; }
+    public double AverageChallengeResolutionScoreMean { get; private set; }
+    public double AverageAdaptationDurationMean { get; private set; }
     public int ShockOccurredRunCount { get; private set; }
     public int EmergentReachedRunCount { get; private set; }
 
@@ -84,6 +88,10 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         AverageKnowledgeStockMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeStock), 3);
         AverageKnowledgeDiversityMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeDiversity), 3);
         AverageKnowledgeRewiringScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeRewiringScore), 3);
+        AverageKnowledgeReconfigurationScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeReconfigurationScore), 3);
+        ChallengeResolvedRunCount = RunFingerprints.Count(item => item.ChallengeResolved);
+        AverageChallengeResolutionScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageChallengeResolutionScore), 3);
+        AverageAdaptationDurationMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AdaptationDuration), 3);
         ShockOccurredRunCount = RunFingerprints.Count(item => item.ShockOccurred);
         EmergentReachedRunCount = RunFingerprints.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase));
         ThresholdSweepSummary = await GetThresholdSweepSummaryAsync(id);
@@ -136,6 +144,7 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         {
             SimulationPhase.Forming,
             SimulationPhase.Learning,
+            SimulationPhase.Adaptation,
             SimulationPhase.Emergent,
             SimulationPhase.Stable,
             SimulationPhase.Silo,
@@ -624,6 +633,7 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             project.EffectiveTrustThreshold,
             project.CurrentStep);
         var phaseByStep = steps.ToDictionary(step => step.StepNo, step => step.Phase);
+        var knowledgeByStep = KnowledgeAnalysisService.BuildTimeline(steps).ToDictionary(point => point.StepNo);
         var maxEdges = Math.Max(project.Agents.Count * Math.Max(project.Agents.Count - 1, 0), 1);
 
         List<PhaseTransitionStepState> states = [];
@@ -635,6 +645,7 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             }
 
             actionByStep.TryGetValue(stepNo, out var action);
+            knowledgeByStep.TryGetValue(stepNo, out var knowledge);
             states.Add(new PhaseTransitionStepState
             {
                 StepNo = stepNo,
@@ -657,7 +668,13 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
                 StrongLinkCount = metrics.StrongLinkCount,
                 WeakLinkCount = metrics.WeakLinkCount,
                 ComponentCount = metrics.ComponentCount,
-                IsolatedCount = metrics.IsolatedCount
+                IsolatedCount = metrics.IsolatedCount,
+                ChallengeOccurred = knowledge?.ChallengeOccurred ?? false,
+                ChallengeActive = knowledge?.ChallengeActive ?? false,
+                ChallengeResolved = knowledge?.ChallengeResolved ?? false,
+                ChallengeResolutionScore = knowledge?.ChallengeResolutionScore ?? 0,
+                ChallengeGap = knowledge?.ChallengeGap ?? 0,
+                KnowledgeReconfigurationScore = knowledge?.KnowledgeReconfigurationScore ?? 0
             });
         }
 
@@ -691,11 +708,12 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
     {
         SimulationPhase.Forming => 0,
         SimulationPhase.Learning => 1,
-        SimulationPhase.Stable => 2,
-        SimulationPhase.Emergent => 3,
-        SimulationPhase.Silo => 4,
-        SimulationPhase.Chaos => 5,
-        SimulationPhase.Collapse => 6,
+        SimulationPhase.Adaptation => 2,
+        SimulationPhase.Stable => 3,
+        SimulationPhase.Emergent => 4,
+        SimulationPhase.Silo => 5,
+        SimulationPhase.Chaos => 6,
+        SimulationPhase.Collapse => 7,
         _ => 99
     };
 

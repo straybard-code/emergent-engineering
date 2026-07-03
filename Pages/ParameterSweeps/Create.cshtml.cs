@@ -1,4 +1,4 @@
-using EmergentEngineering.Data;
+﻿using EmergentEngineering.Data;
 using EmergentEngineering.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -82,7 +82,7 @@ public sealed class CreateModel(AppDbContext db) : PageModel
 
         if (Input.StartValue > Input.EndValue)
         {
-            ModelState.AddModelError("Input.EndValue", "開始値は終了値以下である必要があります。");
+            ModelState.AddModelError("Input.EndValue", "終了値は開始値以上である必要があります。");
         }
 
         if (!Scenarios.Any(item => item.Id == Input.ScenarioId))

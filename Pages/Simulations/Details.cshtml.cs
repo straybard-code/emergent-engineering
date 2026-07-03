@@ -132,6 +132,7 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
             Project.CurrentStep,
             ActionTimeline,
             NetworkSnapshots,
+            KnowledgeTimeline,
             edgeRowsByStep,
             Project.Agents.Count,
             Project.EffectiveTrustThreshold);
@@ -283,8 +284,9 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
         {
             SimulationPhase.Forming => 0,
             SimulationPhase.Learning => 1,
-            SimulationPhase.Stable => 2,
-            SimulationPhase.Emergent => 3,
+            SimulationPhase.Adaptation => 2,
+            SimulationPhase.Stable => 3,
+            SimulationPhase.Emergent => 4,
             SimulationPhase.Silo => -1,
             SimulationPhase.Chaos => -2,
             SimulationPhase.Collapse => -3,
@@ -493,12 +495,14 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
         int currentStep,
         IReadOnlyCollection<ActionTimelinePoint> actionTimeline,
         IReadOnlyCollection<NetworkSnapshot> networkSnapshots,
+        IReadOnlyCollection<KnowledgeTimelinePoint> knowledgeTimeline,
         IReadOnlyDictionary<int, IReadOnlyCollection<NetworkTrustEdgeRef>> edgeRowsByStep,
         int agentCount,
         double effectiveTrustThreshold)
     {
         var actionByStep = actionTimeline.ToDictionary(point => point.StepNo);
         var networkByStep = networkSnapshots.ToDictionary(point => point.StepNo);
+        var knowledgeByStep = knowledgeTimeline.ToDictionary(point => point.StepNo);
         List<PhaseTransitionStepState> states = [];
         var maxEdges = Math.Max(agentCount * Math.Max(agentCount - 1, 0), 1);
 
@@ -510,6 +514,7 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
             }
 
             actionByStep.TryGetValue(stepNo, out var action);
+            knowledgeByStep.TryGetValue(stepNo, out var knowledge);
             states.Add(new PhaseTransitionStepState
             {
                 StepNo = stepNo,
@@ -532,7 +537,13 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
                 StrongLinkCount = network.StrongLinkCount,
                 WeakLinkCount = network.WeakLinkCount,
                 ComponentCount = network.ComponentCount,
-                IsolatedCount = network.IsolatedCount
+                IsolatedCount = network.IsolatedCount,
+                ChallengeOccurred = knowledge?.ChallengeOccurred ?? false,
+                ChallengeActive = knowledge?.ChallengeActive ?? false,
+                ChallengeResolved = knowledge?.ChallengeResolved ?? false,
+                ChallengeResolutionScore = knowledge?.ChallengeResolutionScore ?? 0,
+                ChallengeGap = knowledge?.ChallengeGap ?? 0,
+                KnowledgeReconfigurationScore = knowledge?.KnowledgeReconfigurationScore ?? 0
             });
         }
 

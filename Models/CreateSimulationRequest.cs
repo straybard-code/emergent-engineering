@@ -80,4 +80,27 @@ public sealed class CreateSimulationRequest
     public string ShockType { get; set; } = KnowledgeDefaults.ShockType;
 
     public string ShockDescription { get; set; } = KnowledgeDefaults.ShockDescription;
+
+    public bool EnableChallengeEvent { get; set; } = ChallengeDefaults.EnableChallengeEvent;
+
+    [Required]
+    [StringLength(40)]
+    public string ChallengeType { get; set; } = ChallengeDefaults.ChallengeType;
+
+    [Range(0, 100)]
+    public int ChallengeStep { get; set; } = ChallengeDefaults.ChallengeStep;
+
+    [Range(0, 1)]
+    public double ChallengeLevel { get; set; } = ChallengeDefaults.ChallengeLevel;
+
+    public string ChallengeDescription { get; set; } = ChallengeDefaults.ChallengeDescription;
+
+    [Range(0, 1)]
+    public double RequiredKnowledgeDiversity { get; set; } = ChallengeDefaults.RequiredKnowledgeDiversity;
+
+    [Range(0, 1)]
+    public double RequiredCrossDomainExposure { get; set; } = ChallengeDefaults.RequiredCrossDomainExposure;
+
+    [Range(0, 1)]
+    public double RequiredRewiringScore { get; set; } = ChallengeDefaults.RequiredRewiringScore;
 }

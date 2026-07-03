@@ -32,6 +32,14 @@ public sealed class SimulationProject
     public int ShockStep { get; set; } = KnowledgeDefaults.ShockStep;
     public string ShockType { get; set; } = KnowledgeDefaults.ShockType;
     public string ShockDescription { get; set; } = KnowledgeDefaults.ShockDescription;
+    public bool EnableChallengeEvent { get; set; } = ChallengeDefaults.EnableChallengeEvent;
+    public string ChallengeType { get; set; } = ChallengeDefaults.ChallengeType;
+    public int ChallengeStep { get; set; } = ChallengeDefaults.ChallengeStep;
+    public double ChallengeLevel { get; set; } = ChallengeDefaults.ChallengeLevel;
+    public string ChallengeDescription { get; set; } = ChallengeDefaults.ChallengeDescription;
+    public double RequiredKnowledgeDiversity { get; set; } = ChallengeDefaults.RequiredKnowledgeDiversity;
+    public double RequiredCrossDomainExposure { get; set; } = ChallengeDefaults.RequiredCrossDomainExposure;
+    public double RequiredRewiringScore { get; set; } = ChallengeDefaults.RequiredRewiringScore;
     public string Status { get; set; } = SimulationStatus.Created;
     public string Phase { get; set; } = SimulationPhase.Forming;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

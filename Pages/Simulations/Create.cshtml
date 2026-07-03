@@ -168,6 +168,51 @@
         </div>
     </section>
 
+    <section class="log-section mb-4">
+        <h2 class="h5 mb-3">Challenge設定</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="form-check mt-4">
+                    <input asp-for="Input.EnableChallengeEvent" class="form-check-input" type="checkbox" />
+                    <label asp-for="Input.EnableChallengeEvent" class="form-check-label">Challengeを有効化</label>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.ChallengeStep" class="form-label">Challenge発生Step</label>
+                <input asp-for="Input.ChallengeStep" class="form-control" type="number" min="0" max="100" step="1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.ChallengeType" class="form-label">Challengeタイプ</label>
+                <select asp-for="Input.ChallengeType" class="form-select">
+                    @foreach (var challengeType in EmergentEngineering.Models.ChallengeTypes.All)
+                    {
+                        <option value="@challengeType">@challengeType</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.ChallengeLevel" class="form-label">Challengeレベル</label>
+                <input asp-for="Input.ChallengeLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-12 mb-3">
+                <label asp-for="Input.ChallengeDescription" class="form-label">Challenge説明</label>
+                <input asp-for="Input.ChallengeDescription" class="form-control" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="Input.RequiredKnowledgeDiversity" class="form-label">必要知識多様性</label>
+                <input asp-for="Input.RequiredKnowledgeDiversity" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="Input.RequiredCrossDomainExposure" class="form-label">必要異分野接触度</label>
+                <input asp-for="Input.RequiredCrossDomainExposure" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="Input.RequiredRewiringScore" class="form-label">必要再配線スコア</label>
+                <input asp-for="Input.RequiredRewiringScore" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+        </div>
+    </section>
+
     <div class="row">
         <div class="col-md-6 mb-3">
             <label asp-for="Input.AgentCount" class="form-label">Agent Count</label>

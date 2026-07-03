@@ -1,4 +1,4 @@
-@page "{id:int}"
+﻿@page "{id:int}"
 @model EmergentEngineering.Pages.Simulations.DetailsModel
 @{
     ViewData["Title"] = Model.Project?.Name ?? "Simulation詳細";
@@ -9,6 +9,7 @@
     {
         "Forming" => "Forming\uFF08\u5F62\u6210\u671F\uFF09",
         "Learning" => "Learning\uFF08\u5B66\u7FD2\u671F\uFF09",
+        "Adaptation" => "Adaptation\uFF08\u9069\u5FDC\u671F\uFF09",
         "Stable" => "Stable\uFF08\u5B89\u5B9A\u671F\uFF09",
         "Emergent" => "Emergent\uFF08\u5275\u767A\u671F\uFF09",
         "Silo" => "Silo\uFF08\u30B5\u30A4\u30ED\u5316\uFF09",
@@ -142,9 +143,12 @@
                     <tr><th>WorkAloneRate</th><td>@Model.Fingerprint.WorkAloneRate.ToString("0.000")</td><th>TriggerAgentDiversity</th><td>@Model.Fingerprint.TriggerAgentDiversity</td></tr>
                     <tr><th>TopTriggerAgent</th><td>@Model.Fingerprint.TopTriggerAgentName (@Model.Fingerprint.TopTriggerAgentCount)</td><th>ThresholdFragilityScore</th><td>@Model.Fingerprint.ThresholdFragilityScore.ToString("0.000")</td></tr>
                     <tr><th>AverageKnowledgeStock</th><td>@Model.Fingerprint.AverageKnowledgeStock.ToString("0.000")</td><th>AverageKnowledgeDiversity</th><td>@Model.Fingerprint.AverageKnowledgeDiversity.ToString("0.000")</td></tr>
-                    <tr><th>MaxKnowledgeRewiringScore</th><td>@Model.Fingerprint.MaxKnowledgeRewiringScore.ToString("0.000")</td><th>FinalKnowledgeRewiringScore</th><td>@Model.Fingerprint.FinalKnowledgeRewiringScore.ToString("0.000")</td></tr>
+                    <tr><th>AverageKnowledgeReconfigurationScore</th><td>@Model.Fingerprint.AverageKnowledgeReconfigurationScore.ToString("0.000")</td><th>MaxKnowledgeRewiringScore</th><td>@Model.Fingerprint.MaxKnowledgeRewiringScore.ToString("0.000")</td></tr>
+                    <tr><th>FinalKnowledgeRewiringScore</th><td>@Model.Fingerprint.FinalKnowledgeRewiringScore.ToString("0.000")</td><th>ChallengeResolutionScore</th><td>@Model.Fingerprint.AverageChallengeResolutionScore.ToString("0.000")</td></tr>
                     <tr><th>ShockOccurred</th><td>@(Model.Fingerprint.ShockOccurred ? "Yes" : "No")</td><th>ShockType</th><td>@Model.Fingerprint.ShockType</td></tr>
                     <tr><th>KnowledgeDrivenType</th><td>@Model.Fingerprint.KnowledgeDrivenType</td><th>分類</th><td>@Model.Fingerprint.ClassificationLabel</td></tr>
+                    <tr><th>ChallengeResolved</th><td>@(Model.Fingerprint.ChallengeResolved ? "Yes" : "No")</td><th>ChallengeResolvedStep</th><td>@(Model.Fingerprint.ChallengeResolvedStep?.ToString() ?? "-")</td></tr>
+                    <tr><th>AdaptationDuration</th><td>@Model.Fingerprint.AdaptationDuration</td><th>AverageChallengeGap</th><td>@Model.Fingerprint.AverageChallengeGap.ToString("0.000")</td></tr>
                 </tbody>
             </table>
         </div>
@@ -213,6 +217,15 @@
                                 実効密度 @Model.FormatSignedDelta(insight.EffectiveDensityDelta) /
                                 平均信頼度 @Model.FormatSignedDelta(insight.AverageTrustDelta)
                             </div>
+                            @if (insight.ChallengeOccurred || insight.ChallengeActive || insight.ChallengeResolved)
+                            {
+                                <div class="small text-muted mt-1">
+                                    Challenge active: @(insight.ChallengeActive ? "Yes" : "No") /
+                                    Resolution: @insight.ChallengeResolutionScore.ToString("0.00") /
+                                    Gap: @insight.ChallengeGap.ToString("0.00") /
+                                    Reconfiguration: @insight.KnowledgeReconfigurationScore.ToString("0.00")
+                                </div>
+                            }
                             <details class="mt-2">
                                 <summary class="small text-primary">詳細を見る</summary>
                                 <div class="small mt-2"><strong>主な増加Action:</strong> @insight.MainIncreasingAction</div>
@@ -449,7 +462,9 @@
                 <tbody>
                     <tr><th>KnowledgeStock</th><td>@Model.KnowledgeTimeline.Last().KnowledgeStock.ToString("0.000")</td><th>KnowledgeDiversity</th><td>@Model.KnowledgeTimeline.Last().KnowledgeDiversity.ToString("0.000")</td></tr>
                     <tr><th>ExternalShockLevel</th><td>@Model.KnowledgeTimeline.Last().ExternalShockLevel.ToString("0.000")</td><th>CrossDomainExposure</th><td>@Model.KnowledgeTimeline.Last().CrossDomainExposure.ToString("0.000")</td></tr>
-                    <tr><th>KnowledgeRewiringScore</th><td>@Model.KnowledgeTimeline.Last().KnowledgeRewiringScore.ToString("0.000")</td><th>Shock</th><td>@(Model.KnowledgeTimeline.Last().ShockOccurred ? Model.KnowledgeTimeline.Last().ShockType : "-")</td></tr>
+                    <tr><th>KnowledgeRewiringScore</th><td>@Model.KnowledgeTimeline.Last().KnowledgeRewiringScore.ToString("0.000")</td><th>KnowledgeReconfigurationScore</th><td>@Model.KnowledgeTimeline.Last().KnowledgeReconfigurationScore.ToString("0.000")</td></tr>
+                    <tr><th>Shock</th><td>@(Model.KnowledgeTimeline.Last().ShockOccurred ? Model.KnowledgeTimeline.Last().ShockType : "-")</td><th>Challenge</th><td>@(Model.KnowledgeTimeline.Last().ChallengeOccurred || Model.KnowledgeTimeline.Last().ChallengeActive || Model.KnowledgeTimeline.Last().ChallengeResolved ? Model.KnowledgeTimeline.Last().ChallengeType : "-")</td></tr>
+                    <tr><th>ChallengeResolutionScore</th><td>@Model.KnowledgeTimeline.Last().ChallengeResolutionScore.ToString("0.000")</td><th>ChallengeGap</th><td>@Model.KnowledgeTimeline.Last().ChallengeGap.ToString("0.000")</td></tr>
                 </tbody>
             </table>
         </div>
@@ -461,7 +476,9 @@
                         <th>KnowledgeStock</th>
                         <th>KnowledgeDiversity</th>
                         <th>RewiringScore</th>
+                        <th>Reconfiguration</th>
                         <th>Shock</th>
+                        <th>Challenge</th>
                         <th>Interpretation</th>
                     </tr>
                 </thead>
@@ -473,7 +490,9 @@
                         <td>@point.KnowledgeStock.ToString("0.000")</td>
                         <td>@point.KnowledgeDiversity.ToString("0.000")</td>
                         <td>@point.KnowledgeRewiringScore.ToString("0.000")</td>
+                        <td>@point.KnowledgeReconfigurationScore.ToString("0.000")</td>
                         <td>@(point.ShockOccurred ? point.ShockType : "-")</td>
+                        <td>@(point.ChallengeOccurred || point.ChallengeActive || point.ChallengeResolved ? $"{point.ChallengeType} / {point.ChallengeResolutionScore:0.00}" : "-")</td>
                         <td>@(string.IsNullOrWhiteSpace(point.Interpretation) ? "-" : point.Interpretation)</td>
                     </tr>
                 }
@@ -506,6 +525,14 @@
                 <tr><th>外部刺激Step</th><td>@Model.Project.ShockStep</td></tr>
                 <tr><th>外部刺激タイプ</th><td>@Model.Project.ShockType</td></tr>
                 <tr><th>外部刺激説明</th><td>@(string.IsNullOrWhiteSpace(Model.Project.ShockDescription) ? "-" : Model.Project.ShockDescription)</td></tr>
+                <tr><th>Challengeを有効化</th><td>@(Model.Project.EnableChallengeEvent ? "Yes" : "No")</td></tr>
+                <tr><th>Challenge発生Step</th><td>@Model.Project.ChallengeStep</td></tr>
+                <tr><th>Challengeタイプ</th><td>@Model.Project.ChallengeType</td></tr>
+                <tr><th>Challengeレベル</th><td>@Model.Project.ChallengeLevel.ToString("0.00")</td></tr>
+                <tr><th>Challenge説明</th><td>@(string.IsNullOrWhiteSpace(Model.Project.ChallengeDescription) ? "-" : Model.Project.ChallengeDescription)</td></tr>
+                <tr><th>必要知識多様性</th><td>@Model.Project.RequiredKnowledgeDiversity.ToString("0.00")</td></tr>
+                <tr><th>必要異分野接触度</th><td>@Model.Project.RequiredCrossDomainExposure.ToString("0.00")</td></tr>
+                <tr><th>必要再配線スコア</th><td>@Model.Project.RequiredRewiringScore.ToString("0.00")</td></tr>
             </tbody>
         </table>
     </div>
@@ -590,7 +617,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="h5 mb-1">Phase Timeline</h2>
-            <p class="text-muted small mb-0">Forming=0, Learning=1, Stable=2, Emergent=3, Silo=-1, Chaos=-2, Collapse=-3</p>
+            <p class="text-muted small mb-0">Forming=0, Learning=1, Adaptation=2, Stable=3, Emergent=4, Silo=-1, Chaos=-2, Collapse=-3</p>
         </div>
     </div>
     @if (Model.PhaseHistory.Count == 0)
@@ -975,8 +1002,9 @@
                     '-1': 'Silo',
                     '0': 'Forming',
                     '1': 'Learning',
-                    '2': 'Stable',
-                    '3': 'Emergent'
+                    '2': 'Adaptation',
+                    '3': 'Stable',
+                    '4': 'Emergent'
                 };
 
                 new Chart(canvas, {
@@ -1150,6 +1178,7 @@
                             buildRateDataset('KnowledgeStock', points.map(point => point.knowledgeStock), '#2563eb'),
                             buildRateDataset('KnowledgeDiversity', points.map(point => point.knowledgeDiversity), '#0f766e'),
                             buildRateDataset('KnowledgeRewiringScore', points.map(point => point.knowledgeRewiringScore), '#b45309'),
+                            buildRateDataset('KnowledgeReconfigurationScore', points.map(point => point.knowledgeReconfigurationScore), '#7c3aed'),
                             buildRateDataset('ExternalShockLevel', points.map(point => point.externalShockLevel), '#c2410c')
                         ]
                     },
@@ -1218,6 +1247,7 @@
                 const phaseMap = {
                     Forming: 'Forming\uFF08\u5F62\u6210\u671F\uFF09',
                     Learning: 'Learning\uFF08\u5B66\u7FD2\u671F\uFF09',
+                    Adaptation: 'Adaptation\uFF08\u9069\u5FDC\u671F\uFF09',
                     Stable: 'Stable\uFF08\u5B89\u5B9A\u671F\uFF09',
                     Emergent: 'Emergent\uFF08\u5275\u767A\u671F\uFF09',
                     Silo: 'Silo\uFF08\u30B5\u30A4\u30ED\u5316\uFF09',
@@ -1475,5 +1505,3 @@
         })();
     </script>
 }
-
-

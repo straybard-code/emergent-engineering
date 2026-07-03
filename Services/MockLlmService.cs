@@ -122,6 +122,7 @@ public sealed class MockLlmService : ILlmService
 
         ApplyPersonalityWeights(weights, context.Personality);
         ApplyOrientationWeights(weights, context.Orientation);
+        ApplyChallengeWeights(weights, context);
 
         var action = WeightedChoice(weights);
         var target = ResolveTargetAgentName(action, context);
@@ -255,6 +256,30 @@ public sealed class MockLlmService : ILlmService
         AdjustByLevel(weights, context.CrossDomainExposure, AgentActionType.Criticize, 1);
         AdjustByLevel(weights, context.RewiringSensitivity, AgentActionType.ProposeIdea, 2);
         AdjustByLevel(weights, context.RewiringSensitivity, AgentActionType.Criticize, 1);
+    }
+
+    private static void ApplyChallengeWeights(Dictionary<string, int> weights, PromptContext context)
+    {
+        if (!context.ChallengeActive && context.ChallengeLevel <= 0)
+        {
+            return;
+        }
+
+        AdjustByLevel(weights, context.ChallengeLevel, AgentActionType.ShareInfo, 3);
+        AdjustByLevel(weights, context.ChallengeLevel, AgentActionType.AskHelp, 3);
+        AdjustByLevel(weights, context.ChallengeLevel, AgentActionType.SupportOther, 3);
+        AdjustByLevel(weights, context.ChallengeLevel, AgentActionType.ProposeIdea, 3);
+        AdjustByLevel(weights, context.ChallengeLevel, AgentActionType.WorkAlone, -3);
+
+        if (context.PsychologicalSafetyLevel >= 0.5)
+        {
+            AdjustByLevel(weights, context.ChallengeLevel, AgentActionType.Criticize, 2);
+        }
+        else
+        {
+            AdjustByLevel(weights, context.ChallengeLevel, AgentActionType.Criticize, 1);
+            AdjustByLevel(weights, context.ChallengeLevel, AgentActionType.WorkAlone, 1);
+        }
     }
 
     private static void AdjustByLevel(Dictionary<string, int> weights, double level, string action, int magnitude)
@@ -405,6 +430,8 @@ public sealed class MockLlmService : ILlmService
         var externalShockLevel = ExtractNumericLine(prompt, "ExternalShockLevel:");
         var crossDomainExposure = ExtractNumericLine(prompt, "CrossDomainExposure:");
         var rewiringSensitivity = ExtractNumericLine(prompt, "RewiringSensitivity:");
+        var challengeLevel = ExtractNumericLine(prompt, "ChallengeLevel:");
+        var challengeActive = ExtractBoolLine(prompt, "ChallengeActive:");
         var otherAgents = ExtractSection(prompt, "Other agents:", "Recent messages from the previous step:");
 
         var names = otherAgents
@@ -431,6 +458,8 @@ public sealed class MockLlmService : ILlmService
             externalShockLevel,
             crossDomainExposure,
             rewiringSensitivity,
+            challengeLevel,
+            challengeActive,
             names);
     }
 
@@ -478,6 +507,12 @@ public sealed class MockLlmService : ILlmService
             : BoundaryParameterDefaults.Level;
     }
 
+    private static bool ExtractBoolLine(string prompt, string marker)
+    {
+        var value = ExtractLine(prompt, marker);
+        return bool.TryParse(value, out var parsed) && parsed;
+    }
+
     private static string EscapeForJson(string value)
     {
         return JsonSerializer.Serialize(value).Trim('"');
@@ -500,5 +535,7 @@ public sealed class MockLlmService : ILlmService
         double ExternalShockLevel,
         double CrossDomainExposure,
         double RewiringSensitivity,
+        double ChallengeLevel,
+        bool ChallengeActive,
         List<string> AgentNames);
 }

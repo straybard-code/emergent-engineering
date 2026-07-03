@@ -9,6 +9,7 @@
     {
         "Forming" => "Forming（形成期）",
         "Learning" => "Learning（学習期）",
+        "Adaptation" => "Adaptation（適応期）",
         "Stable" => "Stable（安定期）",
         "Emergent" => "Emergent（創発期）",
         "Silo" => "Silo（サイロ化）",
@@ -157,6 +158,14 @@
                 <tr><th>外部刺激Step</th><td>@Model.Experiment.ShockStep</td></tr>
                 <tr><th>外部刺激タイプ</th><td>@Model.Experiment.ShockType</td></tr>
                 <tr><th>外部刺激説明</th><td>@(string.IsNullOrWhiteSpace(Model.Experiment.ShockDescription) ? "-" : Model.Experiment.ShockDescription)</td></tr>
+                <tr><th>Challengeを有効化</th><td>@(Model.Experiment.EnableChallengeEvent ? "Yes" : "No")</td></tr>
+                <tr><th>Challenge発生Step</th><td>@Model.Experiment.ChallengeStep</td></tr>
+                <tr><th>Challengeタイプ</th><td>@Model.Experiment.ChallengeType</td></tr>
+                <tr><th>Challengeレベル</th><td>@Model.Experiment.ChallengeLevel.ToString("0.00")</td></tr>
+                <tr><th>Challenge説明</th><td>@(string.IsNullOrWhiteSpace(Model.Experiment.ChallengeDescription) ? "-" : Model.Experiment.ChallengeDescription)</td></tr>
+                <tr><th>必要知識多様性</th><td>@Model.Experiment.RequiredKnowledgeDiversity.ToString("0.00")</td></tr>
+                <tr><th>必要異分野接触度</th><td>@Model.Experiment.RequiredCrossDomainExposure.ToString("0.00")</td></tr>
+                <tr><th>必要再配線スコア</th><td>@Model.Experiment.RequiredRewiringScore.ToString("0.00")</td></tr>
             </tbody>
         </table>
     </div>
@@ -274,8 +283,26 @@
             </div>
             <div class="col-md-6 col-xl-3">
                 <div class="border rounded p-3 h-100">
-                    <div class="small text-muted">Shock発生Run数 / Emergent到達Run数</div>
-                    <div class="fs-5">@Model.ShockOccurredRunCount / @Model.EmergentReachedRunCount</div>
+                    <div class="small text-muted">平均KnowledgeReconfigurationScore</div>
+                    <div class="fs-5">@Model.AverageKnowledgeReconfigurationScoreMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">Challenge解決Run数 / Emergent到達Run数</div>
+                    <div class="fs-5">@Model.ChallengeResolvedRunCount / @Model.EmergentReachedRunCount</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均ChallengeResolutionScore</div>
+                    <div class="fs-5">@Model.AverageChallengeResolutionScoreMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均AdaptationDuration / Shock発生Run数</div>
+                    <div class="fs-5">@Model.AverageAdaptationDurationMean.ToString("0.000") / @Model.ShockOccurredRunCount</div>
                 </div>
             </div>
         </div>
@@ -288,8 +315,12 @@
                         <th>FinalPhase</th>
                         <th>AverageKnowledgeStock</th>
                         <th>AverageKnowledgeDiversity</th>
+                        <th>AverageKnowledgeReconfigurationScore</th>
                         <th>MaxRewiringScore</th>
                         <th>ShockOccurred</th>
+                        <th>Challenge</th>
+                        <th>ChallengeResolvedStep</th>
+                        <th>AdaptationDuration</th>
                         <th>FinalKnowledgeRewiringScore</th>
                         <th>KnowledgeDrivenType</th>
                     </tr>
@@ -302,8 +333,12 @@
                         <td><span class="phase-pill">@FormatPhase(item.FinalPhase)</span></td>
                         <td>@item.AverageKnowledgeStock.ToString("0.000")</td>
                         <td>@item.AverageKnowledgeDiversity.ToString("0.000")</td>
+                        <td>@item.AverageKnowledgeReconfigurationScore.ToString("0.000")</td>
                         <td>@item.MaxKnowledgeRewiringScore.ToString("0.000")</td>
                         <td>@(item.ShockOccurred ? item.ShockType : "-")</td>
+                        <td>@(item.ChallengeOccurred ? (item.ChallengeResolved ? "Resolved" : "Active") : "-")</td>
+                        <td>@(item.ChallengeResolvedStep?.ToString() ?? "-")</td>
+                        <td>@item.AdaptationDuration</td>
                         <td>@item.FinalKnowledgeRewiringScore.ToString("0.000")</td>
                         <td>@item.KnowledgeDrivenType</td>
                     </tr>

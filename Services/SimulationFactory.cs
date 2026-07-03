@@ -65,6 +65,14 @@ public static class SimulationFactory
             ShockStep = request.ShockStep,
             ShockType = string.IsNullOrWhiteSpace(request.ShockType) ? ShockTypes.None : request.ShockType.Trim(),
             ShockDescription = request.ShockDescription?.Trim() ?? "",
+            EnableChallengeEvent = request.EnableChallengeEvent,
+            ChallengeStep = request.ChallengeStep,
+            ChallengeLevel = request.ChallengeLevel,
+            ChallengeType = string.IsNullOrWhiteSpace(request.ChallengeType) ? ChallengeTypes.None : request.ChallengeType.Trim(),
+            ChallengeDescription = request.ChallengeDescription?.Trim() ?? "",
+            RequiredKnowledgeDiversity = request.RequiredKnowledgeDiversity,
+            RequiredCrossDomainExposure = request.RequiredCrossDomainExposure,
+            RequiredRewiringScore = request.RequiredRewiringScore,
             CurrentStep = 0,
             Status = SimulationStatus.Created,
             Phase = SimulationPhase.Forming,
@@ -120,6 +128,14 @@ public static class SimulationFactory
             ShockStep = request.ShockStep,
             ShockType = string.IsNullOrWhiteSpace(request.ShockType) ? ShockTypes.None : request.ShockType.Trim(),
             ShockDescription = request.ShockDescription?.Trim() ?? "",
+            EnableChallengeEvent = request.EnableChallengeEvent,
+            ChallengeStep = request.ChallengeStep,
+            ChallengeLevel = request.ChallengeLevel,
+            ChallengeType = string.IsNullOrWhiteSpace(request.ChallengeType) ? ChallengeTypes.None : request.ChallengeType.Trim(),
+            ChallengeDescription = request.ChallengeDescription?.Trim() ?? "",
+            RequiredKnowledgeDiversity = request.RequiredKnowledgeDiversity,
+            RequiredCrossDomainExposure = request.RequiredCrossDomainExposure,
+            RequiredRewiringScore = request.RequiredRewiringScore,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -164,6 +180,14 @@ public static class SimulationFactory
             ShockStep = scenario.ShockStep,
             ShockType = string.IsNullOrWhiteSpace(scenario.ShockType) ? ShockTypes.None : scenario.ShockType.Trim(),
             ShockDescription = scenario.ShockDescription?.Trim() ?? "",
+            EnableChallengeEvent = scenario.EnableChallengeEvent,
+            ChallengeStep = scenario.ChallengeStep,
+            ChallengeLevel = scenario.ChallengeLevel,
+            ChallengeType = string.IsNullOrWhiteSpace(scenario.ChallengeType) ? ChallengeTypes.None : scenario.ChallengeType.Trim(),
+            ChallengeDescription = scenario.ChallengeDescription?.Trim() ?? "",
+            RequiredKnowledgeDiversity = scenario.RequiredKnowledgeDiversity,
+            RequiredCrossDomainExposure = scenario.RequiredCrossDomainExposure,
+            RequiredRewiringScore = scenario.RequiredRewiringScore,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -199,6 +223,14 @@ public static class SimulationFactory
             ShockStep = request.ShockStep,
             ShockType = string.IsNullOrWhiteSpace(request.ShockType) ? ShockTypes.None : request.ShockType.Trim(),
             ShockDescription = request.ShockDescription?.Trim() ?? "",
+            EnableChallengeEvent = request.EnableChallengeEvent,
+            ChallengeStep = request.ChallengeStep,
+            ChallengeLevel = request.ChallengeLevel,
+            ChallengeType = string.IsNullOrWhiteSpace(request.ChallengeType) ? ChallengeTypes.None : request.ChallengeType.Trim(),
+            ChallengeDescription = request.ChallengeDescription?.Trim() ?? "",
+            RequiredKnowledgeDiversity = request.RequiredKnowledgeDiversity,
+            RequiredCrossDomainExposure = request.RequiredCrossDomainExposure,
+            RequiredRewiringScore = request.RequiredRewiringScore,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
@@ -232,7 +264,15 @@ public static class SimulationFactory
             EnableExternalShock = experiment.EnableExternalShock,
             ShockStep = experiment.ShockStep,
             ShockType = experiment.ShockType,
-            ShockDescription = experiment.ShockDescription
+            ShockDescription = experiment.ShockDescription,
+            EnableChallengeEvent = experiment.EnableChallengeEvent,
+            ChallengeStep = experiment.ChallengeStep,
+            ChallengeLevel = experiment.ChallengeLevel,
+            ChallengeType = experiment.ChallengeType,
+            ChallengeDescription = experiment.ChallengeDescription,
+            RequiredKnowledgeDiversity = experiment.RequiredKnowledgeDiversity,
+            RequiredCrossDomainExposure = experiment.RequiredCrossDomainExposure,
+            RequiredRewiringScore = experiment.RequiredRewiringScore
         });
 
         project.ExperimentId = experiment.Id;

@@ -71,14 +71,13 @@ public sealed class SimulationRunner(
         }
 
         var stepActionSummary = ActionDistributionCalculator.Calculate(currentStepActions.Select(action => action.Action));
-        var knowledgePoint = ApplyKnowledgeAndShock(project, stepNo, stepActionSummary);
+        var knowledgePoint = ApplyKnowledgeShockAndChallenge(project, stepNo, stepActionSummary);
 
         project.Phase = await DeterminePhaseAsync(
             project,
             stepNo,
             currentStepActions,
-            knowledgePoint.KnowledgeRewiringScore,
-            knowledgePoint.KnowledgeStock,
+            knowledgePoint,
             cancellationToken);
         project.CurrentStep = stepNo;
         if (project.CurrentStep >= project.TotalSteps)
@@ -109,13 +108,28 @@ public sealed class SimulationRunner(
             project.ShockStep,
             configuredShockType = project.ShockType,
             project.ShockDescription,
+            project.EnableChallengeEvent,
+            project.ChallengeStep,
+            configuredChallengeType = project.ChallengeType,
+            project.ChallengeLevel,
+            project.ChallengeDescription,
+            project.RequiredKnowledgeDiversity,
+            project.RequiredCrossDomainExposure,
+            project.RequiredRewiringScore,
             knowledgeStock = knowledgePoint.KnowledgeStock,
             knowledgeDiversity = knowledgePoint.KnowledgeDiversity,
             externalShockLevel = knowledgePoint.ExternalShockLevel,
             crossDomainExposure = knowledgePoint.CrossDomainExposure,
             knowledgeRewiringScore = knowledgePoint.KnowledgeRewiringScore,
+            knowledgeReconfigurationScore = knowledgePoint.KnowledgeReconfigurationScore,
             shockOccurred = knowledgePoint.ShockOccurred,
             shockType = knowledgePoint.ShockType,
+            challengeOccurred = knowledgePoint.ChallengeOccurred,
+            challengeActive = knowledgePoint.ChallengeActive,
+            challengeResolved = knowledgePoint.ChallengeResolved,
+            challengeType = knowledgePoint.ChallengeType,
+            challengeResolutionScore = knowledgePoint.ChallengeResolutionScore,
+            challengeGap = knowledgePoint.ChallengeGap,
             knowledgeInterpretation = knowledgePoint.Interpretation,
             Agents = project.Agents.Select(agent => new
             {
@@ -262,6 +276,17 @@ public sealed class SimulationRunner(
         - ShockType: {{project.ShockType}}
         - ShockDescription: {{project.ShockDescription}}
 
+        Challenge settings:
+        - ChallengeActive: {{(project.EnableChallengeEvent && project.ChallengeStep > 0 && (project.CurrentStep + 1) >= project.ChallengeStep).ToString()}}
+        - EnableChallengeEvent: {{project.EnableChallengeEvent}}
+        - ChallengeStep: {{project.ChallengeStep}}
+        - ChallengeType: {{project.ChallengeType}}
+        - ChallengeLevel: {{project.ChallengeLevel.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+        - ChallengeDescription: {{project.ChallengeDescription}}
+        - RequiredKnowledgeDiversity: {{project.RequiredKnowledgeDiversity.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+        - RequiredCrossDomainExposure: {{project.RequiredCrossDomainExposure.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+        - RequiredRewiringScore: {{project.RequiredRewiringScore.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+
         Other agents:
         {{roster}}
 
@@ -285,8 +310,7 @@ public sealed class SimulationRunner(
         SimulationProject project,
         int stepNo,
         IReadOnlyCollection<AgentAction> currentStepActions,
-        double knowledgeRewiringScore,
-        double knowledgeStock,
+        KnowledgeTimelinePoint knowledgePoint,
         CancellationToken cancellationToken)
     {
         if (stepNo <= 2)
@@ -319,31 +343,56 @@ public sealed class SimulationRunner(
         var shareRatio = Ratio(AgentActionType.ShareInfo);
         var supportRatio = Ratio(AgentActionType.SupportOther);
         var diversity = counts.Values.Count(value => value > 0);
+        var adaptationSignal = collaborationRatio + ideaRatio;
 
         if (waitRatio >= 0.35 && ideaRatio <= 0.15 && shareRatio <= 0.15)
         {
             return SimulationPhase.Collapse;
         }
 
-        if (criticismRatio >= 0.3 && supportRatio <= 0.1 && knowledgeRewiringScore < 0.45)
+        if (knowledgePoint.ChallengeActive
+            && !knowledgePoint.ChallengeResolved
+            && knowledgePoint.KnowledgeReconfigurationScore >= 0.40
+            && adaptationSignal >= 0.55
+            && soloRatio < 0.35
+            && supportRatio >= 0.08)
+        {
+            return SimulationPhase.Adaptation;
+        }
+
+        if (criticismRatio >= 0.3 && supportRatio <= 0.1 && knowledgePoint.KnowledgeRewiringScore < 0.45)
         {
             return SimulationPhase.Chaos;
         }
 
-        if (soloRatio >= 0.35 && shareRatio <= 0.15 && knowledgeRewiringScore < 0.35)
+        if (knowledgePoint.ChallengeActive
+            && knowledgePoint.ChallengeGap > 0.15
+            && soloRatio >= 0.30
+            && supportRatio <= 0.10)
         {
             return SimulationPhase.Silo;
         }
 
-        if (ideaRatio >= 0.20
-            && shareRatio >= 0.14
-            && supportRatio >= 0.10
-            && knowledgeRewiringScore >= 0.45)
+        if (soloRatio >= 0.35 && shareRatio <= 0.15 && knowledgePoint.KnowledgeRewiringScore < 0.35)
+        {
+            return SimulationPhase.Silo;
+        }
+
+        if (((ideaRatio >= 0.20
+                && shareRatio >= 0.14
+                && supportRatio >= 0.10
+                && knowledgePoint.KnowledgeRewiringScore >= 0.45))
+            || (knowledgePoint.ChallengeResolved
+                && knowledgePoint.ChallengeResolutionScore >= 0.45
+                && knowledgePoint.KnowledgeReconfigurationScore >= 0.45
+                && ideaRatio >= 0.18
+                && shareRatio >= 0.12
+                && supportRatio >= 0.10))
         {
             return SimulationPhase.Emergent;
         }
 
-        if (collaborationRatio >= 0.45 || knowledgeStock >= 0.35)
+        if (collaborationRatio >= 0.45 || knowledgePoint.KnowledgeStock >= 0.35)
         {
             return SimulationPhase.Learning;
         }
@@ -352,7 +401,8 @@ public sealed class SimulationRunner(
             && soloRatio < 0.3
             && criticismRatio < 0.25
             && waitRatio < 0.25
-            && knowledgeRewiringScore < 0.45)
+            && knowledgePoint.KnowledgeRewiringScore < 0.45
+            && !knowledgePoint.ChallengeActive)
         {
             return SimulationPhase.Stable;
         }
@@ -632,7 +682,7 @@ public sealed class SimulationRunner(
         return Math.Round(1.0 - (phaseChangeCount / (double)totalTransitions), 3);
     }
 
-    private static KnowledgeTimelinePoint ApplyKnowledgeAndShock(
+    private static KnowledgeTimelinePoint ApplyKnowledgeShockAndChallenge(
         SimulationProject project,
         int stepNo,
         ActionDistributionSummary actions)
@@ -649,6 +699,17 @@ public sealed class SimulationRunner(
             ApplyShockEffects(project);
         }
 
+        var challengeOccurred = project.EnableChallengeEvent
+            && project.ChallengeStep > 0
+            && project.ChallengeStep == stepNo
+            && !string.Equals(project.ChallengeType, ChallengeTypes.None, StringComparison.OrdinalIgnoreCase);
+        var effectiveChallengeLevel = project.ChallengeLevel;
+        if (challengeOccurred)
+        {
+            effectiveChallengeLevel = Math.Clamp(project.ChallengeLevel + 0.3, 0, 1);
+            ApplyChallengeEffects(project);
+        }
+
         var knowledgeStockDelta = KnowledgeAnalysisService.CalculateKnowledgeStockDelta(actions);
         var knowledgeDiversityDelta = KnowledgeAnalysisService.CalculateKnowledgeDiversityDelta(
             actions,
@@ -656,6 +717,7 @@ public sealed class SimulationRunner(
             project.CrossDomainExposure,
             effectiveExternalShockLevel,
             project.RewiringSensitivity);
+        knowledgeDiversityDelta = Math.Round(knowledgeDiversityDelta + (effectiveChallengeLevel * 0.01), 4);
 
         project.KnowledgeStock = Math.Clamp(project.KnowledgeStock + knowledgeStockDelta, 0, 1);
         project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + knowledgeDiversityDelta, 0, 1);
@@ -664,9 +726,38 @@ public sealed class SimulationRunner(
             project.KnowledgeDiversity,
             project.CrossDomainExposure,
             effectiveExternalShockLevel,
+            effectiveChallengeLevel,
             actions,
             project.PsychologicalSafetyLevel,
             project.RewiringSensitivity);
+        var challengeWindowStarted = project.EnableChallengeEvent
+            && project.ChallengeStep > 0
+            && stepNo >= project.ChallengeStep
+            && !string.Equals(project.ChallengeType, ChallengeTypes.None, StringComparison.OrdinalIgnoreCase);
+        var knowledgeReconfigurationScore = KnowledgeAnalysisService.CalculateKnowledgeReconfigurationScore(
+            rewiringScore,
+            effectiveChallengeLevel,
+            actions,
+            project.PsychologicalSafetyLevel,
+            challengeWindowStarted);
+        var challengeResolutionScore = challengeWindowStarted
+            ? KnowledgeAnalysisService.CalculateChallengeResolutionScore(
+                project.KnowledgeDiversity,
+                project.CrossDomainExposure,
+                knowledgeReconfigurationScore,
+                actions)
+            : 0;
+        var challengeRequirementAverage = challengeWindowStarted
+            ? KnowledgeAnalysisService.CalculateChallengeRequirementAverage(
+                project.RequiredKnowledgeDiversity,
+                project.RequiredCrossDomainExposure,
+                project.RequiredRewiringScore)
+            : 0;
+        var challengeResolved = challengeWindowStarted && challengeResolutionScore >= challengeRequirementAverage;
+        var challengeActive = challengeWindowStarted && !challengeResolved;
+        var challengeGap = challengeWindowStarted
+            ? Math.Round(challengeRequirementAverage - challengeResolutionScore, 4)
+            : 0;
 
         var interpretation = KnowledgeAnalysisService.BuildInterpretation(
             project.KnowledgeStock,
@@ -674,6 +765,10 @@ public sealed class SimulationRunner(
             effectiveExternalShockLevel,
             project.CrossDomainExposure,
             rewiringScore,
+            knowledgeReconfigurationScore,
+            challengeActive,
+            challengeResolved,
+            challengeGap,
             actions.WorkAloneRate);
 
         return new KnowledgeTimelinePoint
@@ -684,8 +779,15 @@ public sealed class SimulationRunner(
             ExternalShockLevel = Math.Round(effectiveExternalShockLevel, 4),
             CrossDomainExposure = Math.Round(project.CrossDomainExposure, 4),
             KnowledgeRewiringScore = rewiringScore,
+            KnowledgeReconfigurationScore = knowledgeReconfigurationScore,
             ShockOccurred = shockOccurred,
             ShockType = shockOccurred ? project.ShockType : ShockTypes.None,
+            ChallengeOccurred = challengeOccurred,
+            ChallengeActive = challengeActive,
+            ChallengeResolved = challengeResolved,
+            ChallengeType = challengeWindowStarted ? project.ChallengeType : ChallengeTypes.None,
+            ChallengeResolutionScore = challengeResolutionScore,
+            ChallengeGap = challengeGap,
             Interpretation = interpretation
         };
     }
@@ -724,6 +826,38 @@ public sealed class SimulationRunner(
             case ShockTypes.CultureShock:
                 project.CrossDomainExposure = Math.Clamp(project.CrossDomainExposure + 0.3, 0, 1);
                 project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.15, 0, 1);
+                break;
+        }
+    }
+
+    private static void ApplyChallengeEffects(SimulationProject project)
+    {
+        switch (project.ChallengeType)
+        {
+            case ChallengeTypes.ExistingMethodFailure:
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.05, 0, 1);
+                break;
+            case ChallengeTypes.NewMarketRequirement:
+                project.CustomerOrientationLevel = Math.Clamp(project.CustomerOrientationLevel + 0.2, 0, 1);
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.05, 0, 1);
+                break;
+            case ChallengeTypes.CrossFunctionalProblem:
+                project.CrossDomainExposure = Math.Clamp(project.CrossDomainExposure + 0.2, 0, 1);
+                project.CooperationLevel = Math.Clamp(project.CooperationLevel + 0.1, 0, 1);
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.08, 0, 1);
+                break;
+            case ChallengeTypes.QualityCrisis:
+                project.KnowledgeStock = Math.Clamp(project.KnowledgeStock + 0.05, 0, 1);
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.04, 0, 1);
+                break;
+            case ChallengeTypes.TechnologyShift:
+                project.CrossDomainExposure = Math.Clamp(project.CrossDomainExposure + 0.25, 0, 1);
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.10, 0, 1);
+                break;
+            case ChallengeTypes.CustomerComplexityIncrease:
+                project.CustomerOrientationLevel = Math.Clamp(project.CustomerOrientationLevel + 0.15, 0, 1);
+                project.CrossDomainExposure = Math.Clamp(project.CrossDomainExposure + 0.10, 0, 1);
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.08, 0, 1);
                 break;
         }
     }

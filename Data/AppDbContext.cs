@@ -36,6 +36,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.ShockStep).HasDefaultValue(KnowledgeDefaults.ShockStep);
             entity.Property(project => project.ShockType).HasMaxLength(40).HasDefaultValue(KnowledgeDefaults.ShockType);
             entity.Property(project => project.ShockDescription).HasDefaultValue(KnowledgeDefaults.ShockDescription);
+            entity.Property(project => project.EnableChallengeEvent).HasDefaultValue(ChallengeDefaults.EnableChallengeEvent);
+            entity.Property(project => project.ChallengeType).HasMaxLength(40).HasDefaultValue(ChallengeDefaults.ChallengeType);
+            entity.Property(project => project.ChallengeStep).HasDefaultValue(ChallengeDefaults.ChallengeStep);
+            entity.Property(project => project.ChallengeLevel).HasDefaultValue(ChallengeDefaults.ChallengeLevel);
+            entity.Property(project => project.ChallengeDescription).HasDefaultValue(ChallengeDefaults.ChallengeDescription);
+            entity.Property(project => project.RequiredKnowledgeDiversity).HasDefaultValue(ChallengeDefaults.RequiredKnowledgeDiversity);
+            entity.Property(project => project.RequiredCrossDomainExposure).HasDefaultValue(ChallengeDefaults.RequiredCrossDomainExposure);
+            entity.Property(project => project.RequiredRewiringScore).HasDefaultValue(ChallengeDefaults.RequiredRewiringScore);
             entity.HasOne(project => project.Experiment)
                 .WithMany(experiment => experiment.SimulationProjects)
                 .HasForeignKey(project => project.ExperimentId)
@@ -74,6 +82,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.ShockStep).HasDefaultValue(KnowledgeDefaults.ShockStep);
             entity.Property(project => project.ShockType).HasMaxLength(40).HasDefaultValue(KnowledgeDefaults.ShockType);
             entity.Property(project => project.ShockDescription).HasDefaultValue(KnowledgeDefaults.ShockDescription);
+            entity.Property(project => project.EnableChallengeEvent).HasDefaultValue(ChallengeDefaults.EnableChallengeEvent);
+            entity.Property(project => project.ChallengeType).HasMaxLength(40).HasDefaultValue(ChallengeDefaults.ChallengeType);
+            entity.Property(project => project.ChallengeStep).HasDefaultValue(ChallengeDefaults.ChallengeStep);
+            entity.Property(project => project.ChallengeLevel).HasDefaultValue(ChallengeDefaults.ChallengeLevel);
+            entity.Property(project => project.ChallengeDescription).HasDefaultValue(ChallengeDefaults.ChallengeDescription);
+            entity.Property(project => project.RequiredKnowledgeDiversity).HasDefaultValue(ChallengeDefaults.RequiredKnowledgeDiversity);
+            entity.Property(project => project.RequiredCrossDomainExposure).HasDefaultValue(ChallengeDefaults.RequiredCrossDomainExposure);
+            entity.Property(project => project.RequiredRewiringScore).HasDefaultValue(ChallengeDefaults.RequiredRewiringScore);
             entity.HasOne(project => project.Scenario)
                 .WithMany(scenario => scenario.Experiments)
                 .HasForeignKey(project => project.ScenarioId)
@@ -95,6 +111,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(item => item.ShockStep).HasDefaultValue(KnowledgeDefaults.ShockStep);
             entity.Property(item => item.ShockType).HasMaxLength(40).HasDefaultValue(KnowledgeDefaults.ShockType);
             entity.Property(item => item.ShockDescription).HasDefaultValue(KnowledgeDefaults.ShockDescription);
+            entity.Property(item => item.EnableChallengeEvent).HasDefaultValue(ChallengeDefaults.EnableChallengeEvent);
+            entity.Property(item => item.ChallengeType).HasMaxLength(40).HasDefaultValue(ChallengeDefaults.ChallengeType);
+            entity.Property(item => item.ChallengeStep).HasDefaultValue(ChallengeDefaults.ChallengeStep);
+            entity.Property(item => item.ChallengeLevel).HasDefaultValue(ChallengeDefaults.ChallengeLevel);
+            entity.Property(item => item.ChallengeDescription).HasDefaultValue(ChallengeDefaults.ChallengeDescription);
+            entity.Property(item => item.RequiredKnowledgeDiversity).HasDefaultValue(ChallengeDefaults.RequiredKnowledgeDiversity);
+            entity.Property(item => item.RequiredCrossDomainExposure).HasDefaultValue(ChallengeDefaults.RequiredCrossDomainExposure);
+            entity.Property(item => item.RequiredRewiringScore).HasDefaultValue(ChallengeDefaults.RequiredRewiringScore);
         });
 
         modelBuilder.Entity<ParameterSweep>(entity =>

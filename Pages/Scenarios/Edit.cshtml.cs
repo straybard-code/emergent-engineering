@@ -63,6 +63,14 @@ public sealed class EditModel(AppDbContext db) : PageModel
         scenario.ShockStep = Input.ShockStep;
         scenario.ShockType = string.IsNullOrWhiteSpace(Input.ShockType) ? ShockTypes.None : Input.ShockType.Trim();
         scenario.ShockDescription = Input.ShockDescription?.Trim() ?? "";
+        scenario.EnableChallengeEvent = Input.EnableChallengeEvent;
+        scenario.ChallengeStep = Input.ChallengeStep;
+        scenario.ChallengeLevel = Input.ChallengeLevel;
+        scenario.ChallengeType = string.IsNullOrWhiteSpace(Input.ChallengeType) ? ChallengeTypes.None : Input.ChallengeType.Trim();
+        scenario.ChallengeDescription = Input.ChallengeDescription?.Trim() ?? "";
+        scenario.RequiredKnowledgeDiversity = Input.RequiredKnowledgeDiversity;
+        scenario.RequiredCrossDomainExposure = Input.RequiredCrossDomainExposure;
+        scenario.RequiredRewiringScore = Input.RequiredRewiringScore;
         scenario.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();

@@ -32,8 +32,17 @@ public static class EmergenceFingerprintService
         var averageKnowledgeStock = knowledgeTimeline.Count == 0 ? project.KnowledgeStock : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeStock), 4);
         var averageKnowledgeDiversity = knowledgeTimeline.Count == 0 ? project.KnowledgeDiversity : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeDiversity), 4);
         var averageKnowledgeRewiringScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeRewiringScore), 4);
+        var averageKnowledgeReconfigurationScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeReconfigurationScore), 4);
         var maxKnowledgeRewiringScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Max(item => item.KnowledgeRewiringScore), 4);
         var finalKnowledgeRewiringScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.OrderBy(item => item.StepNo).Last().KnowledgeRewiringScore, 4);
+        var challengeOccurred = knowledgeTimeline.Any(item => item.ChallengeOccurred);
+        var challengeResolvedPoint = knowledgeTimeline
+            .Where(item => item.ChallengeResolved)
+            .OrderBy(item => item.StepNo)
+            .FirstOrDefault();
+        var averageChallengeGap = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ChallengeGap), 4);
+        var averageChallengeResolutionScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ChallengeResolutionScore), 4);
+        var adaptationDuration = knowledgeTimeline.Count(item => string.Equals(item.Phase, SimulationPhase.Adaptation, StringComparison.OrdinalIgnoreCase));
         var shockPoint = knowledgeTimeline
             .Where(item => item.ShockOccurred)
             .OrderBy(item => item.StepNo)
@@ -77,11 +86,18 @@ public static class EmergenceFingerprintService
             AverageKnowledgeStock = averageKnowledgeStock,
             AverageKnowledgeDiversity = averageKnowledgeDiversity,
             AverageKnowledgeRewiringScore = averageKnowledgeRewiringScore,
+            AverageKnowledgeReconfigurationScore = averageKnowledgeReconfigurationScore,
             MaxKnowledgeRewiringScore = maxKnowledgeRewiringScore,
             FinalKnowledgeRewiringScore = finalKnowledgeRewiringScore,
             ShockOccurred = shockPoint is not null,
             ShockType = shockPoint?.ShockType ?? ShockTypes.None,
-            CrossDomainExposure = project.CrossDomainExposure
+            CrossDomainExposure = project.CrossDomainExposure,
+            ChallengeOccurred = challengeOccurred,
+            ChallengeResolved = challengeResolvedPoint is not null,
+            ChallengeResolvedStep = challengeResolvedPoint?.StepNo,
+            AdaptationDuration = adaptationDuration,
+            AverageChallengeGap = averageChallengeGap,
+            AverageChallengeResolutionScore = averageChallengeResolutionScore
         };
 
         fingerprint.ClassificationLabel = Classify(fingerprint);
@@ -91,6 +107,27 @@ public static class EmergenceFingerprintService
 
     public static string Classify(EmergenceFingerprint fingerprint)
     {
+        if (fingerprint.ChallengeResolved
+            && string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase)
+            && fingerprint.AverageKnowledgeReconfigurationScore >= 0.45)
+        {
+            return "\u9069\u5FDC\u5275\u767A\u578B";
+        }
+
+        if (fingerprint.ChallengeResolved
+            && (string.Equals(fingerprint.FinalPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(fingerprint.FinalPhase, SimulationPhase.Stable, StringComparison.OrdinalIgnoreCase))
+            && !string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return "\u9069\u5FDC\u5B66\u7FD2\u578B";
+        }
+
+        if (!fingerprint.ChallengeResolved
+            && string.Equals(fingerprint.FinalPhase, SimulationPhase.Silo, StringComparison.OrdinalIgnoreCase))
+        {
+            return "\u8AB2\u984C\u672A\u89E3\u6C7A\u30B5\u30A4\u30ED\u578B";
+        }
+
         if (fingerprint.EffectiveDensity > 0.8
             && fingerprint.ShareInfoRate > 0.2
             && fingerprint.WorkAloneRate < 0.3)
@@ -123,9 +160,21 @@ public static class EmergenceFingerprintService
     public static string ClassifyKnowledgeDrivenType(EmergenceFingerprint fingerprint)
     {
         if (fingerprint.ShockOccurred
+            && fingerprint.AverageKnowledgeReconfigurationScore >= 0.50)
+        {
+            return "\u5916\u4E71\u99C6\u52D5\u5275\u767A\u578B";
+        }
+
+        if (fingerprint.ShockOccurred
             && fingerprint.MaxKnowledgeRewiringScore >= 0.50)
         {
             return "\u5916\u4E71\u99C6\u52D5\u5275\u767A\u578B";
+        }
+
+        if (fingerprint.AverageKnowledgeReconfigurationScore >= 0.50
+            && fingerprint.CrossDomainExposure >= 0.30)
+        {
+            return "\u7570\u5206\u91CE\u5275\u767A\u578B";
         }
 
         if (fingerprint.MaxKnowledgeRewiringScore >= 0.50
@@ -182,11 +231,18 @@ public sealed class EmergenceFingerprint
     public double AverageKnowledgeStock { get; init; }
     public double AverageKnowledgeDiversity { get; init; }
     public double AverageKnowledgeRewiringScore { get; init; }
+    public double AverageKnowledgeReconfigurationScore { get; init; }
     public double MaxKnowledgeRewiringScore { get; init; }
     public double FinalKnowledgeRewiringScore { get; init; }
     public bool ShockOccurred { get; init; }
     public string ShockType { get; init; } = ShockTypes.None;
     public double CrossDomainExposure { get; init; }
+    public bool ChallengeOccurred { get; init; }
+    public bool ChallengeResolved { get; init; }
+    public int? ChallengeResolvedStep { get; init; }
+    public int AdaptationDuration { get; init; }
+    public double AverageChallengeGap { get; init; }
+    public double AverageChallengeResolutionScore { get; init; }
     public string ClassificationLabel { get; set; } = "";
     public string KnowledgeDrivenType { get; set; } = "";
 }
