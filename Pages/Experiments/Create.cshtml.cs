@@ -32,7 +32,16 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         LearningOrientationLevel = BoundaryParameterDefaults.Level,
         CustomerOrientationLevel = BoundaryParameterDefaults.Level,
         ShortTermResultPressureLevel = BoundaryParameterDefaults.Level,
-        EffectiveTrustThreshold = BoundaryParameterDefaults.EffectiveTrustThreshold
+        EffectiveTrustThreshold = BoundaryParameterDefaults.EffectiveTrustThreshold,
+        KnowledgeStock = KnowledgeDefaults.Stock,
+        KnowledgeDiversity = KnowledgeDefaults.Diversity,
+        ExternalShockLevel = KnowledgeDefaults.ExternalShockLevel,
+        CrossDomainExposure = KnowledgeDefaults.CrossDomainExposure,
+        RewiringSensitivity = KnowledgeDefaults.RewiringSensitivity,
+        EnableExternalShock = KnowledgeDefaults.EnableExternalShock,
+        ShockStep = KnowledgeDefaults.ShockStep,
+        ShockType = KnowledgeDefaults.ShockType,
+        ShockDescription = KnowledgeDefaults.ShockDescription
     };
 
     public List<ScenarioOption> Scenarios { get; private set; } = [];
@@ -101,7 +110,16 @@ public sealed class CreateModel(AppDbContext db) : PageModel
             LearningOrientationLevel = scenario.LearningOrientationLevel,
             CustomerOrientationLevel = scenario.CustomerOrientationLevel,
             ShortTermResultPressureLevel = scenario.ShortTermResultPressureLevel,
-            EffectiveTrustThreshold = scenario.EffectiveTrustThreshold
+            EffectiveTrustThreshold = scenario.EffectiveTrustThreshold,
+            KnowledgeStock = scenario.KnowledgeStock,
+            KnowledgeDiversity = scenario.KnowledgeDiversity,
+            ExternalShockLevel = scenario.ExternalShockLevel,
+            CrossDomainExposure = scenario.CrossDomainExposure,
+            RewiringSensitivity = scenario.RewiringSensitivity,
+            EnableExternalShock = scenario.EnableExternalShock,
+            ShockStep = scenario.ShockStep,
+            ShockType = scenario.ShockType,
+            ShockDescription = scenario.ShockDescription
         };
     }
 

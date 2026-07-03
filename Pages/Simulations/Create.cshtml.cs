@@ -26,7 +26,16 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         LearningOrientationLevel = BoundaryParameterDefaults.Level,
         CustomerOrientationLevel = BoundaryParameterDefaults.Level,
         ShortTermResultPressureLevel = BoundaryParameterDefaults.Level,
-        EffectiveTrustThreshold = BoundaryParameterDefaults.EffectiveTrustThreshold
+        EffectiveTrustThreshold = BoundaryParameterDefaults.EffectiveTrustThreshold,
+        KnowledgeStock = KnowledgeDefaults.Stock,
+        KnowledgeDiversity = KnowledgeDefaults.Diversity,
+        ExternalShockLevel = KnowledgeDefaults.ExternalShockLevel,
+        CrossDomainExposure = KnowledgeDefaults.CrossDomainExposure,
+        RewiringSensitivity = KnowledgeDefaults.RewiringSensitivity,
+        EnableExternalShock = KnowledgeDefaults.EnableExternalShock,
+        ShockStep = KnowledgeDefaults.ShockStep,
+        ShockType = KnowledgeDefaults.ShockType,
+        ShockDescription = KnowledgeDefaults.ShockDescription
     };
 
     public async Task<IActionResult> OnPostAsync()

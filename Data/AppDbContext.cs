@@ -27,6 +27,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.Status).HasMaxLength(40);
             entity.Property(project => project.Phase).HasMaxLength(40);
             entity.Property(project => project.EffectiveTrustThreshold).HasDefaultValue(BoundaryParameterDefaults.EffectiveTrustThreshold);
+            entity.Property(project => project.KnowledgeStock).HasDefaultValue(KnowledgeDefaults.Stock);
+            entity.Property(project => project.KnowledgeDiversity).HasDefaultValue(KnowledgeDefaults.Diversity);
+            entity.Property(project => project.ExternalShockLevel).HasDefaultValue(KnowledgeDefaults.ExternalShockLevel);
+            entity.Property(project => project.CrossDomainExposure).HasDefaultValue(KnowledgeDefaults.CrossDomainExposure);
+            entity.Property(project => project.RewiringSensitivity).HasDefaultValue(KnowledgeDefaults.RewiringSensitivity);
+            entity.Property(project => project.EnableExternalShock).HasDefaultValue(KnowledgeDefaults.EnableExternalShock);
+            entity.Property(project => project.ShockStep).HasDefaultValue(KnowledgeDefaults.ShockStep);
+            entity.Property(project => project.ShockType).HasMaxLength(40).HasDefaultValue(KnowledgeDefaults.ShockType);
+            entity.Property(project => project.ShockDescription).HasDefaultValue(KnowledgeDefaults.ShockDescription);
             entity.HasOne(project => project.Experiment)
                 .WithMany(experiment => experiment.SimulationProjects)
                 .HasForeignKey(project => project.ExperimentId)
@@ -56,6 +65,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.LlmModel).HasMaxLength(120);
             entity.Property(project => project.Status).HasMaxLength(40);
             entity.Property(project => project.EffectiveTrustThreshold).HasDefaultValue(BoundaryParameterDefaults.EffectiveTrustThreshold);
+            entity.Property(project => project.KnowledgeStock).HasDefaultValue(KnowledgeDefaults.Stock);
+            entity.Property(project => project.KnowledgeDiversity).HasDefaultValue(KnowledgeDefaults.Diversity);
+            entity.Property(project => project.ExternalShockLevel).HasDefaultValue(KnowledgeDefaults.ExternalShockLevel);
+            entity.Property(project => project.CrossDomainExposure).HasDefaultValue(KnowledgeDefaults.CrossDomainExposure);
+            entity.Property(project => project.RewiringSensitivity).HasDefaultValue(KnowledgeDefaults.RewiringSensitivity);
+            entity.Property(project => project.EnableExternalShock).HasDefaultValue(KnowledgeDefaults.EnableExternalShock);
+            entity.Property(project => project.ShockStep).HasDefaultValue(KnowledgeDefaults.ShockStep);
+            entity.Property(project => project.ShockType).HasMaxLength(40).HasDefaultValue(KnowledgeDefaults.ShockType);
+            entity.Property(project => project.ShockDescription).HasDefaultValue(KnowledgeDefaults.ShockDescription);
             entity.HasOne(project => project.Scenario)
                 .WithMany(scenario => scenario.Experiments)
                 .HasForeignKey(project => project.ScenarioId)
@@ -68,6 +86,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(item => item.LlmProvider).HasMaxLength(40);
             entity.Property(item => item.LlmModel).HasMaxLength(120);
             entity.Property(item => item.EffectiveTrustThreshold).HasDefaultValue(BoundaryParameterDefaults.EffectiveTrustThreshold);
+            entity.Property(item => item.KnowledgeStock).HasDefaultValue(KnowledgeDefaults.Stock);
+            entity.Property(item => item.KnowledgeDiversity).HasDefaultValue(KnowledgeDefaults.Diversity);
+            entity.Property(item => item.ExternalShockLevel).HasDefaultValue(KnowledgeDefaults.ExternalShockLevel);
+            entity.Property(item => item.CrossDomainExposure).HasDefaultValue(KnowledgeDefaults.CrossDomainExposure);
+            entity.Property(item => item.RewiringSensitivity).HasDefaultValue(KnowledgeDefaults.RewiringSensitivity);
+            entity.Property(item => item.EnableExternalShock).HasDefaultValue(KnowledgeDefaults.EnableExternalShock);
+            entity.Property(item => item.ShockStep).HasDefaultValue(KnowledgeDefaults.ShockStep);
+            entity.Property(item => item.ShockType).HasMaxLength(40).HasDefaultValue(KnowledgeDefaults.ShockType);
+            entity.Property(item => item.ShockDescription).HasDefaultValue(KnowledgeDefaults.ShockDescription);
         });
 
         modelBuilder.Entity<ParameterSweep>(entity =>

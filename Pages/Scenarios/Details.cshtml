@@ -6,7 +6,7 @@
 
 @if (Model.Scenario is null)
 {
-    <div class="alert alert-warning">ã‚·ãƒŠãƒªã‚ªãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚</div>
+    <div class="alert alert-warning">ã‚·ãƒŠãƒªã‚ªãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€E</div>
     return;
 }
 
@@ -17,19 +17,19 @@
         <div class="text-muted">@Model.Scenario.Description</div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-primary" asp-page="/Experiments/Create" asp-route-scenarioId="@Model.Scenario.Id">ã“ã®ã‚·ãƒŠãƒªã‚ªã‹ã‚‰å®Ÿé¨“ã‚’ä½œæˆ</a>
-        <a class="btn btn-outline-secondary" asp-page="/Scenarios/Edit" asp-route-id="@Model.Scenario.Id">ç·¨é›†</a>
+        <a class="btn btn-primary" asp-page="/Experiments/Create" asp-route-scenarioId="@Model.Scenario.Id">ã“ãEã‚·ãƒŠãƒªã‚ªã‹ã‚‰å®Ÿé¨“ã‚’ä½œæE</a>
+        <a class="btn btn-outline-secondary" asp-page="/Scenarios/Edit" asp-route-id="@Model.Scenario.Id">ç·¨é›E</a>
         <a class="btn btn-outline-danger" asp-page="/Scenarios/Delete" asp-route-id="@Model.Scenario.Id">å‰Šé™¤</a>
     </div>
 </div>
 
 <section class="summary-grid mb-4">
     <div>
-        <h2 class="h6">ç›®çš„</h2>
+        <h2 class="h6">ç›®çšE</h2>
         <p>@Model.Scenario.Purpose</p>
     </div>
     <div>
-        <h2 class="h6">å¢ƒç•Œæ¡ä»¶</h2>
+        <h2 class="h6">å¢E•Œæ¡ä»¶</h2>
         <p>@Model.Scenario.BoundaryConditions</p>
     </div>
     <div>
@@ -53,29 +53,40 @@
         <p>@Model.Scenario.LlmProvider</p>
     </div>
     <div>
-        <h2 class="h6">LLMãƒ¢ãƒ‡ãƒ«</h2>
+        <h2 class="h6">LLMãƒ¢ãƒEƒ«</h2>
         <p>@Model.Scenario.LlmModel</p>
     </div>
     <div>
-        <h2 class="h6">å‚ç…§Experimentæ•°</h2>
+        <h2 class="h6">å‚çEExperimentæ•°</h2>
         <p>@Model.ExperimentCount</p>
     </div>
 </section>
 
 <section class="log-section">
-    <h2 class="h5 mb-3">å¢ƒç•Œæ¡ä»¶ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿</h2>
+    <h2 class="h5 mb-3">å¢E•Œæ¡ä»¶ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿</h2>
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
             <tbody>
-                <tr><th>æƒ…å ±å…±æœ‰</th><td>@Model.Scenario.InformationSharingLevel.ToString("0.0")</td></tr>
+                <tr><th>æƒE ±å…±æœE</th><td>@Model.Scenario.InformationSharingLevel.ToString("0.0")</td></tr>
                 <tr><th>å”èª¿æ€§</th><td>@Model.Scenario.CooperationLevel.ToString("0.0")</td></tr>
                 <tr><th>ç«¶äº‰æ€§</th><td>@Model.Scenario.CompetitionLevel.ToString("0.0")</td></tr>
-                <tr><th>å¿ƒç†çš„å®‰å…¨æ€§</th><td>@Model.Scenario.PsychologicalSafetyLevel.ToString("0.0")</td></tr>
+                <tr><th>å¿E†çšE®‰åEæ€§</th><td>@Model.Scenario.PsychologicalSafetyLevel.ToString("0.0")</td></tr>
                 <tr><th>å­¦ç¿’å¿—å‘</th><td>@Model.Scenario.LearningOrientationLevel.ToString("0.0")</td></tr>
                 <tr><th>é¡§å®¢å¿—å‘</th><td>@Model.Scenario.CustomerOrientationLevel.ToString("0.0")</td></tr>
-                <tr><th>çŸ­æœŸæˆæœåœ§åŠ›</th><td>@Model.Scenario.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
+                <tr><th>çŸ­æœŸæEæœåœ§åŠE</th><td>@Model.Scenario.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
                 <tr><th>å®ŸåŠ¹ä¿¡é ¼é–¾å€¤</th><td>@Model.Scenario.EffectiveTrustThreshold.ToString("0.00")</td></tr>
+                <tr><th>’m¯’~Ï</th><td>@Model.Scenario.KnowledgeStock.ToString("0.00")</td></tr>
+                <tr><th>’m¯‘½—l«</th><td>@Model.Scenario.KnowledgeDiversity.ToString("0.00")</td></tr>
+                <tr><th>ŠO•”hŒƒƒŒƒxƒ‹</th><td>@Model.Scenario.ExternalShockLevel.ToString("0.00")</td></tr>
+                <tr><th>ˆÙ•ª–ìÚG“x</th><td>@Model.Scenario.CrossDomainExposure.ToString("0.00")</td></tr>
+                <tr><th>Ä”züŠ´“x</th><td>@Model.Scenario.RewiringSensitivity.ToString("0.00")</td></tr>
+                <tr><th>ŠO•”hŒƒ‚ğ—LŒø‰»</th><td>@(Model.Scenario.EnableExternalShock ? "Yes" : "No")</td></tr>
+                <tr><th>ŠO•”hŒƒStep</th><td>@Model.Scenario.ShockStep</td></tr>
+                <tr><th>ŠO•”hŒƒƒ^ƒCƒv</th><td>@Model.Scenario.ShockType</td></tr>
+                <tr><th>ŠO•”hŒƒà–¾</th><td>@(string.IsNullOrWhiteSpace(Model.Scenario.ShockDescription) ? "-" : Model.Scenario.ShockDescription)</td></tr>
             </tbody>
         </table>
     </div>
 </section>
+
+

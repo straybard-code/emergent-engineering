@@ -91,36 +91,91 @@
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.InformationSharingLevel" class="form-label">情報共有</label>
-                <input asp-for="Input.InformationSharingLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+                <input asp-for="Input.InformationSharingLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.CooperationLevel" class="form-label">協調性</label>
-                <input asp-for="Input.CooperationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+                <input asp-for="Input.CooperationLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.CompetitionLevel" class="form-label">競争性</label>
-                <input asp-for="Input.CompetitionLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+                <input asp-for="Input.CompetitionLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.PsychologicalSafetyLevel" class="form-label">心理的安全性</label>
-                <input asp-for="Input.PsychologicalSafetyLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+                <input asp-for="Input.PsychologicalSafetyLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.LearningOrientationLevel" class="form-label">学習志向</label>
-                <input asp-for="Input.LearningOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+                <input asp-for="Input.LearningOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.CustomerOrientationLevel" class="form-label">顧客志向</label>
-                <input asp-for="Input.CustomerOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+                <input asp-for="Input.CustomerOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.ShortTermResultPressureLevel" class="form-label">短期成果圧力</label>
-                <input asp-for="Input.ShortTermResultPressureLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+                <input asp-for="Input.ShortTermResultPressureLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.EffectiveTrustThreshold" class="form-label">実効信頼閾値</label>
-                <input asp-for="Input.EffectiveTrustThreshold" class="form-control" type="number" min="0" max="1" step="0.05" />
+                <input asp-for="Input.EffectiveTrustThreshold" class="form-control" type="number" min="0" max="1" step="0.01" />
                 <div class="form-text">この値以上のTrustのみネットワーク接続として扱います。</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="log-section mb-4">
+        <h2 class="h5 mb-3">知識再配線パラメータ</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.KnowledgeStock" class="form-label">知識蓄積</label>
+                <input asp-for="Input.KnowledgeStock" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.KnowledgeDiversity" class="form-label">知識多様性</label>
+                <input asp-for="Input.KnowledgeDiversity" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.ExternalShockLevel" class="form-label">外部刺激レベル</label>
+                <input asp-for="Input.ExternalShockLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.CrossDomainExposure" class="form-label">異分野接触度</label>
+                <input asp-for="Input.CrossDomainExposure" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.RewiringSensitivity" class="form-label">再配線感度</label>
+                <input asp-for="Input.RewiringSensitivity" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+        </div>
+    </section>
+
+    <section class="log-section mb-4">
+        <h2 class="h5 mb-3">外部刺激設定</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="form-check mt-4">
+                    <input asp-for="Input.EnableExternalShock" class="form-check-input" type="checkbox" />
+                    <label asp-for="Input.EnableExternalShock" class="form-check-label">外部刺激を有効化</label>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.ShockStep" class="form-label">外部刺激Step</label>
+                <input asp-for="Input.ShockStep" class="form-control" type="number" min="0" max="100" step="1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.ShockType" class="form-label">外部刺激タイプ</label>
+                <select asp-for="Input.ShockType" class="form-select">
+                    @foreach (var shockType in EmergentEngineering.Models.ShockTypes.All)
+                    {
+                        <option value="@shockType">@shockType</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.ShockDescription" class="form-label">外部刺激説明</label>
+                <input asp-for="Input.ShockDescription" class="form-control" />
             </div>
         </div>
     </section>

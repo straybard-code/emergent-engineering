@@ -37,11 +37,19 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("CooperationLevel")
                         .HasColumnType("float");
 
+                    b.Property<double>("CrossDomainExposure")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<double>("CustomerOrientationLevel")
                         .HasColumnType("float");
+
+                    b.Property<bool>("EnableExternalShock")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -51,12 +59,24 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("float")
                         .HasDefaultValue(0.3);
 
+                    b.Property<double>("ExternalShockLevel")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
                     b.Property<double>("InformationSharingLevel")
                         .HasColumnType("float");
 
                     b.Property<string>("KpiDefinition")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("KnowledgeDiversity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
+
+                    b.Property<double>("KnowledgeStock")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
 
                     b.Property<double>("LearningOrientationLevel")
                         .HasColumnType("float");
@@ -83,11 +103,30 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("PsychologicalSafetyLevel")
                         .HasColumnType("float");
 
+                    b.Property<double>("RewiringSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
+
                     b.Property<int>("RunCount")
                         .HasColumnType("int");
 
                     b.Property<int?>("ScenarioId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ShockDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("");
+
+                    b.Property<int>("ShockStep")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("ShockType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("None");
 
                     b.Property<double>("ShortTermResultPressureLevel")
                         .HasColumnType("float");
@@ -552,6 +591,10 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("CooperationLevel")
                         .HasColumnType("float");
 
+                    b.Property<double>("CrossDomainExposure")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -561,9 +604,17 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("CustomerOrientationLevel")
                         .HasColumnType("float");
 
+                    b.Property<bool>("EnableExternalShock")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<double>("EffectiveTrustThreshold")
                         .HasColumnType("float")
                         .HasDefaultValue(0.3);
+
+                    b.Property<double>("ExternalShockLevel")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
 
                     b.Property<int?>("ExperimentId")
                         .HasColumnType("int");
@@ -577,6 +628,14 @@ namespace EmergentEngineering.Migrations
                     b.Property<string>("KpiDefinition")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("KnowledgeDiversity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
+
+                    b.Property<double>("KnowledgeStock")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
 
                     b.Property<double>("LearningOrientationLevel")
                         .HasColumnType("float");
@@ -607,6 +666,25 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<double>("PsychologicalSafetyLevel")
                         .HasColumnType("float");
+
+                    b.Property<double>("RewiringSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
+
+                    b.Property<string>("ShockDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("");
+
+                    b.Property<int>("ShockStep")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("ShockType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("None");
 
                     b.Property<double>("ShortTermResultPressureLevel")
                         .HasColumnType("float");
@@ -645,11 +723,19 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("CooperationLevel")
                         .HasColumnType("float");
 
+                    b.Property<double>("CrossDomainExposure")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<double>("CustomerOrientationLevel")
                         .HasColumnType("float");
+
+                    b.Property<bool>("EnableExternalShock")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -659,12 +745,24 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("float")
                         .HasDefaultValue(0.3);
 
+                    b.Property<double>("ExternalShockLevel")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
                     b.Property<double>("InformationSharingLevel")
                         .HasColumnType("float");
 
                     b.Property<string>("KpiDefinition")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("KnowledgeDiversity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
+
+                    b.Property<double>("KnowledgeStock")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
 
                     b.Property<double>("LearningOrientationLevel")
                         .HasColumnType("float");
@@ -691,8 +789,27 @@ namespace EmergentEngineering.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double>("RewiringSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
+
                     b.Property<int>("RunCount")
                         .HasColumnType("int");
+
+                    b.Property<string>("ShockDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("");
+
+                    b.Property<int>("ShockStep")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("ShockType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("None");
 
                     b.Property<double>("ShortTermResultPressureLevel")
                         .HasColumnType("float");

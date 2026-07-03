@@ -65,6 +65,41 @@ public static class BoundaryParameterDefaults
     public const double EffectiveTrustThreshold = 0.30;
 }
 
+public static class KnowledgeDefaults
+{
+    public const double Stock = 0.0;
+    public const double Diversity = 0.3;
+    public const double ExternalShockLevel = 0.0;
+    public const double CrossDomainExposure = 0.0;
+    public const double RewiringSensitivity = 0.5;
+    public const bool EnableExternalShock = false;
+    public const int ShockStep = 0;
+    public const string ShockType = ShockTypes.None;
+    public const string ShockDescription = "";
+}
+
+public static class ShockTypes
+{
+    public const string None = "None";
+    public const string CrossDomainExpert = "CrossDomainExpert";
+    public const string CustomerDemandShift = "CustomerDemandShift";
+    public const string NewTechnology = "NewTechnology";
+    public const string CompetitorMove = "CompetitorMove";
+    public const string FailureIncident = "FailureIncident";
+    public const string CultureShock = "CultureShock";
+
+    public static readonly string[] All =
+    [
+        None,
+        CrossDomainExpert,
+        CustomerDemandShift,
+        NewTechnology,
+        CompetitorMove,
+        FailureIncident,
+        CultureShock
+    ];
+}
+
 public static class BoundaryParameterNames
 {
     public const string InformationSharingLevel = "InformationSharingLevel";

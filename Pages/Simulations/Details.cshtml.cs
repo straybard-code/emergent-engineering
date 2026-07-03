@@ -29,6 +29,7 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
     public List<ActionTimelinePoint> ActionTimeline { get; private set; } = [];
     public List<PhaseTransitionInsight> PhaseTransitionInsights { get; private set; } = [];
     public List<PrecursorPoint> PrecursorPoints { get; private set; } = [];
+    public List<KnowledgeTimelinePoint> KnowledgeTimeline { get; private set; } = [];
     public EmergenceFingerprint? Fingerprint { get; private set; }
     public string MostCommonPhaseTransitionPattern { get; private set; } = "-";
     public int? SelectedAgentId { get; private set; }
@@ -81,16 +82,21 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
             .ThenBy(action => action.AgentId)
             .ToList();
 
-        PhaseHistory = await db.SimulationSteps
+        var simulationSteps = await db.SimulationSteps
             .Where(step => step.SimulationProjectId == id)
             .OrderBy(step => step.StepNo)
+            .ToListAsync();
+
+        PhaseHistory = simulationSteps
             .Select(step => new PhasePoint
             {
                 StepNo = step.StepNo,
                 Phase = step.Phase,
                 PhaseValue = MapPhase(step.Phase)
             })
-            .ToListAsync();
+            .ToList();
+
+        KnowledgeTimeline = KnowledgeAnalysisService.BuildTimeline(simulationSteps);
 
         var phaseByStep = PhaseHistory.ToDictionary(point => point.StepNo, point => point.Phase);
         var trustSnapshots = await db.TrustSnapshots
@@ -143,6 +149,7 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
                 Project.Name,
                 Project.Id,
                 orderedActions,
+                KnowledgeTimeline,
                 PhaseTransitionInsights,
                 ThresholdSweep,
                 FinalNetworkMetrics);
@@ -228,6 +235,11 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
     public string GetPrecursorPointsJson()
     {
         return JsonSerializer.Serialize(PrecursorPoints, JsonOptions);
+    }
+
+    public string GetKnowledgeTimelineJson()
+    {
+        return JsonSerializer.Serialize(KnowledgeTimeline, JsonOptions);
     }
 
     public string FormatSignedDelta(double value, string format = "0.00")

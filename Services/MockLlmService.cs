@@ -243,6 +243,18 @@ public sealed class MockLlmService : ILlmService
         AdjustByLevel(weights, context.ShortTermResultPressureLevel, AgentActionType.WorkAlone, 3);
         AdjustByLevel(weights, context.ShortTermResultPressureLevel, AgentActionType.ProposeIdea, 3);
         AdjustByLevel(weights, context.ShortTermResultPressureLevel, AgentActionType.AskHelp, -2);
+        AdjustByLevel(weights, context.KnowledgeStock, AgentActionType.ShareInfo, 2);
+        AdjustByLevel(weights, context.KnowledgeStock, AgentActionType.SupportOther, 1);
+        AdjustByLevel(weights, context.KnowledgeDiversity, AgentActionType.ProposeIdea, 3);
+        AdjustByLevel(weights, context.KnowledgeDiversity, AgentActionType.ShareInfo, 1);
+        AdjustByLevel(weights, context.ExternalShockLevel, AgentActionType.ProposeIdea, 2);
+        AdjustByLevel(weights, context.ExternalShockLevel, AgentActionType.Criticize, 1);
+        AdjustByLevel(weights, context.ExternalShockLevel, AgentActionType.AskHelp, 1);
+        AdjustByLevel(weights, context.CrossDomainExposure, AgentActionType.ProposeIdea, 3);
+        AdjustByLevel(weights, context.CrossDomainExposure, AgentActionType.ShareInfo, 2);
+        AdjustByLevel(weights, context.CrossDomainExposure, AgentActionType.Criticize, 1);
+        AdjustByLevel(weights, context.RewiringSensitivity, AgentActionType.ProposeIdea, 2);
+        AdjustByLevel(weights, context.RewiringSensitivity, AgentActionType.Criticize, 1);
     }
 
     private static void AdjustByLevel(Dictionary<string, int> weights, double level, string action, int magnitude)
@@ -388,6 +400,11 @@ public sealed class MockLlmService : ILlmService
         var learningOrientationLevel = ExtractNumericLine(prompt, "LearningOrientationLevel:");
         var customerOrientationLevel = ExtractNumericLine(prompt, "CustomerOrientationLevel:");
         var shortTermResultPressureLevel = ExtractNumericLine(prompt, "ShortTermResultPressureLevel:");
+        var knowledgeStock = ExtractNumericLine(prompt, "KnowledgeStock:");
+        var knowledgeDiversity = ExtractNumericLine(prompt, "KnowledgeDiversity:");
+        var externalShockLevel = ExtractNumericLine(prompt, "ExternalShockLevel:");
+        var crossDomainExposure = ExtractNumericLine(prompt, "CrossDomainExposure:");
+        var rewiringSensitivity = ExtractNumericLine(prompt, "RewiringSensitivity:");
         var otherAgents = ExtractSection(prompt, "Other agents:", "Recent messages from the previous step:");
 
         var names = otherAgents
@@ -409,6 +426,11 @@ public sealed class MockLlmService : ILlmService
             learningOrientationLevel,
             customerOrientationLevel,
             shortTermResultPressureLevel,
+            knowledgeStock,
+            knowledgeDiversity,
+            externalShockLevel,
+            crossDomainExposure,
+            rewiringSensitivity,
             names);
     }
 
@@ -473,5 +495,10 @@ public sealed class MockLlmService : ILlmService
         double LearningOrientationLevel,
         double CustomerOrientationLevel,
         double ShortTermResultPressureLevel,
+        double KnowledgeStock,
+        double KnowledgeDiversity,
+        double ExternalShockLevel,
+        double CrossDomainExposure,
+        double RewiringSensitivity,
         List<string> AgentNames);
 }

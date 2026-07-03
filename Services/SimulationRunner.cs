@@ -70,7 +70,16 @@ public sealed class SimulationRunner(
             db.AgentActions.Add(agentAction);
         }
 
-        project.Phase = await DeterminePhaseAsync(project, stepNo, currentStepActions, cancellationToken);
+        var stepActionSummary = ActionDistributionCalculator.Calculate(currentStepActions.Select(action => action.Action));
+        var knowledgePoint = ApplyKnowledgeAndShock(project, stepNo, stepActionSummary);
+
+        project.Phase = await DeterminePhaseAsync(
+            project,
+            stepNo,
+            currentStepActions,
+            knowledgePoint.KnowledgeRewiringScore,
+            knowledgePoint.KnowledgeStock,
+            cancellationToken);
         project.CurrentStep = stepNo;
         if (project.CurrentStep >= project.TotalSteps)
         {
@@ -95,6 +104,19 @@ public sealed class SimulationRunner(
             project.LearningOrientationLevel,
             project.CustomerOrientationLevel,
             project.ShortTermResultPressureLevel,
+            project.RewiringSensitivity,
+            project.EnableExternalShock,
+            project.ShockStep,
+            configuredShockType = project.ShockType,
+            project.ShockDescription,
+            knowledgeStock = knowledgePoint.KnowledgeStock,
+            knowledgeDiversity = knowledgePoint.KnowledgeDiversity,
+            externalShockLevel = knowledgePoint.ExternalShockLevel,
+            crossDomainExposure = knowledgePoint.CrossDomainExposure,
+            knowledgeRewiringScore = knowledgePoint.KnowledgeRewiringScore,
+            shockOccurred = knowledgePoint.ShockOccurred,
+            shockType = knowledgePoint.ShockType,
+            knowledgeInterpretation = knowledgePoint.Interpretation,
             Agents = project.Agents.Select(agent => new
             {
                 agent.Id,
@@ -227,6 +249,19 @@ public sealed class SimulationRunner(
         - CustomerOrientationLevel: {{project.CustomerOrientationLevel.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}}
         - ShortTermResultPressureLevel: {{project.ShortTermResultPressureLevel.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}}
 
+        Knowledge parameters:
+        - KnowledgeStock: {{project.KnowledgeStock.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+        - KnowledgeDiversity: {{project.KnowledgeDiversity.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+        - ExternalShockLevel: {{project.ExternalShockLevel.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+        - CrossDomainExposure: {{project.CrossDomainExposure.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+        - RewiringSensitivity: {{project.RewiringSensitivity.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+
+        External shock settings:
+        - EnableExternalShock: {{project.EnableExternalShock}}
+        - ShockStep: {{project.ShockStep}}
+        - ShockType: {{project.ShockType}}
+        - ShockDescription: {{project.ShockDescription}}
+
         Other agents:
         {{roster}}
 
@@ -250,6 +285,8 @@ public sealed class SimulationRunner(
         SimulationProject project,
         int stepNo,
         IReadOnlyCollection<AgentAction> currentStepActions,
+        double knowledgeRewiringScore,
+        double knowledgeStock,
         CancellationToken cancellationToken)
     {
         if (stepNo <= 2)
@@ -288,27 +325,34 @@ public sealed class SimulationRunner(
             return SimulationPhase.Collapse;
         }
 
-        if (criticismRatio >= 0.3 && supportRatio <= 0.1)
+        if (criticismRatio >= 0.3 && supportRatio <= 0.1 && knowledgeRewiringScore < 0.45)
         {
             return SimulationPhase.Chaos;
         }
 
-        if (soloRatio >= 0.35 && shareRatio <= 0.15)
+        if (soloRatio >= 0.35 && shareRatio <= 0.15 && knowledgeRewiringScore < 0.35)
         {
             return SimulationPhase.Silo;
         }
 
-        if (ideaRatio >= 0.22 && shareRatio >= 0.14 && criticismRatio >= 0.08 && supportRatio >= 0.08)
+        if (ideaRatio >= 0.20
+            && shareRatio >= 0.14
+            && supportRatio >= 0.10
+            && knowledgeRewiringScore >= 0.45)
         {
             return SimulationPhase.Emergent;
         }
 
-        if (collaborationRatio >= 0.45)
+        if (collaborationRatio >= 0.45 || knowledgeStock >= 0.35)
         {
             return SimulationPhase.Learning;
         }
 
-        if (diversity >= 5 && soloRatio < 0.3 && criticismRatio < 0.25 && waitRatio < 0.25)
+        if (diversity >= 5
+            && soloRatio < 0.3
+            && criticismRatio < 0.25
+            && waitRatio < 0.25
+            && knowledgeRewiringScore < 0.45)
         {
             return SimulationPhase.Stable;
         }
@@ -586,6 +630,102 @@ public sealed class SimulationRunner(
         }
 
         return Math.Round(1.0 - (phaseChangeCount / (double)totalTransitions), 3);
+    }
+
+    private static KnowledgeTimelinePoint ApplyKnowledgeAndShock(
+        SimulationProject project,
+        int stepNo,
+        ActionDistributionSummary actions)
+    {
+        var shockOccurred = project.EnableExternalShock
+            && project.ShockStep > 0
+            && project.ShockStep == stepNo
+            && !string.Equals(project.ShockType, ShockTypes.None, StringComparison.OrdinalIgnoreCase);
+
+        var effectiveExternalShockLevel = project.ExternalShockLevel;
+        if (shockOccurred)
+        {
+            effectiveExternalShockLevel = Math.Clamp(project.ExternalShockLevel + 0.3, 0, 1);
+            ApplyShockEffects(project);
+        }
+
+        var knowledgeStockDelta = KnowledgeAnalysisService.CalculateKnowledgeStockDelta(actions);
+        var knowledgeDiversityDelta = KnowledgeAnalysisService.CalculateKnowledgeDiversityDelta(
+            actions,
+            project.PsychologicalSafetyLevel,
+            project.CrossDomainExposure,
+            effectiveExternalShockLevel,
+            project.RewiringSensitivity);
+
+        project.KnowledgeStock = Math.Clamp(project.KnowledgeStock + knowledgeStockDelta, 0, 1);
+        project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + knowledgeDiversityDelta, 0, 1);
+
+        var rewiringScore = KnowledgeAnalysisService.CalculateKnowledgeRewiringScore(
+            project.KnowledgeDiversity,
+            project.CrossDomainExposure,
+            effectiveExternalShockLevel,
+            actions,
+            project.PsychologicalSafetyLevel,
+            project.RewiringSensitivity);
+
+        var interpretation = KnowledgeAnalysisService.BuildInterpretation(
+            project.KnowledgeStock,
+            project.KnowledgeDiversity,
+            effectiveExternalShockLevel,
+            project.CrossDomainExposure,
+            rewiringScore,
+            actions.WorkAloneRate);
+
+        return new KnowledgeTimelinePoint
+        {
+            StepNo = stepNo,
+            KnowledgeStock = Math.Round(project.KnowledgeStock, 4),
+            KnowledgeDiversity = Math.Round(project.KnowledgeDiversity, 4),
+            ExternalShockLevel = Math.Round(effectiveExternalShockLevel, 4),
+            CrossDomainExposure = Math.Round(project.CrossDomainExposure, 4),
+            KnowledgeRewiringScore = rewiringScore,
+            ShockOccurred = shockOccurred,
+            ShockType = shockOccurred ? project.ShockType : ShockTypes.None,
+            Interpretation = interpretation
+        };
+    }
+
+    private static void ApplyShockEffects(SimulationProject project)
+    {
+        switch (project.ShockType)
+        {
+            case ShockTypes.CrossDomainExpert:
+                project.CrossDomainExposure = Math.Clamp(project.CrossDomainExposure + 0.3, 0, 1);
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.1, 0, 1);
+                break;
+            case ShockTypes.CustomerDemandShift:
+                project.CustomerOrientationLevel = Math.Clamp(project.CustomerOrientationLevel + 0.2, 0, 1);
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.05, 0, 1);
+                break;
+            case ShockTypes.NewTechnology:
+                project.CrossDomainExposure = Math.Clamp(project.CrossDomainExposure + 0.2, 0, 1);
+                project.KnowledgeStock = Math.Clamp(project.KnowledgeStock + 0.05, 0, 1);
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.1, 0, 1);
+                break;
+            case ShockTypes.CompetitorMove:
+                project.ShortTermResultPressureLevel = Math.Clamp(project.ShortTermResultPressureLevel + 0.2, 0, 1);
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.05, 0, 1);
+                break;
+            case ShockTypes.FailureIncident:
+                if (project.PsychologicalSafetyLevel >= 0.5)
+                {
+                    project.KnowledgeStock = Math.Clamp(project.KnowledgeStock + 0.1, 0, 1);
+                }
+                else
+                {
+                    project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity - 0.05, 0, 1);
+                }
+                break;
+            case ShockTypes.CultureShock:
+                project.CrossDomainExposure = Math.Clamp(project.CrossDomainExposure + 0.3, 0, 1);
+                project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.15, 0, 1);
+                break;
+        }
     }
 
     private sealed record TrustPairChange(double? Before, double? After);

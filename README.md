@@ -1078,6 +1078,8 @@ The modeling assumption is that emergence is not only visible at the final phase
 - `Boundary Conditions`
 - `Action Distribution`
 - `Trust Network`
+- `Knowledge Stock / Knowledge Diversity`
+- `Knowledge Rewiring`
 - `Phase`
 
 ## Emergence Fingerprint
@@ -1101,6 +1103,103 @@ The fingerprint includes:
 - trigger-agent concentration
 - strong-link gain/loss around transitions
 - threshold fragility
+- average knowledge stock
+- average knowledge diversity
+- max and final knowledge rewiring score
+- shock occurrence and shock type
+- cross-domain exposure
+
+## Knowledge Rewiring
+
+This MVP extends the organizational model from:
+
+- `Boundary Conditions`
+- `Action Distribution`
+- `Trust Network`
+- `Phase`
+
+to:
+
+- `Boundary Conditions`
+- `Action Distribution`
+- `Trust Network`
+- `Knowledge Stock / Knowledge Diversity`
+- `Knowledge Rewiring`
+- `Phase / Emergence`
+
+The research hypothesis is that research and development organizations do not produce breakthroughs only from internal trust and coordination.
+
+They also adapt and reorganize through:
+
+- `Knowledge Stock`
+- `Knowledge Diversity`
+- `External Shock`
+- `Cross-domain Injection`
+- `Knowledge Rewiring`
+
+### Knowledge Stock
+
+`Knowledge Stock` is a lightweight proxy for how much knowledge has been accumulated and shared at the organizational level.
+
+It increases mainly through:
+
+- `ShareInfo`
+- `SupportOther`
+- `AskHelp`
+
+and grows more slowly when `WorkAlone` dominates.
+
+### Knowledge Diversity
+
+`Knowledge Diversity` is a lightweight proxy for how varied the active knowledge in the organization is.
+
+It increases mainly through:
+
+- `ProposeIdea`
+- constructive `Criticize`
+- `CrossDomainExposure`
+- `ExternalShock`
+
+### External Shock
+
+`External Shock` represents outside stimulus that perturbs the current organizational trajectory.
+
+The MVP supports simple shock types such as:
+
+- `CrossDomainExpert`
+- `CustomerDemandShift`
+- `NewTechnology`
+- `CompetitorMove`
+- `FailureIncident`
+- `CultureShock`
+
+The goal is to observe whether the organization absorbs the shock, fragments under it, or rewires around it.
+
+### Cross-domain Injection
+
+`Cross-domain Injection` is represented by `CrossDomainExposure`.
+
+This models situations where unfamiliar expertise, outside methods, or non-native problem frames enter the organization and make recombination more likely.
+
+### Knowledge Rewiring
+
+`Knowledge Rewiring` is not treated as simple knowledge growth.
+
+The key idea is:
+
+- emergence is not only that the organization knows more
+- emergence can also mean that the knowledge network has been reconfigured
+
+The app calculates a `KnowledgeRewiringScore` at each step and stores it in `SimulationSteps.StateJson` together with:
+
+- `knowledgeStock`
+- `knowledgeDiversity`
+- `externalShockLevel`
+- `crossDomainExposure`
+- `shockOccurred`
+- `shockType`
+
+This makes it possible to inspect how external stimuli and internal idea dynamics affect phase formation.
 
 ### ThresholdFragilityScore
 
@@ -1123,6 +1222,14 @@ Experiment pages also assign a lightweight run label such as:
 - `Fragile Network Type` 
 - `Catalyst Driven Type` 
 - `Unclassified` 
+
+Knowledge-oriented labels are also assigned, such as:
+
+- `知識蓄積型`
+- `異分野創発型`
+- `外乱駆動創発型`
+- `閉鎖学習型`
+- `未分類`
 
 ### Effective network summary
 
@@ -1228,8 +1335,14 @@ dotnet ef database update
 - linking phase transitions with KPI changes
 - trigger-score weight tuning
 - Emergence Report PDF export
+- explicit knowledge-network graph visualization
+- external expert agents
+- customer-demand shocks
+- technology-introduction shocks
+- learning from failure incidents
 - fingerprint clustering
 - fingerprint comparison against real organization data
+- comparison with real R&D organization logs
 - before/after intervention fingerprint comparison
 - AI-driven boundary-condition optimization
 - predictive models from action distribution to phase transition

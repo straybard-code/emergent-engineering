@@ -57,44 +57,108 @@
     <div class="row">
         <div class="col-md-6 mb-3">
             <label asp-for="InformationSharingLevel" class="form-label">情報共有</label>
-            <input asp-for="InformationSharingLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <input asp-for="InformationSharingLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             <span asp-validation-for="InformationSharingLevel" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
             <label asp-for="CooperationLevel" class="form-label">協調性</label>
-            <input asp-for="CooperationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <input asp-for="CooperationLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             <span asp-validation-for="CooperationLevel" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
             <label asp-for="CompetitionLevel" class="form-label">競争性</label>
-            <input asp-for="CompetitionLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <input asp-for="CompetitionLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             <span asp-validation-for="CompetitionLevel" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
             <label asp-for="PsychologicalSafetyLevel" class="form-label">心理的安全性</label>
-            <input asp-for="PsychologicalSafetyLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <input asp-for="PsychologicalSafetyLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             <span asp-validation-for="PsychologicalSafetyLevel" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
             <label asp-for="LearningOrientationLevel" class="form-label">学習志向</label>
-            <input asp-for="LearningOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <input asp-for="LearningOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             <span asp-validation-for="LearningOrientationLevel" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
             <label asp-for="CustomerOrientationLevel" class="form-label">顧客志向</label>
-            <input asp-for="CustomerOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <input asp-for="CustomerOrientationLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             <span asp-validation-for="CustomerOrientationLevel" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
             <label asp-for="ShortTermResultPressureLevel" class="form-label">短期成果圧力</label>
-            <input asp-for="ShortTermResultPressureLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <input asp-for="ShortTermResultPressureLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             <span asp-validation-for="ShortTermResultPressureLevel" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
             <label asp-for="EffectiveTrustThreshold" class="form-label">実効信頼閾値</label>
-            <input asp-for="EffectiveTrustThreshold" class="form-control" type="number" min="0" max="1" step="0.05" />
+            <input asp-for="EffectiveTrustThreshold" class="form-control" type="number" min="0" max="1" step="0.01" />
             <div class="form-text">この値以上のTrustのみネットワーク接続として扱います。</div>
             <span asp-validation-for="EffectiveTrustThreshold" class="text-danger"></span>
+        </div>
+    </div>
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">知識再配線パラメータ</h2>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="KnowledgeStock" class="form-label">知識蓄積</label>
+            <input asp-for="KnowledgeStock" class="form-control" type="number" min="0" max="1" step="0.01" />
+            <span asp-validation-for="KnowledgeStock" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="KnowledgeDiversity" class="form-label">知識多様性</label>
+            <input asp-for="KnowledgeDiversity" class="form-control" type="number" min="0" max="1" step="0.01" />
+            <span asp-validation-for="KnowledgeDiversity" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ExternalShockLevel" class="form-label">外部刺激レベル</label>
+            <input asp-for="ExternalShockLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
+            <span asp-validation-for="ExternalShockLevel" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="CrossDomainExposure" class="form-label">異分野接触度</label>
+            <input asp-for="CrossDomainExposure" class="form-control" type="number" min="0" max="1" step="0.01" />
+            <span asp-validation-for="CrossDomainExposure" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="RewiringSensitivity" class="form-label">再配線感度</label>
+            <input asp-for="RewiringSensitivity" class="form-control" type="number" min="0" max="1" step="0.01" />
+            <span asp-validation-for="RewiringSensitivity" class="text-danger"></span>
+        </div>
+    </div>
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">外部刺激設定</h2>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="form-check mt-4">
+                <input asp-for="EnableExternalShock" class="form-check-input" type="checkbox" />
+                <label asp-for="EnableExternalShock" class="form-check-label">外部刺激を有効化</label>
+            </div>
+            <span asp-validation-for="EnableExternalShock" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ShockStep" class="form-label">外部刺激Step</label>
+            <input asp-for="ShockStep" class="form-control" type="number" min="0" max="100" step="1" />
+            <span asp-validation-for="ShockStep" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ShockType" class="form-label">外部刺激タイプ</label>
+            <select asp-for="ShockType" class="form-select">
+                @foreach (var shockType in EmergentEngineering.Models.ShockTypes.All)
+                {
+                    <option value="@shockType">@shockType</option>
+                }
+            </select>
+            <span asp-validation-for="ShockType" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ShockDescription" class="form-label">外部刺激説明</label>
+            <input asp-for="ShockDescription" class="form-control" />
+            <span asp-validation-for="ShockDescription" class="text-danger"></span>
         </div>
     </div>
 </section>

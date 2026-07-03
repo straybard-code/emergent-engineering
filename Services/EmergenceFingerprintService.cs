@@ -9,6 +9,7 @@ public static class EmergenceFingerprintService
         string simulationName,
         int simulationProjectId,
         IReadOnlyCollection<AgentAction> actions,
+        IReadOnlyCollection<KnowledgeTimelinePoint> knowledgeTimeline,
         IReadOnlyCollection<PhaseTransitionInsight> phaseTransitionInsights,
         IReadOnlyCollection<ThresholdSweepPoint> thresholdSweep,
         NetworkMetricsResult finalMetrics,
@@ -28,6 +29,15 @@ public static class EmergenceFingerprintService
             .ToList();
 
         var topTriggerAgent = triggerAgentStats.FirstOrDefault();
+        var averageKnowledgeStock = knowledgeTimeline.Count == 0 ? project.KnowledgeStock : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeStock), 4);
+        var averageKnowledgeDiversity = knowledgeTimeline.Count == 0 ? project.KnowledgeDiversity : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeDiversity), 4);
+        var averageKnowledgeRewiringScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeRewiringScore), 4);
+        var maxKnowledgeRewiringScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Max(item => item.KnowledgeRewiringScore), 4);
+        var finalKnowledgeRewiringScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.OrderBy(item => item.StepNo).Last().KnowledgeRewiringScore, 4);
+        var shockPoint = knowledgeTimeline
+            .Where(item => item.ShockOccurred)
+            .OrderBy(item => item.StepNo)
+            .FirstOrDefault();
         var thresholdFragilityScore = thresholdSweep.Count == 0
             ? 0
             : Math.Round(1 - thresholdSweep.Average(point => point.EffectiveNetworkDensity), 4);
@@ -63,10 +73,19 @@ public static class EmergenceFingerprintService
             AverageLostStrongLinksPerTransition = phaseTransitionInsights.Count == 0
                 ? 0
                 : Math.Round(phaseTransitionInsights.Average(item => item.LostStrongLinkTotalCount), 4),
-            ThresholdFragilityScore = thresholdFragilityScore
+            ThresholdFragilityScore = thresholdFragilityScore,
+            AverageKnowledgeStock = averageKnowledgeStock,
+            AverageKnowledgeDiversity = averageKnowledgeDiversity,
+            AverageKnowledgeRewiringScore = averageKnowledgeRewiringScore,
+            MaxKnowledgeRewiringScore = maxKnowledgeRewiringScore,
+            FinalKnowledgeRewiringScore = finalKnowledgeRewiringScore,
+            ShockOccurred = shockPoint is not null,
+            ShockType = shockPoint?.ShockType ?? ShockTypes.None,
+            CrossDomainExposure = project.CrossDomainExposure
         };
 
         fingerprint.ClassificationLabel = Classify(fingerprint);
+        fingerprint.KnowledgeDrivenType = ClassifyKnowledgeDrivenType(fingerprint);
         return fingerprint;
     }
 
@@ -96,6 +115,36 @@ public static class EmergenceFingerprintService
             && fingerprint.TriggerAgentDiversity <= 2)
         {
             return "\u89E6\u5A92\u4F9D\u5B58\u578B";
+        }
+
+        return "\u672A\u5206\u985E";
+    }
+
+    public static string ClassifyKnowledgeDrivenType(EmergenceFingerprint fingerprint)
+    {
+        if (fingerprint.ShockOccurred
+            && fingerprint.MaxKnowledgeRewiringScore >= 0.50)
+        {
+            return "\u5916\u4E71\u99C6\u52D5\u5275\u767A\u578B";
+        }
+
+        if (fingerprint.MaxKnowledgeRewiringScore >= 0.50
+            && fingerprint.CrossDomainExposure >= 0.30)
+        {
+            return "\u7570\u5206\u91CE\u5275\u767A\u578B";
+        }
+
+        if (fingerprint.AverageKnowledgeStock >= 0.40
+            && fingerprint.FinalKnowledgeRewiringScore < 0.35
+            && fingerprint.AverageKnowledgeDiversity < 0.35)
+        {
+            return "\u9589\u9396\u5B66\u7FD2\u578B";
+        }
+
+        if (fingerprint.AverageKnowledgeStock >= 0.40
+            && fingerprint.FinalKnowledgeRewiringScore < 0.45)
+        {
+            return "\u77E5\u8B58\u84C4\u7A4D\u578B";
         }
 
         return "\u672A\u5206\u985E";
@@ -130,5 +179,14 @@ public sealed class EmergenceFingerprint
     public double AverageNewStrongLinksPerTransition { get; init; }
     public double AverageLostStrongLinksPerTransition { get; init; }
     public double ThresholdFragilityScore { get; init; }
+    public double AverageKnowledgeStock { get; init; }
+    public double AverageKnowledgeDiversity { get; init; }
+    public double AverageKnowledgeRewiringScore { get; init; }
+    public double MaxKnowledgeRewiringScore { get; init; }
+    public double FinalKnowledgeRewiringScore { get; init; }
+    public bool ShockOccurred { get; init; }
+    public string ShockType { get; init; } = ShockTypes.None;
+    public double CrossDomainExposure { get; init; }
     public string ClassificationLabel { get; set; } = "";
+    public string KnowledgeDrivenType { get; set; } = "";
 }

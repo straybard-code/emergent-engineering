@@ -54,6 +54,15 @@ public sealed class EditModel(AppDbContext db) : PageModel
         scenario.CustomerOrientationLevel = Input.CustomerOrientationLevel;
         scenario.ShortTermResultPressureLevel = Input.ShortTermResultPressureLevel;
         scenario.EffectiveTrustThreshold = Input.EffectiveTrustThreshold;
+        scenario.KnowledgeStock = Input.KnowledgeStock;
+        scenario.KnowledgeDiversity = Input.KnowledgeDiversity;
+        scenario.ExternalShockLevel = Input.ExternalShockLevel;
+        scenario.CrossDomainExposure = Input.CrossDomainExposure;
+        scenario.RewiringSensitivity = Input.RewiringSensitivity;
+        scenario.EnableExternalShock = Input.EnableExternalShock;
+        scenario.ShockStep = Input.ShockStep;
+        scenario.ShockType = string.IsNullOrWhiteSpace(Input.ShockType) ? ShockTypes.None : Input.ShockType.Trim();
+        scenario.ShockDescription = Input.ShockDescription?.Trim() ?? "";
         scenario.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();

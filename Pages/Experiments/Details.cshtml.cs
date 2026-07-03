@@ -37,6 +37,11 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
     public double FingerprintShareInfoRateMean { get; private set; }
     public double FingerprintWorkAloneRateMean { get; private set; }
     public double FingerprintThresholdFragilityScoreMean { get; private set; }
+    public double AverageKnowledgeStockMean { get; private set; }
+    public double AverageKnowledgeDiversityMean { get; private set; }
+    public double AverageKnowledgeRewiringScoreMean { get; private set; }
+    public int ShockOccurredRunCount { get; private set; }
+    public int EmergentReachedRunCount { get; private set; }
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
@@ -76,6 +81,11 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         FingerprintShareInfoRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ShareInfoRate), 3);
         FingerprintWorkAloneRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.WorkAloneRate), 3);
         FingerprintThresholdFragilityScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThresholdFragilityScore), 3);
+        AverageKnowledgeStockMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeStock), 3);
+        AverageKnowledgeDiversityMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeDiversity), 3);
+        AverageKnowledgeRewiringScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeRewiringScore), 3);
+        ShockOccurredRunCount = RunFingerprints.Count(item => item.ShockOccurred);
+        EmergentReachedRunCount = RunFingerprints.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase));
         ThresholdSweepSummary = await GetThresholdSweepSummaryAsync(id);
 
         return Page();
@@ -454,6 +464,7 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
                 .ToList();
             var finalRows = GetFinalTrustRows(project, projectSnapshots);
             var finalMetrics = CalculateNetworkMetrics(project.Agents, finalRows, project.EffectiveTrustThreshold);
+            var knowledgeTimeline = KnowledgeAnalysisService.BuildTimeline(projectSteps);
             var thresholdSweep = NetworkMetricsCalculator.StandardThresholdSweepValues
                 .Select(threshold =>
                 {
@@ -484,6 +495,7 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
                 project.Name,
                 project.Id,
                 projectActions,
+                knowledgeTimeline,
                 insights,
                 thresholdSweep,
                 finalMetrics,

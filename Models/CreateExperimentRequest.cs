@@ -60,4 +60,30 @@ public sealed class CreateExperimentRequest
 
     [Range(0, 1)]
     public double EffectiveTrustThreshold { get; set; } = BoundaryParameterDefaults.EffectiveTrustThreshold;
+
+    [Range(0, 1)]
+    public double KnowledgeStock { get; set; } = KnowledgeDefaults.Stock;
+
+    [Range(0, 1)]
+    public double KnowledgeDiversity { get; set; } = KnowledgeDefaults.Diversity;
+
+    [Range(0, 1)]
+    public double ExternalShockLevel { get; set; } = KnowledgeDefaults.ExternalShockLevel;
+
+    [Range(0, 1)]
+    public double CrossDomainExposure { get; set; } = KnowledgeDefaults.CrossDomainExposure;
+
+    [Range(0, 1)]
+    public double RewiringSensitivity { get; set; } = KnowledgeDefaults.RewiringSensitivity;
+
+    public bool EnableExternalShock { get; set; } = KnowledgeDefaults.EnableExternalShock;
+
+    [Range(0, 100)]
+    public int ShockStep { get; set; } = KnowledgeDefaults.ShockStep;
+
+    [Required]
+    [StringLength(40)]
+    public string ShockType { get; set; } = KnowledgeDefaults.ShockType;
+
+    public string ShockDescription { get; set; } = KnowledgeDefaults.ShockDescription;
 }

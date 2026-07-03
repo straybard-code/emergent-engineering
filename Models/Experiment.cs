@@ -23,6 +23,15 @@ public sealed class Experiment
     public double CustomerOrientationLevel { get; set; } = BoundaryParameterDefaults.Level;
     public double ShortTermResultPressureLevel { get; set; } = BoundaryParameterDefaults.Level;
     public double EffectiveTrustThreshold { get; set; } = BoundaryParameterDefaults.EffectiveTrustThreshold;
+    public double KnowledgeStock { get; set; } = KnowledgeDefaults.Stock;
+    public double KnowledgeDiversity { get; set; } = KnowledgeDefaults.Diversity;
+    public double ExternalShockLevel { get; set; } = KnowledgeDefaults.ExternalShockLevel;
+    public double CrossDomainExposure { get; set; } = KnowledgeDefaults.CrossDomainExposure;
+    public double RewiringSensitivity { get; set; } = KnowledgeDefaults.RewiringSensitivity;
+    public bool EnableExternalShock { get; set; } = KnowledgeDefaults.EnableExternalShock;
+    public int ShockStep { get; set; } = KnowledgeDefaults.ShockStep;
+    public string ShockType { get; set; } = KnowledgeDefaults.ShockType;
+    public string ShockDescription { get; set; } = KnowledgeDefaults.ShockDescription;
     public string Status { get; set; } = ExperimentStatus.Created;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public List<ExperimentRun> Runs { get; set; } = [];

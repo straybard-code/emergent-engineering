@@ -56,6 +56,15 @@ public static class SimulationFactory
             CustomerOrientationLevel = request.CustomerOrientationLevel,
             ShortTermResultPressureLevel = request.ShortTermResultPressureLevel,
             EffectiveTrustThreshold = request.EffectiveTrustThreshold,
+            KnowledgeStock = request.KnowledgeStock,
+            KnowledgeDiversity = request.KnowledgeDiversity,
+            ExternalShockLevel = request.ExternalShockLevel,
+            CrossDomainExposure = request.CrossDomainExposure,
+            RewiringSensitivity = request.RewiringSensitivity,
+            EnableExternalShock = request.EnableExternalShock,
+            ShockStep = request.ShockStep,
+            ShockType = string.IsNullOrWhiteSpace(request.ShockType) ? ShockTypes.None : request.ShockType.Trim(),
+            ShockDescription = request.ShockDescription?.Trim() ?? "",
             CurrentStep = 0,
             Status = SimulationStatus.Created,
             Phase = SimulationPhase.Forming,
@@ -102,6 +111,15 @@ public static class SimulationFactory
             CustomerOrientationLevel = request.CustomerOrientationLevel,
             ShortTermResultPressureLevel = request.ShortTermResultPressureLevel,
             EffectiveTrustThreshold = request.EffectiveTrustThreshold,
+            KnowledgeStock = request.KnowledgeStock,
+            KnowledgeDiversity = request.KnowledgeDiversity,
+            ExternalShockLevel = request.ExternalShockLevel,
+            CrossDomainExposure = request.CrossDomainExposure,
+            RewiringSensitivity = request.RewiringSensitivity,
+            EnableExternalShock = request.EnableExternalShock,
+            ShockStep = request.ShockStep,
+            ShockType = string.IsNullOrWhiteSpace(request.ShockType) ? ShockTypes.None : request.ShockType.Trim(),
+            ShockDescription = request.ShockDescription?.Trim() ?? "",
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -137,6 +155,15 @@ public static class SimulationFactory
             CustomerOrientationLevel = scenario.CustomerOrientationLevel,
             ShortTermResultPressureLevel = scenario.ShortTermResultPressureLevel,
             EffectiveTrustThreshold = scenario.EffectiveTrustThreshold,
+            KnowledgeStock = scenario.KnowledgeStock,
+            KnowledgeDiversity = scenario.KnowledgeDiversity,
+            ExternalShockLevel = scenario.ExternalShockLevel,
+            CrossDomainExposure = scenario.CrossDomainExposure,
+            RewiringSensitivity = scenario.RewiringSensitivity,
+            EnableExternalShock = scenario.EnableExternalShock,
+            ShockStep = scenario.ShockStep,
+            ShockType = string.IsNullOrWhiteSpace(scenario.ShockType) ? ShockTypes.None : scenario.ShockType.Trim(),
+            ShockDescription = scenario.ShockDescription?.Trim() ?? "",
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -163,6 +190,15 @@ public static class SimulationFactory
             CustomerOrientationLevel = request.CustomerOrientationLevel,
             ShortTermResultPressureLevel = request.ShortTermResultPressureLevel,
             EffectiveTrustThreshold = request.EffectiveTrustThreshold,
+            KnowledgeStock = request.KnowledgeStock,
+            KnowledgeDiversity = request.KnowledgeDiversity,
+            ExternalShockLevel = request.ExternalShockLevel,
+            CrossDomainExposure = request.CrossDomainExposure,
+            RewiringSensitivity = request.RewiringSensitivity,
+            EnableExternalShock = request.EnableExternalShock,
+            ShockStep = request.ShockStep,
+            ShockType = string.IsNullOrWhiteSpace(request.ShockType) ? ShockTypes.None : request.ShockType.Trim(),
+            ShockDescription = request.ShockDescription?.Trim() ?? "",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
@@ -187,7 +223,16 @@ public static class SimulationFactory
             LearningOrientationLevel = experiment.LearningOrientationLevel,
             CustomerOrientationLevel = experiment.CustomerOrientationLevel,
             ShortTermResultPressureLevel = experiment.ShortTermResultPressureLevel,
-            EffectiveTrustThreshold = experiment.EffectiveTrustThreshold
+            EffectiveTrustThreshold = experiment.EffectiveTrustThreshold,
+            KnowledgeStock = experiment.KnowledgeStock,
+            KnowledgeDiversity = experiment.KnowledgeDiversity,
+            ExternalShockLevel = experiment.ExternalShockLevel,
+            CrossDomainExposure = experiment.CrossDomainExposure,
+            RewiringSensitivity = experiment.RewiringSensitivity,
+            EnableExternalShock = experiment.EnableExternalShock,
+            ShockStep = experiment.ShockStep,
+            ShockType = experiment.ShockType,
+            ShockDescription = experiment.ShockDescription
         });
 
         project.ExperimentId = experiment.Id;
