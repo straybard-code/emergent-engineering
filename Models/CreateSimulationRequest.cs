@@ -51,4 +51,7 @@ public sealed class CreateSimulationRequest
 
     [Range(0, 1)]
     public double ShortTermResultPressureLevel { get; set; } = BoundaryParameterDefaults.Level;
+
+    [Range(0, 1)]
+    public double EffectiveTrustThreshold { get; set; } = BoundaryParameterDefaults.EffectiveTrustThreshold;
 }

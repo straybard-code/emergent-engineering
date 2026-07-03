@@ -406,13 +406,18 @@ public sealed class SimulationRunner(
             CreatedAt = DateTime.UtcNow
         };
 
+        var networkMetrics = NetworkMetricsCalculator.CalculateFromAgents(project.Agents, project.EffectiveTrustThreshold);
+
         metrics.FinalPhase = project.Phase;
-        metrics.AverageTrust = CalculateAverageTrust(project.Agents);
-        metrics.NetworkDensity = CalculateNetworkDensity(project.Agents);
-        metrics.IsolatedAgentCount = CalculateIsolatedAgentCount(project.Agents);
-        var hub = CalculateHub(project.Agents);
-        metrics.HubAgentName = hub.Name;
-        metrics.HubScore = hub.Score;
+        metrics.AverageTrust = networkMetrics.AverageTrust;
+        metrics.NetworkDensity = networkMetrics.NetworkDensity;
+        metrics.EffectiveNetworkDensity = networkMetrics.EffectiveNetworkDensity;
+        metrics.StrongLinkCount = networkMetrics.StrongLinkCount;
+        metrics.WeakLinkCount = networkMetrics.WeakLinkCount;
+        metrics.ComponentCount = networkMetrics.ComponentCount;
+        metrics.IsolatedAgentCount = networkMetrics.IsolatedCount;
+        metrics.HubAgentName = networkMetrics.HubAgentName;
+        metrics.HubScore = networkMetrics.HubScore;
         metrics.ShareInfoRate = CalculateActionRate(actions, AgentActionType.ShareInfo);
         metrics.ProposeIdeaRate = CalculateActionRate(actions, AgentActionType.ProposeIdea);
         metrics.CriticizeSupportRatio = CalculateCriticizeSupportRatio(actions);
@@ -522,91 +527,6 @@ public sealed class SimulationRunner(
         return new TrustChangeMetrics(before, delta, after);
     }
 
-    private static double CalculateAverageTrust(IEnumerable<Agent> agents)
-    {
-        List<double> values = [];
-        foreach (var agent in agents)
-        {
-            values.AddRange(TrustJsonUtility.Deserialize(agent.TrustJson).Values);
-        }
-
-        return values.Count == 0 ? 0 : Math.Round(values.Average(), 2);
-    }
-
-    private static double CalculateNetworkDensity(IReadOnlyCollection<Agent> agents)
-    {
-        var maxEdges = agents.Count * (agents.Count - 1);
-        if (maxEdges <= 0)
-        {
-            return 0;
-        }
-
-        var agentNames = agents.Select(agent => agent.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var positiveEdgeCount = agents.Sum(agent =>
-            TrustJsonUtility.Deserialize(agent.TrustJson)
-                .Count(entry =>
-                    !string.Equals(entry.Key, agent.Name, StringComparison.OrdinalIgnoreCase) &&
-                    agentNames.Contains(entry.Key) &&
-                    entry.Value > 0));
-
-        return Math.Round(positiveEdgeCount / (double)maxEdges, 3);
-    }
-
-    private static int CalculateIsolatedAgentCount(IReadOnlyCollection<Agent> agents)
-    {
-        var outboundPositiveCounts = agents.ToDictionary(agent => agent.Name, _ => 0, StringComparer.OrdinalIgnoreCase);
-        var inboundPositiveCounts = agents.ToDictionary(agent => agent.Name, _ => 0, StringComparer.OrdinalIgnoreCase);
-        var agentNames = agents.Select(agent => agent.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var agent in agents)
-        {
-            foreach (var entry in TrustJsonUtility.Deserialize(agent.TrustJson))
-            {
-                if (entry.Value <= 0 ||
-                    !agentNames.Contains(entry.Key) ||
-                    string.Equals(entry.Key, agent.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                outboundPositiveCounts[agent.Name]++;
-                inboundPositiveCounts[entry.Key]++;
-            }
-        }
-
-        return agents.Count(agent => outboundPositiveCounts[agent.Name] == 0 && inboundPositiveCounts[agent.Name] == 0);
-    }
-
-    private static HubMetrics CalculateHub(IReadOnlyCollection<Agent> agents)
-    {
-        var inboundScores = agents.ToDictionary(agent => agent.Name, _ => 0.0, StringComparer.OrdinalIgnoreCase);
-        var agentNames = agents.Select(agent => agent.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var agent in agents)
-        {
-            foreach (var entry in TrustJsonUtility.Deserialize(agent.TrustJson))
-            {
-                if (entry.Value <= 0 ||
-                    !agentNames.Contains(entry.Key) ||
-                    string.Equals(entry.Key, agent.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                inboundScores[entry.Key] += entry.Value;
-            }
-        }
-
-        var best = inboundScores
-            .OrderByDescending(pair => pair.Value)
-            .ThenBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
-            .FirstOrDefault();
-
-        return best.Value > 0
-            ? new HubMetrics(best.Key, Math.Round(best.Value, 2))
-            : new HubMetrics("-", 0);
-    }
-
     private static double CalculateActionRate(IReadOnlyCollection<AgentAction> actions, string actionType)
     {
         if (actions.Count == 0)
@@ -670,5 +590,4 @@ public sealed class SimulationRunner(
 
     private sealed record TrustPairChange(double? Before, double? After);
     private sealed record TrustChangeMetrics(double? Before, double? Delta, double? After);
-    private sealed record HubMetrics(string Name, double Score);
 }

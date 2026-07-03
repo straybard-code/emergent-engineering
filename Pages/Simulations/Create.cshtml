@@ -105,6 +105,11 @@
                 <label asp-for="Input.ShortTermResultPressureLevel" class="form-label">短期成果圧力</label>
                 <input asp-for="Input.ShortTermResultPressureLevel" class="form-control" type="number" min="0" max="1" step="0.1" />
             </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.EffectiveTrustThreshold" class="form-label">実効信頼閾値</label>
+                <input asp-for="Input.EffectiveTrustThreshold" class="form-control" type="number" min="0" max="1" step="0.05" />
+                <div class="form-text">この値以上のTrustのみネットワーク接続として扱います。</div>
+            </div>
         </div>
     </section>
 

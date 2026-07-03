@@ -62,6 +62,7 @@ public static class LlmDefaults
 public static class BoundaryParameterDefaults
 {
     public const double Level = 0.5;
+    public const double EffectiveTrustThreshold = 0.30;
 }
 
 public static class BoundaryParameterNames

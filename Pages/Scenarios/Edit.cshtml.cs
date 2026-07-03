@@ -53,6 +53,7 @@ public sealed class EditModel(AppDbContext db) : PageModel
         scenario.LearningOrientationLevel = Input.LearningOrientationLevel;
         scenario.CustomerOrientationLevel = Input.CustomerOrientationLevel;
         scenario.ShortTermResultPressureLevel = Input.ShortTermResultPressureLevel;
+        scenario.EffectiveTrustThreshold = Input.EffectiveTrustThreshold;
         scenario.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();

@@ -26,6 +26,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.LlmModel).HasMaxLength(120);
             entity.Property(project => project.Status).HasMaxLength(40);
             entity.Property(project => project.Phase).HasMaxLength(40);
+            entity.Property(project => project.EffectiveTrustThreshold).HasDefaultValue(BoundaryParameterDefaults.EffectiveTrustThreshold);
             entity.HasOne(project => project.Experiment)
                 .WithMany(experiment => experiment.SimulationProjects)
                 .HasForeignKey(project => project.ExperimentId)
@@ -54,6 +55,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.LlmProvider).HasMaxLength(40);
             entity.Property(project => project.LlmModel).HasMaxLength(120);
             entity.Property(project => project.Status).HasMaxLength(40);
+            entity.Property(project => project.EffectiveTrustThreshold).HasDefaultValue(BoundaryParameterDefaults.EffectiveTrustThreshold);
             entity.HasOne(project => project.Scenario)
                 .WithMany(scenario => scenario.Experiments)
                 .HasForeignKey(project => project.ScenarioId)
@@ -65,6 +67,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(item => item.Name).HasMaxLength(200);
             entity.Property(item => item.LlmProvider).HasMaxLength(40);
             entity.Property(item => item.LlmModel).HasMaxLength(120);
+            entity.Property(item => item.EffectiveTrustThreshold).HasDefaultValue(BoundaryParameterDefaults.EffectiveTrustThreshold);
         });
 
         modelBuilder.Entity<ParameterSweep>(entity =>
@@ -89,6 +92,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         {
             entity.Property(run => run.FinalPhase).HasMaxLength(40);
             entity.Property(run => run.HubAgentName).HasMaxLength(120);
+            entity.Property(run => run.EffectiveNetworkDensity).HasDefaultValue(0.0);
+            entity.Property(run => run.StrongLinkCount).HasDefaultValue(0);
+            entity.Property(run => run.WeakLinkCount).HasDefaultValue(0);
+            entity.Property(run => run.ComponentCount).HasDefaultValue(0);
             entity.HasOne(run => run.Experiment)
                 .WithMany(experiment => experiment.Runs)
                 .HasForeignKey(run => run.ExperimentId)
@@ -116,6 +123,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         {
             entity.Property(metrics => metrics.FinalPhase).HasMaxLength(40);
             entity.Property(metrics => metrics.HubAgentName).HasMaxLength(120);
+            entity.Property(metrics => metrics.EffectiveNetworkDensity).HasDefaultValue(0.0);
+            entity.Property(metrics => metrics.StrongLinkCount).HasDefaultValue(0);
+            entity.Property(metrics => metrics.WeakLinkCount).HasDefaultValue(0);
+            entity.Property(metrics => metrics.ComponentCount).HasDefaultValue(0);
             entity.HasIndex(metrics => metrics.SimulationProjectId).IsUnique();
         });
 

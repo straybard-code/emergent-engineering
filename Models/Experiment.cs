@@ -22,6 +22,7 @@ public sealed class Experiment
     public double LearningOrientationLevel { get; set; } = BoundaryParameterDefaults.Level;
     public double CustomerOrientationLevel { get; set; } = BoundaryParameterDefaults.Level;
     public double ShortTermResultPressureLevel { get; set; } = BoundaryParameterDefaults.Level;
+    public double EffectiveTrustThreshold { get; set; } = BoundaryParameterDefaults.EffectiveTrustThreshold;
     public string Status { get; set; } = ExperimentStatus.Created;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public List<ExperimentRun> Runs { get; set; } = [];

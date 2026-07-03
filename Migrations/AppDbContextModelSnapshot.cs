@@ -47,6 +47,10 @@ namespace EmergentEngineering.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double>("EffectiveTrustThreshold")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
+
                     b.Property<double>("InformationSharingLevel")
                         .HasColumnType("float");
 
@@ -115,6 +119,10 @@ namespace EmergentEngineering.Migrations
                     b.Property<int>("CompletedSteps")
                         .HasColumnType("int");
 
+                    b.Property<int>("ComponentCount")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<double>("CriticizeSupportRatio")
                         .HasColumnType("float");
 
@@ -123,6 +131,10 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<int>("ExperimentId")
                         .HasColumnType("int");
+
+                    b.Property<double>("EffectiveNetworkDensity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
 
                     b.Property<string>("FinalPhase")
                         .IsRequired()
@@ -161,11 +173,19 @@ namespace EmergentEngineering.Migrations
                     b.Property<int>("SimulationProjectId")
                         .HasColumnType("int");
 
+                    b.Property<int>("StrongLinkCount")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<int?>("StepsToEmergent")
                         .HasColumnType("int");
 
                     b.Property<int?>("StepsToLearning")
                         .HasColumnType("int");
+
+                    b.Property<int>("WeakLinkCount")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -405,6 +425,10 @@ namespace EmergentEngineering.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("ComponentCount")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("FinalPhase")
                         .IsRequired()
                         .HasMaxLength(40)
@@ -417,6 +441,10 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<double>("HubScore")
                         .HasColumnType("float");
+
+                    b.Property<double>("EffectiveNetworkDensity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
 
                     b.Property<int>("IsolatedAgentCount")
                         .HasColumnType("int");
@@ -439,11 +467,19 @@ namespace EmergentEngineering.Migrations
                     b.Property<int>("SimulationProjectId")
                         .HasColumnType("int");
 
+                    b.Property<int>("StrongLinkCount")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<int?>("StepsToEmergent")
                         .HasColumnType("int");
 
                     b.Property<int?>("StepsToLearning")
                         .HasColumnType("int");
+
+                    b.Property<int>("WeakLinkCount")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -524,6 +560,10 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<double>("CustomerOrientationLevel")
                         .HasColumnType("float");
+
+                    b.Property<double>("EffectiveTrustThreshold")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<int?>("ExperimentId")
                         .HasColumnType("int");
@@ -614,6 +654,10 @@ namespace EmergentEngineering.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("EffectiveTrustThreshold")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<double>("InformationSharingLevel")
                         .HasColumnType("float");

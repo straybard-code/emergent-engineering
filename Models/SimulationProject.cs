@@ -22,6 +22,7 @@ public sealed class SimulationProject
     public double LearningOrientationLevel { get; set; } = BoundaryParameterDefaults.Level;
     public double CustomerOrientationLevel { get; set; } = BoundaryParameterDefaults.Level;
     public double ShortTermResultPressureLevel { get; set; } = BoundaryParameterDefaults.Level;
+    public double EffectiveTrustThreshold { get; set; } = BoundaryParameterDefaults.EffectiveTrustThreshold;
     public string Status { get; set; } = SimulationStatus.Created;
     public string Phase { get; set; } = SimulationPhase.Forming;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

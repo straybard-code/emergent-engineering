@@ -55,6 +55,7 @@ public static class SimulationFactory
             LearningOrientationLevel = request.LearningOrientationLevel,
             CustomerOrientationLevel = request.CustomerOrientationLevel,
             ShortTermResultPressureLevel = request.ShortTermResultPressureLevel,
+            EffectiveTrustThreshold = request.EffectiveTrustThreshold,
             CurrentStep = 0,
             Status = SimulationStatus.Created,
             Phase = SimulationPhase.Forming,
@@ -100,6 +101,7 @@ public static class SimulationFactory
             LearningOrientationLevel = request.LearningOrientationLevel,
             CustomerOrientationLevel = request.CustomerOrientationLevel,
             ShortTermResultPressureLevel = request.ShortTermResultPressureLevel,
+            EffectiveTrustThreshold = request.EffectiveTrustThreshold,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -134,6 +136,7 @@ public static class SimulationFactory
             LearningOrientationLevel = scenario.LearningOrientationLevel,
             CustomerOrientationLevel = scenario.CustomerOrientationLevel,
             ShortTermResultPressureLevel = scenario.ShortTermResultPressureLevel,
+            EffectiveTrustThreshold = scenario.EffectiveTrustThreshold,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -159,6 +162,7 @@ public static class SimulationFactory
             LearningOrientationLevel = request.LearningOrientationLevel,
             CustomerOrientationLevel = request.CustomerOrientationLevel,
             ShortTermResultPressureLevel = request.ShortTermResultPressureLevel,
+            EffectiveTrustThreshold = request.EffectiveTrustThreshold,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
@@ -182,7 +186,8 @@ public static class SimulationFactory
             PsychologicalSafetyLevel = experiment.PsychologicalSafetyLevel,
             LearningOrientationLevel = experiment.LearningOrientationLevel,
             CustomerOrientationLevel = experiment.CustomerOrientationLevel,
-            ShortTermResultPressureLevel = experiment.ShortTermResultPressureLevel
+            ShortTermResultPressureLevel = experiment.ShortTermResultPressureLevel,
+            EffectiveTrustThreshold = experiment.EffectiveTrustThreshold
         });
 
         project.ExperimentId = experiment.Id;

@@ -34,6 +34,32 @@
     {
         return value.HasValue ? value.Value.ToString() : "--";
     }
+
+    private static string GetComponentBadgeClass(int? componentCount) => componentCount switch
+    {
+        >= 4 => "component-badge component-badge-danger",
+        >= 2 => "component-badge component-badge-warning",
+        _ => ""
+    };
+
+    private static string GetComponentBadgeText(int? componentCount) => componentCount switch
+    {
+        >= 4 => "ネットワーク分断",
+        >= 2 => "サイロ形成",
+        _ => ""
+    };
+
+    private static string GetThresholdSweepRowClass(int componentCount) => componentCount switch
+    {
+        >= 4 => "threshold-sweep-critical",
+        >= 2 => "threshold-sweep-warning",
+        _ => ""
+    };
+
+    private static string GetActionTimelineRowClass(bool phaseChanged)
+    {
+        return phaseChanged ? "phase-change-row" : "";
+    }
 }
 
 @if (Model.Project is null)
@@ -95,6 +121,314 @@
 </section>
 
 <section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">創発指紋</h2>
+            <p class="text-muted small mb-0">このRun全体の創発的振る舞いを特徴量ベクトルとして要約します。</p>
+        </div>
+    </div>
+    @if (Model.Fingerprint is null)
+    {
+        <p class="text-muted mb-0">まだ創発指紋を計算できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <tbody>
+                    <tr><th>FinalPhase</th><td>@FormatPhase(Model.Fingerprint.FinalPhase)</td><th>AverageTrust</th><td>@Model.Fingerprint.AverageTrust.ToString("0.00")</td></tr>
+                    <tr><th>EffectiveDensity</th><td>@Model.Fingerprint.EffectiveDensity.ToString("0.000")</td><th>PhaseTransitionCount</th><td>@Model.Fingerprint.PhaseTransitionCount</td></tr>
+                    <tr><th>PhaseStability</th><td>@Model.Fingerprint.PhaseStability.ToString("0.000")</td><th>ShareInfoRate</th><td>@Model.Fingerprint.ShareInfoRate.ToString("0.000")</td></tr>
+                    <tr><th>WorkAloneRate</th><td>@Model.Fingerprint.WorkAloneRate.ToString("0.000")</td><th>TriggerAgentDiversity</th><td>@Model.Fingerprint.TriggerAgentDiversity</td></tr>
+                    <tr><th>TopTriggerAgent</th><td>@Model.Fingerprint.TopTriggerAgentName (@Model.Fingerprint.TopTriggerAgentCount)</td><th>ThresholdFragilityScore</th><td>@Model.Fingerprint.ThresholdFragilityScore.ToString("0.000")</td></tr>
+                    <tr><th>分類</th><td>@Model.Fingerprint.ClassificationLabel</td><th></th><td></td></tr>
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4" id="phaseTransitionInspectorSection">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">相転移インスペクター</h2>
+            <p class="text-muted small mb-0">相が変化したステップを抽出し、その前後の行動比率・信頼度・ネットワーク指標の変化を表示します。</p>
+        </div>
+    </div>
+    @if (Model.PhaseTransitionInsights.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ相転移は検出されていません。</p>
+    }
+    else
+    {
+        <section class="summary-grid mb-3">
+            <div>
+                <h2 class="h6">相転移回数</h2>
+                <p>@Model.PhaseTransitionCount</p>
+            </div>
+            <div>
+                <h2 class="h6">最初の相転移Step</h2>
+                <p>@(Model.FirstPhaseTransitionStep?.ToString() ?? "-")</p>
+            </div>
+            <div>
+                <h2 class="h6">最後の相転移Step</h2>
+                <p>@(Model.LastPhaseTransitionStep?.ToString() ?? "-")</p>
+            </div>
+            <div>
+                <h2 class="h6">最も多い遷移パターン</h2>
+                <p>@Model.MostCommonPhaseTransitionPattern</p>
+            </div>
+        </section>
+
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ステップ</th>
+                        <th>遷移元</th>
+                        <th>遷移先</th>
+                        <th>主な行動変化</th>
+                        <th>主なネットワーク変化</th>
+                        <th>解釈</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var insight in Model.PhaseTransitionInsights)
+                {
+                    <tr class="phase-change-row">
+                        <td>@insight.StepNo</td>
+                        <td><span class="phase-pill">@insight.FromPhaseLabel</span></td>
+                        <td><span class="phase-pill">@insight.ToPhaseLabel</span></td>
+                        <td>@insight.MainActionChange</td>
+                        <td>@insight.MainNetworkChange</td>
+                        <td>
+                            <div>@insight.ExplainerText</div>
+                            <div class="small text-muted mt-1">
+                                情報共有 @Model.FormatSignedDelta(insight.ShareInfoDelta) /
+                                単独作業 @Model.FormatSignedDelta(insight.WorkAloneDelta) /
+                                支援 @Model.FormatSignedDelta(insight.SupportOtherDelta) /
+                                実効密度 @Model.FormatSignedDelta(insight.EffectiveDensityDelta) /
+                                平均信頼度 @Model.FormatSignedDelta(insight.AverageTrustDelta)
+                            </div>
+                            <details class="mt-2">
+                                <summary class="small text-primary">詳細を見る</summary>
+                                <div class="small mt-2"><strong>主な増加Action:</strong> @insight.MainIncreasingAction</div>
+                                <div class="small"><strong>主な減少Action:</strong> @insight.MainDecreasingAction</div>
+                                <div class="small mb-2"><strong>Window内で最も多かったAction:</strong> @insight.WindowDominantAction</div>
+
+                                <div class="fw-semibold small mt-2">Trigger Agent / 引き金エージェント</div>
+                                @if (insight.TriggerAgents.Count == 0)
+                                {
+                                    <div class="small text-muted mb-2">該当なし</div>
+                                }
+                                else
+                                {
+                                    <div class="table-responsive mb-2">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Agent</th>
+                                                    <th>TriggerScore</th>
+                                                    <th>主なAction</th>
+                                                    <th>TrustDeltaSum</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            @foreach (var agent in insight.TriggerAgents)
+                                            {
+                                                <tr>
+                                                    <td>@agent.AgentName</td>
+                                                    <td>@agent.TriggerScore.ToString("0.00")</td>
+                                                    <td>@agent.MainAction</td>
+                                                    <td>@Model.FormatSignedDelta(agent.TrustDeltaSum)</td>
+                                                </tr>
+                                            }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+
+                                <div class="fw-semibold small mt-2">Trigger Trust Changes / 信頼変化</div>
+                                @if (insight.TriggerTrustChanges.Count == 0)
+                                {
+                                    <div class="small text-muted mb-2">該当なし</div>
+                                }
+                                else
+                                {
+                                    <div class="table-responsive mb-2">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Step</th>
+                                                    <th>Agent</th>
+                                                    <th>Action</th>
+                                                    <th>Target</th>
+                                                    <th>ΔTrust</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            @foreach (var trust in insight.TriggerTrustChanges)
+                                            {
+                                                <tr>
+                                                    <td>@trust.StepNo</td>
+                                                    <td>@trust.AgentName</td>
+                                                    <td>@trust.Action</td>
+                                                    <td>@trust.TargetAgentName</td>
+                                                    <td>@Model.FormatSignedDelta(trust.TrustDelta)</td>
+                                                </tr>
+                                            }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+
+                                <div class="fw-semibold small mt-2">Trigger Edges / 強リンク変化</div>
+                                <div class="small"><strong>New Strong Links:</strong> @insight.NewStrongLinkTotalCount 件</div>
+                                @if (insight.NewStrongLinks.Count == 0)
+                                {
+                                    <div class="small text-muted mb-2">該当なし</div>
+                                }
+                                else
+                                {
+                                    <ul class="small mb-2">
+                                    @foreach (var edge in insight.NewStrongLinks)
+                                    {
+                                        <li>@edge.SourceAgentName &rarr; @edge.TargetAgentName : @edge.BeforeValue.ToString("0.00") &rarr; @edge.AfterValue.ToString("0.00")</li>
+                                    }
+                                    </ul>
+                                }
+
+                                <div class="small"><strong>Lost Strong Links:</strong> @insight.LostStrongLinkTotalCount 件</div>
+                                @if (insight.LostStrongLinks.Count == 0)
+                                {
+                                    <div class="small text-muted">該当なし</div>
+                                }
+                                else
+                                {
+                                    <ul class="small mb-0">
+                                    @foreach (var edge in insight.LostStrongLinks)
+                                    {
+                                        <li>@edge.SourceAgentName &rarr; @edge.TargetAgentName : @edge.BeforeValue.ToString("0.00") &rarr; @edge.AfterValue.ToString("0.00")</li>
+                                    }
+                                    </ul>
+                                }
+                            </details>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4" id="precursorSection">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">相予兆スコア</h2>
+            <p class="text-muted small mb-0">各Stepの前兆スコアです。次に起きやすい相候補を簡易に観測します。</p>
+        </div>
+    </div>
+    @if (Model.PrecursorPoints.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ前兆スコアを表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>現在相</th>
+                        <th>Silo Risk</th>
+                        <th>Stable Score</th>
+                        <th>Emergent Score</th>
+                        <th>Main Signal</th>
+                        <th>Interpretation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.PrecursorPoints)
+                {
+                    <tr>
+                        <td>@point.StepNo</td>
+                        <td><span class="phase-pill">@FormatPhase(point.Phase)</span></td>
+                        <td>@point.SiloRiskScore.ToString("0.000")</td>
+                        <td>@point.StableScore.ToString("0.000")</td>
+                        <td>@point.EmergentScore.ToString("0.000")</td>
+                        <td>@point.MainSignal</td>
+                        <td>@point.Interpretation</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <canvas id="precursorChart" height="120"></canvas>
+    }
+</section>
+
+<section class="log-section mb-4" id="actionTimelineSection">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">行動タイムライン</h2>
+            <p class="text-muted small mb-0">各ステップでエージェントが選択した行動の比率を表示します。Phase遷移前後の行動分布の変化を観察できます。</p>
+        </div>
+    </div>
+    @if (Model.ActionTimeline.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ行動タイムラインを表示できるログはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Phase</th>
+                        <th>情報共有</th>
+                        <th>相談</th>
+                        <th>アイデア提案</th>
+                        <th>批判</th>
+                        <th>単独作業</th>
+                        <th>支援</th>
+                        <th>待機</th>
+                        <th>Other</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.ActionTimeline)
+                {
+                    <tr class="@GetActionTimelineRowClass(point.PhaseChanged)">
+                        <td>@point.StepNo</td>
+                        <td>
+                            <span class="phase-pill">@FormatPhase(point.Phase)</span>
+                            @if (point.PhaseChanged)
+                            {
+                                <span class="small text-warning-emphasis ms-2">← 相変化</span>
+                            }
+                        </td>
+                        <td>@point.ShareInfoRate.ToString("0.00")</td>
+                        <td>@point.AskHelpRate.ToString("0.00")</td>
+                        <td>@point.ProposeIdeaRate.ToString("0.00")</td>
+                        <td>@point.CriticizeRate.ToString("0.00")</td>
+                        <td>@point.WorkAloneRate.ToString("0.00")</td>
+                        <td>@point.SupportOtherRate.ToString("0.00")</td>
+                        <td>@point.WaitRate.ToString("0.00")</td>
+                        <td>@point.OtherRate.ToString("0.00")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <canvas id="actionTimelineChart" height="120"></canvas>
+    }
+</section>
+
+<section class="log-section mb-4">
     <h2 class="h5 mb-3">境界条件パラメータ</h2>
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
@@ -106,6 +440,7 @@
                 <tr><th>学習志向</th><td>@Model.Project.LearningOrientationLevel.ToString("0.0")</td></tr>
                 <tr><th>顧客志向</th><td>@Model.Project.CustomerOrientationLevel.ToString("0.0")</td></tr>
                 <tr><th>短期成果圧力</th><td>@Model.Project.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
+                <tr><th>実効信頼閾値</th><td>@Model.Project.EffectiveTrustThreshold.ToString("0.00")</td></tr>
             </tbody>
         </table>
     </div>
@@ -125,19 +460,37 @@
                     <th>最終相</th>
                     <td>@FormatPhase(Model.Project.Metrics?.FinalPhase ?? Model.Project.Phase)</td>
                     <th>平均信頼度</th>
-                    <td>@FormatMetric(Model.Project.Metrics?.AverageTrust)</td>
+                    <td>@FormatMetric(Model.FinalNetworkMetrics?.AverageTrust)</td>
                 </tr>
                 <tr>
                     <th>ネットワーク密度</th>
-                    <td>@FormatMetric(Model.Project.Metrics?.NetworkDensity, "0.000")</td>
+                    <td>@FormatMetric(Model.FinalNetworkMetrics?.NetworkDensity, "0.000")</td>
+                    <th>実効ネットワーク密度</th>
+                    <td>@FormatMetric(Model.FinalNetworkMetrics?.EffectiveNetworkDensity, "0.000")</td>
+                </tr>
+                <tr>
+                    <th>Strong Links</th>
+                    <td>@FormatMetric(Model.FinalNetworkMetrics?.StrongLinkCount)</td>
+                    <th>Weak Links</th>
+                    <td>@FormatMetric(Model.FinalNetworkMetrics?.WeakLinkCount)</td>
+                </tr>
+                <tr>
+                    <th>Component Count</th>
+                    <td>
+                        @FormatMetric(Model.FinalNetworkMetrics?.ComponentCount)
+                        @if ((Model.FinalNetworkMetrics?.ComponentCount ?? 0) >= 2)
+                        {
+                            <span class="@GetComponentBadgeClass(Model.FinalNetworkMetrics?.ComponentCount)">@GetComponentBadgeText(Model.FinalNetworkMetrics?.ComponentCount)</span>
+                        }
+                    </td>
                     <th>孤立エージェント数</th>
-                    <td>@FormatMetric(Model.Project.Metrics?.IsolatedAgentCount)</td>
+                    <td>@FormatMetric(Model.FinalNetworkMetrics?.IsolatedCount)</td>
                 </tr>
                 <tr>
                     <th>ハブエージェント</th>
-                    <td>@(Model.Project.Metrics?.HubAgentName ?? "--")</td>
+                    <td>@(Model.FinalNetworkMetrics?.HubAgentName ?? "--")</td>
                     <th>ハブスコア</th>
-                    <td>@FormatMetric(Model.Project.Metrics?.HubScore)</td>
+                    <td>@FormatMetric(Model.FinalNetworkMetrics?.HubScore)</td>
                 </tr>
                 <tr>
                     <th>情報共有率</th>
@@ -168,7 +521,7 @@
     </div>
 </section>
 
-<section class="chart-panel mb-4">
+<section class="chart-panel mb-4" id="phaseTimelineSection">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="h5 mb-1">Phase Timeline</h2>
@@ -188,8 +541,53 @@
 <section class="log-section mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
+            <h2 class="h5 mb-1">実効信頼閾値スイープ</h2>
+            <p class="text-muted small mb-0">信頼閾値を変化させたとき、実効ネットワークがどのように分断されるかを確認します。</p>
+        </div>
+    </div>
+    @if (Model.ThresholdSweep.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ threshold sweep を表示できる trust 状態がありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>閾値</th>
+                        <th>実効ネットワーク密度</th>
+                        <th>Strong Links</th>
+                        <th>Weak Links</th>
+                        <th>連結成分数</th>
+                        <th>孤立エージェント数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.ThresholdSweep)
+                {
+                    <tr class="@GetThresholdSweepRowClass(point.ComponentCount)">
+                        <td>@point.Threshold.ToString("0.00")</td>
+                        <td>@point.EffectiveNetworkDensity.ToString("0.000")</td>
+                        <td>@point.StrongLinkCount</td>
+                        <td>@point.WeakLinkCount</td>
+                        <td>@point.ComponentCount</td>
+                        <td>@point.IsolatedCount</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <canvas id="thresholdSweepChart" height="120"></canvas>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
             <h2 class="h5 mb-1">信頼ネットワーク</h2>
-            <p class="text-muted small mb-0">各ステップ時点のエージェント間信頼度をネットワークとして表示します。</p>
+            <p class="text-muted small mb-0">各ステップ時点のエージェント間信頼度をネットワークとして表示します。実効信頼閾値以上の接続を強いリンクとして扱います。</p>
         </div>
     </div>
 
@@ -234,7 +632,13 @@
                 <div class="network-stat-label">孤立エージェント数</div>
                 <div class="network-stat-value" id="networkInfoIsolated">-</div>
             </div>
+            <div class="network-stat-card">
+                <div class="network-stat-label">連結成分数</div>
+                <div class="network-stat-value" id="networkInfoComponents">-</div>
+            </div>
         </div>
+
+        <p class="text-muted small mb-3">青線は strong link、薄い灰線は閾値未満の weak link です。</p>
 
         <div class="network-svg-shell">
             <svg id="trustNetworkSvg" viewBox="0 0 700 450" role="img" aria-label="Trust network visualization"></svg>
@@ -481,8 +885,15 @@
         (() => {
             const phasePoints = @Html.Raw(Model.GetPhaseHistoryJson());
             const networkSnapshots = @Html.Raw(Model.GetNetworkSnapshotsJson());
+            const thresholdSweep = @Html.Raw(Model.GetThresholdSweepJson());
+            const actionTimeline = @Html.Raw(Model.GetActionTimelineJson());
+            const precursorPoints = @Html.Raw(Model.GetPrecursorPointsJson());
 
             renderPhaseTimeline(phasePoints);
+            arrangeAnalysisSections();
+            renderPrecursorChart(precursorPoints);
+            renderActionTimeline(actionTimeline);
+            renderThresholdSweep(thresholdSweep);
             renderTrustNetwork(networkSnapshots);
 
             function renderPhaseTimeline(points) {
@@ -547,6 +958,139 @@
                         }
                     }
                 });
+            }
+
+            function renderActionTimeline(points) {
+                const canvas = document.getElementById('actionTimelineChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [
+                            buildRateDataset('情報共有', points.map(point => point.shareInfoRate), '#2563eb'),
+                            buildRateDataset('相談', points.map(point => point.askHelpRate), '#2f855a'),
+                            buildRateDataset('アイデア提案', points.map(point => point.proposeIdeaRate), '#d97706'),
+                            buildRateDataset('批判', points.map(point => point.criticizeRate), '#c2410c'),
+                            buildRateDataset('単独作業', points.map(point => point.workAloneRate), '#6b7280'),
+                            buildRateDataset('支援', points.map(point => point.supportOtherRate), '#0f766e'),
+                            buildRateDataset('待機', points.map(point => point.waitRate), '#7c3aed')
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Step'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                ticks: {
+                                    callback: value => Number(value).toFixed(2)
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    afterTitle: items => {
+                                        const point = points[items[0].dataIndex];
+                                        return `Phase: ${point.phase}`;
+                                    },
+                                    label: context => `${context.dataset.label}: ${Number(context.parsed.y).toFixed(2)}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderPrecursorChart(points) {
+                const canvas = document.getElementById('precursorChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [
+                            buildRateDataset('Silo Risk', points.map(point => point.siloRiskScore), '#b45309'),
+                            buildRateDataset('Stable', points.map(point => point.stableScore), '#2563eb'),
+                            buildRateDataset('Emergent', points.map(point => point.emergentScore), '#0f766e')
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Step'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                ticks: {
+                                    callback: value => Number(value).toFixed(2)
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    afterTitle: items => {
+                                        const point = points[items[0].dataIndex];
+                                        return `Main: ${point.mainSignal}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function arrangeAnalysisSections() {
+                const inspectorSection = document.getElementById('phaseTransitionInspectorSection');
+                const precursorSection = document.getElementById('precursorSection');
+                const actionSection = document.getElementById('actionTimelineSection');
+                const phaseSection = document.getElementById('phaseTimelineSection');
+                if (!actionSection || !phaseSection || !phaseSection.parentNode) {
+                    return;
+                }
+
+                if (inspectorSection) {
+                    phaseSection.parentNode.insertBefore(inspectorSection, phaseSection.nextElementSibling);
+                    if (precursorSection) {
+                        phaseSection.parentNode.insertBefore(precursorSection, inspectorSection.nextElementSibling);
+                        phaseSection.parentNode.insertBefore(actionSection, precursorSection.nextElementSibling);
+                        return;
+                    }
+
+                    phaseSection.parentNode.insertBefore(actionSection, inspectorSection.nextElementSibling);
+                    return;
+                }
+
+                phaseSection.parentNode.insertBefore(actionSection, phaseSection.nextElementSibling);
             }
 
             function renderTrustNetwork(snapshots) {
@@ -661,6 +1205,7 @@
                     setText('networkInfoAverageTrust', Number(snapshot.averageTrust ?? 0).toFixed(2));
                     setText('networkInfoHub', snapshot.hubAgentName && snapshot.hubAgentName !== '' ? snapshot.hubAgentName : '-');
                     setText('networkInfoIsolated', String(snapshot.isolatedCount ?? 0));
+                    setText('networkInfoComponents', String(snapshot.componentCount ?? 0));
 
                     svg.innerHTML = '';
 
@@ -687,7 +1232,7 @@
                         line.setAttribute('x2', String(target.x));
                         line.setAttribute('y2', String(target.y));
                         line.setAttribute('stroke', edge.strokeColor ?? '#8bb8ef');
-                        line.setAttribute('stroke-opacity', '0.75');
+                        line.setAttribute('stroke-opacity', edge.strokeColor === '#c3c9d4' ? '0.45' : '0.75');
                         line.setAttribute('stroke-width', String(edge.strokeWidth ?? 1));
                         line.setAttribute('stroke-linecap', 'round');
                         svg.appendChild(line);
@@ -739,6 +1284,84 @@
                         target.textContent = value;
                     }
                 }
+            }
+
+            function renderThresholdSweep(points) {
+                const canvas = document.getElementById('thresholdSweepChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => Number(point.threshold).toFixed(2)),
+                        datasets: [
+                            {
+                                label: '連結成分数',
+                                data: points.map(point => point.componentCount),
+                                borderColor: '#a86d14',
+                                backgroundColor: 'rgba(168, 109, 20, 0.12)',
+                                yAxisID: 'yComponents',
+                                tension: 0.2,
+                                fill: true,
+                                pointRadius: 4
+                            },
+                            {
+                                label: '実効ネットワーク密度',
+                                data: points.map(point => point.effectiveNetworkDensity),
+                                borderColor: '#1c4b8f',
+                                backgroundColor: 'rgba(28, 75, 143, 0.12)',
+                                yAxisID: 'yDensity',
+                                tension: 0.2,
+                                fill: false,
+                                pointRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '閾値'
+                                }
+                            },
+                            yComponents: {
+                                type: 'linear',
+                                position: 'left',
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            yDensity: {
+                                type: 'linear',
+                                position: 'right',
+                                beginAtZero: true,
+                                max: 1,
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function buildRateDataset(label, values, borderColor) {
+                return {
+                    label,
+                    data: values,
+                    borderColor,
+                    backgroundColor: borderColor + '22',
+                    tension: 0.2,
+                    fill: false,
+                    pointRadius: 3,
+                    pointHoverRadius: 4
+                };
             }
         })();
     </script>

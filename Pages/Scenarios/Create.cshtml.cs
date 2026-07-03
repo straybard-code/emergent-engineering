@@ -27,7 +27,8 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         PsychologicalSafetyLevel = BoundaryParameterDefaults.Level,
         LearningOrientationLevel = BoundaryParameterDefaults.Level,
         CustomerOrientationLevel = BoundaryParameterDefaults.Level,
-        ShortTermResultPressureLevel = BoundaryParameterDefaults.Level
+        ShortTermResultPressureLevel = BoundaryParameterDefaults.Level,
+        EffectiveTrustThreshold = BoundaryParameterDefaults.EffectiveTrustThreshold
     };
 
     public async Task<IActionResult> OnPostAsync()

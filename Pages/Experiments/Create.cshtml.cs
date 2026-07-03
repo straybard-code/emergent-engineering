@@ -31,7 +31,8 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         PsychologicalSafetyLevel = BoundaryParameterDefaults.Level,
         LearningOrientationLevel = BoundaryParameterDefaults.Level,
         CustomerOrientationLevel = BoundaryParameterDefaults.Level,
-        ShortTermResultPressureLevel = BoundaryParameterDefaults.Level
+        ShortTermResultPressureLevel = BoundaryParameterDefaults.Level,
+        EffectiveTrustThreshold = BoundaryParameterDefaults.EffectiveTrustThreshold
     };
 
     public List<ScenarioOption> Scenarios { get; private set; } = [];
@@ -99,7 +100,8 @@ public sealed class CreateModel(AppDbContext db) : PageModel
             PsychologicalSafetyLevel = scenario.PsychologicalSafetyLevel,
             LearningOrientationLevel = scenario.LearningOrientationLevel,
             CustomerOrientationLevel = scenario.CustomerOrientationLevel,
-            ShortTermResultPressureLevel = scenario.ShortTermResultPressureLevel
+            ShortTermResultPressureLevel = scenario.ShortTermResultPressureLevel,
+            EffectiveTrustThreshold = scenario.EffectiveTrustThreshold
         };
     }
 

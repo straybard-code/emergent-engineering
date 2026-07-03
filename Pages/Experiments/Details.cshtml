@@ -7,13 +7,13 @@
 @functions {
     private static string FormatPhase(string? phase) => phase switch
     {
-        "Forming" => "Forming",
-        "Learning" => "Learning",
-        "Stable" => "Stable",
-        "Emergent" => "Emergent",
-        "Silo" => "Silo",
-        "Chaos" => "Chaos",
-        "Collapse" => "Collapse",
+        "Forming" => "Forming（形成期）",
+        "Learning" => "Learning（学習期）",
+        "Stable" => "Stable（安定期）",
+        "Emergent" => "Emergent（創発期）",
+        "Silo" => "Silo（サイロ化）",
+        "Chaos" => "Chaos（混乱）",
+        "Collapse" => "Collapse（崩壊）",
         _ => phase ?? "-"
     };
 
@@ -26,6 +26,32 @@
         "Completed" => "Completed（完了）",
         _ => status ?? "-"
     };
+
+    private static string GetComponentBadgeClass(int componentCount) => componentCount switch
+    {
+        >= 4 => "component-badge component-badge-danger",
+        >= 2 => "component-badge component-badge-warning",
+        _ => ""
+    };
+
+    private static string GetComponentBadgeText(int componentCount) => componentCount switch
+    {
+        >= 4 => "ネットワーク分断",
+        >= 2 => "サイロ形成",
+        _ => ""
+    };
+
+    private static string GetThresholdSweepRowClass(double componentCount) => componentCount switch
+    {
+        >= 4 => "threshold-sweep-critical",
+        >= 2 => "threshold-sweep-warning",
+        _ => ""
+    };
+
+    private static string FormatSigned(double value, string format = "0.00")
+    {
+        return value.ToString($"+{format};-{format};0.00");
+    }
 }
 
 @if (Model.Experiment is null)
@@ -121,6 +147,7 @@
                 <tr><th>学習志向</th><td>@Model.Experiment.LearningOrientationLevel.ToString("0.0")</td></tr>
                 <tr><th>顧客志向</th><td>@Model.Experiment.CustomerOrientationLevel.ToString("0.0")</td></tr>
                 <tr><th>短期成果圧力</th><td>@Model.Experiment.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
+                <tr><th>実効信頼閾値</th><td>@Model.Experiment.EffectiveTrustThreshold.ToString("0.00")</td></tr>
             </tbody>
         </table>
     </div>
@@ -130,7 +157,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="h5 mb-1">Run Summary</h2>
-            <p class="text-muted small mb-0">Average Trust across runs: @Model.AverageTrustOverall.ToString("0.00")</p>
+            <p class="text-muted small mb-0">Average Trust: @Model.AverageTrustOverall.ToString("0.00") / Average Components: @Model.AverageComponentCountOverall.ToString("0.00")</p>
         </div>
     </div>
     @if (Model.Runs.Count == 0)
@@ -149,6 +176,9 @@
                         <th>Final Phase</th>
                         <th>Average Trust</th>
                         <th>Network Density</th>
+                        <th>Effective Density</th>
+                        <th>Strong Links</th>
+                        <th>Components</th>
                         <th>Isolated</th>
                         <th>Hub</th>
                         <th>ShareInfo Rate</th>
@@ -169,6 +199,15 @@
                         <td><span class="phase-pill">@FormatPhase(run.FinalPhase)</span></td>
                         <td>@run.AverageTrust.ToString("0.00")</td>
                         <td>@run.NetworkDensity.ToString("0.000")</td>
+                        <td>@run.EffectiveNetworkDensity.ToString("0.000")</td>
+                        <td>@run.StrongLinkCount</td>
+                        <td>
+                            @run.ComponentCount
+                            @if (run.ComponentCount >= 2)
+                            {
+                                <span class="@GetComponentBadgeClass(run.ComponentCount)">@GetComponentBadgeText(run.ComponentCount)</span>
+                            }
+                        </td>
                         <td>@run.IsolatedAgentCount</td>
                         <td>@run.HubAgentName (@run.HubScore.ToString("0.00"))</td>
                         <td>@run.ShareInfoRate.ToString("0.000")</td>
@@ -253,6 +292,84 @@
 </div>
 
 <section class="log-section mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Emergence Explainer 集計</h2>
+            <p class="text-muted small mb-0">Experiment配下の全Runから、引き金エージェント、主要Action変化、Strong Link変化を集計します。</p>
+        </div>
+    </div>
+    @if (Model.TriggerAgentRankings.Count > 0)
+    {
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Trigger Agent</th>
+                        <th>出現回数</th>
+                        <th>平均TriggerScore</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for (var index = 0; index < Model.TriggerAgentRankings.Count && index < 10; index++)
+                {
+                    var agent = Model.TriggerAgentRankings[index];
+                    <tr>
+                        <td>@agent.AgentName</td>
+                        <td>@agent.Count</td>
+                        <td>@agent.AverageTriggerScore.ToString("0.00")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    @if (Model.PhaseTransitionPatternSummaries.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ相転移パターンを集計できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>遷移元</th>
+                        <th>遷移先</th>
+                        <th>件数</th>
+                        <th>Avg 情報共有 Δ</th>
+                        <th>Avg アイデア提案 Δ</th>
+                        <th>Avg 単独作業 Δ</th>
+                        <th>Avg 支援 Δ</th>
+                        <th>Avg 実効密度 Δ</th>
+                        <th>Avg 平均信頼度 Δ</th>
+                        <th>Avg New Strong Links</th>
+                        <th>Avg Lost Strong Links</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.PhaseTransitionPatternSummaries)
+                {
+                    <tr>
+                        <td><span class="phase-pill">@FormatPhase(point.FromPhase)</span></td>
+                        <td><span class="phase-pill">@FormatPhase(point.ToPhase)</span></td>
+                        <td>@point.Count</td>
+                        <td>@FormatSigned(point.AverageShareInfoDelta)</td>
+                        <td>@FormatSigned(point.AverageProposeIdeaDelta)</td>
+                        <td>@FormatSigned(point.AverageWorkAloneDelta)</td>
+                        <td>@FormatSigned(point.AverageSupportOtherDelta)</td>
+                        <td>@FormatSigned(point.AverageEffectiveDensityDelta)</td>
+                        <td>@FormatSigned(point.AverageAverageTrustDelta)</td>
+                        <td>@point.AverageNewStrongLinkCount.ToString("0.00")</td>
+                        <td>@point.AverageLostStrongLinkCount.ToString("0.00")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mt-4">
     <h2 class="h5 mb-3">Average Trust Delta by Step</h2>
     @if (Model.TrustTrend.Count == 0)
     {
@@ -284,6 +401,86 @@
     }
 </section>
 
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (() => {
+            const actionTimeline = @Html.Raw(Model.GetActionTimelineSummaryJson());
+            renderExperimentActionTimeline(actionTimeline);
+
+            function renderExperimentActionTimeline(points) {
+                const canvas = document.getElementById('experimentActionTimelineChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [
+                            buildRateDataset('情報共有', points.map(point => point.shareInfoRate), '#2563eb'),
+                            buildRateDataset('相談', points.map(point => point.askHelpRate), '#2f855a'),
+                            buildRateDataset('アイデア提案', points.map(point => point.proposeIdeaRate), '#d97706'),
+                            buildRateDataset('批判', points.map(point => point.criticizeRate), '#c2410c'),
+                            buildRateDataset('単独作業', points.map(point => point.workAloneRate), '#6b7280'),
+                            buildRateDataset('支援', points.map(point => point.supportOtherRate), '#0f766e'),
+                            buildRateDataset('待機', points.map(point => point.waitRate), '#7c3aed')
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Step'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                ticks: {
+                                    callback: value => Number(value).toFixed(2)
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    afterTitle: items => {
+                                        const point = points[items[0].dataIndex];
+                                        return `Run数: ${point.runCount}`;
+                                    },
+                                    label: context => `${context.dataset.label}: ${Number(context.parsed.y).toFixed(2)}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function buildRateDataset(label, values, borderColor) {
+                return {
+                    label,
+                    data: values,
+                    borderColor,
+                    backgroundColor: borderColor + '22',
+                    tension: 0.2,
+                    fill: false,
+                    pointRadius: 3,
+                    pointHoverRadius: 4
+                };
+            }
+        })();
+    </script>
+}
+
 <section class="log-section mt-4">
     <h2 class="h5 mb-3">ステップ別 平均信頼度</h2>
     @if (Model.TrustStateTrend.Count == 0)
@@ -310,6 +507,155 @@
                         <td>@point.AverageTrust.ToString("+0.00;-0.00;0.00")</td>
                         <td>@point.AverageAbsTrust.ToString("0.00")</td>
                         <td>@point.Count</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">行動タイムライン集計</h2>
+            <p class="text-muted small mb-0">複数Runにおける各ステップの平均行動比率です。</p>
+        </div>
+    </div>
+    @if (Model.ActionTimelineSummary.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ行動タイムライン集計を表示できる Run はありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Run数</th>
+                        <th>情報共有</th>
+                        <th>相談</th>
+                        <th>アイデア提案</th>
+                        <th>批判</th>
+                        <th>単独作業</th>
+                        <th>支援</th>
+                        <th>待機</th>
+                        <th>Other</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.ActionTimelineSummary)
+                {
+                    <tr>
+                        <td>@point.StepNo</td>
+                        <td>@point.RunCount</td>
+                        <td>@point.ShareInfoRate.ToString("0.00")</td>
+                        <td>@point.AskHelpRate.ToString("0.00")</td>
+                        <td>@point.ProposeIdeaRate.ToString("0.00")</td>
+                        <td>@point.CriticizeRate.ToString("0.00")</td>
+                        <td>@point.WorkAloneRate.ToString("0.00")</td>
+                        <td>@point.SupportOtherRate.ToString("0.00")</td>
+                        <td>@point.WaitRate.ToString("0.00")</td>
+                        <td>@point.OtherRate.ToString("0.00")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <canvas id="experimentActionTimelineChart" height="120"></canvas>
+    }
+</section>
+
+<section class="log-section mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">相別 行動分布</h2>
+            <p class="text-muted small mb-0">Phaseごとに、どの行動が多いかを比較できます。</p>
+        </div>
+    </div>
+    @if (Model.PhaseActionDistribution.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ相別行動分布を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Phase</th>
+                        <th>情報共有</th>
+                        <th>相談</th>
+                        <th>アイデア提案</th>
+                        <th>批判</th>
+                        <th>単独作業</th>
+                        <th>支援</th>
+                        <th>待機</th>
+                        <th>Other</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.PhaseActionDistribution)
+                {
+                    <tr>
+                        <td><span class="phase-pill">@FormatPhase(point.Phase)</span></td>
+                        <td>@point.ShareInfoRate.ToString("0.00")</td>
+                        <td>@point.AskHelpRate.ToString("0.00")</td>
+                        <td>@point.ProposeIdeaRate.ToString("0.00")</td>
+                        <td>@point.CriticizeRate.ToString("0.00")</td>
+                        <td>@point.WorkAloneRate.ToString("0.00")</td>
+                        <td>@point.SupportOtherRate.ToString("0.00")</td>
+                        <td>@point.WaitRate.ToString("0.00")</td>
+                        <td>@point.OtherRate.ToString("0.00")</td>
+                        <td>@point.TotalCount</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">実効信頼閾値スイープ集計</h2>
+            <p class="text-muted small mb-0">各 Run の最終 trust 状態を使って、閾値ごとの実効ネットワーク構造を平均化します。</p>
+        </div>
+    </div>
+    @if (Model.ThresholdSweepSummary.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ threshold sweep 集計を表示できる Run はありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>閾値</th>
+                        <th>平均実効ネットワーク密度</th>
+                        <th>平均Strong Links</th>
+                        <th>平均Weak Links</th>
+                        <th>平均連結成分数</th>
+                        <th>平均孤立エージェント数</th>
+                        <th>Run数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.ThresholdSweepSummary)
+                {
+                    <tr class="@GetThresholdSweepRowClass(point.AverageComponentCount)">
+                        <td>@point.Threshold.ToString("0.00")</td>
+                        <td>@point.AverageEffectiveNetworkDensity.ToString("0.000")</td>
+                        <td>@point.AverageStrongLinkCount.ToString("0.000")</td>
+                        <td>@point.AverageWeakLinkCount.ToString("0.000")</td>
+                        <td>@point.AverageComponentCount.ToString("0.000")</td>
+                        <td>@point.AverageIsolatedCount.ToString("0.000")</td>
+                        <td>@point.RunCount</td>
                     </tr>
                 }
                 </tbody>

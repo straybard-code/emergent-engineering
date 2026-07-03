@@ -111,6 +111,40 @@ code {
   font-weight: 600;
 }
 
+.component-badge {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.component-badge-warning {
+  background: #fff7db;
+  color: #8a6200;
+  border-color: #f0df9c;
+}
+
+.component-badge-danger {
+  background: #fdecec;
+  color: #9b3333;
+  border-color: #f4d0d0;
+}
+
+.threshold-sweep-warning > * {
+  background: #fff9e8 !important;
+}
+
+.threshold-sweep-critical > * {
+  background: #fef0f0 !important;
+}
+
+.phase-change-row > * {
+  background: #fff9e8 !important;
+}
+
 .action-chip {
   display: inline-block;
   padding: 0.25rem 0.55rem;
@@ -231,7 +265,7 @@ code {
 .network-stats-grid {
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .network-stat-card {

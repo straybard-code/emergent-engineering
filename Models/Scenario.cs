@@ -59,6 +59,10 @@ public sealed class Scenario
 
     [Range(0, 1)]
     public double ShortTermResultPressureLevel { get; set; } = BoundaryParameterDefaults.Level;
+
+    [Range(0, 1)]
+    public double EffectiveTrustThreshold { get; set; } = BoundaryParameterDefaults.EffectiveTrustThreshold;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     public List<Experiment> Experiments { get; set; } = [];

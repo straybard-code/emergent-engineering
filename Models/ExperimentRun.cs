@@ -11,6 +11,10 @@ public sealed class ExperimentRun
     public string FinalPhase { get; set; } = SimulationPhase.Forming;
     public double AverageTrust { get; set; }
     public double NetworkDensity { get; set; }
+    public double EffectiveNetworkDensity { get; set; }
+    public int StrongLinkCount { get; set; }
+    public int WeakLinkCount { get; set; }
+    public int ComponentCount { get; set; }
     public int IsolatedAgentCount { get; set; }
     public string HubAgentName { get; set; } = "-";
     public double HubScore { get; set; }
