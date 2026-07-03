@@ -32,6 +32,14 @@ dotnet run
 
 Open the URL printed by ASP.NET Core. The SQL Server database is created automatically from EF Core migrations at startup.
 
+If you are using an existing SQL Server database that was created before the latest schema changes, apply the pending EF Core migrations first:
+
+```powershell
+dotnet ef database update
+```
+
+This is required for newly added columns such as the Knowledge / Shock / Rewiring fields on `Experiments`, `Scenarios`, and `SimulationProjects`. If this step is skipped, SQL Server will return errors such as `Invalid column name`.
+
 ## Database connection
 
 The app reads the SQL Server connection string from `ORG_SIM_CONNECTION_STRING`.
@@ -1295,6 +1303,7 @@ Migrations are included under `Migrations/`, including:
 - experiment metric columns on `ExperimentRuns`
 - experiment status on `Experiments`
 - explicit LLM provider/model columns on `Experiments` and `SimulationProjects`
+- knowledge / shock / rewiring columns on `Experiments`, `Scenarios`, and `SimulationProjects` via `20260703081000_AddKnowledgeAndShockParameters`
 
 For future schema changes:
 
@@ -1302,6 +1311,18 @@ For future schema changes:
 dotnet ef migrations add <MigrationName>
 dotnet ef database update
 ```
+
+If your local database already exists, `dotnet ef database update` is still required to apply pending columns before startup. This is especially relevant after the `20260703081000_AddKnowledgeAndShockParameters` migration, which adds:
+
+- `CrossDomainExposure`
+- `EnableExternalShock`
+- `ExternalShockLevel`
+- `KnowledgeDiversity`
+- `KnowledgeStock`
+- `RewiringSensitivity`
+- `ShockDescription`
+- `ShockStep`
+- `ShockType`
 
 ## Future extensions
 

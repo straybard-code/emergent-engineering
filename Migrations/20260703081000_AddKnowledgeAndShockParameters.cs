@@ -1,10 +1,13 @@
+using EmergentEngineering.Data;
 using EmergentEngineering.Models;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace EmergentEngineering.Migrations
 {
+    [DbContext(typeof(AppDbContext))]
     [Migration("20260703081000_AddKnowledgeAndShockParameters")]
     public partial class AddKnowledgeAndShockParameters : Migration
     {
