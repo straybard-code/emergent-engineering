@@ -143,11 +143,15 @@
                     <tr><th>WorkAloneRate</th><td>@Model.Fingerprint.WorkAloneRate.ToString("0.000")</td><th>TriggerAgentDiversity</th><td>@Model.Fingerprint.TriggerAgentDiversity</td></tr>
                     <tr><th>TopTriggerAgent</th><td>@Model.Fingerprint.TopTriggerAgentName (@Model.Fingerprint.TopTriggerAgentCount)</td><th>ThresholdFragilityScore</th><td>@Model.Fingerprint.ThresholdFragilityScore.ToString("0.000")</td></tr>
                     <tr><th>AverageKnowledgeStock</th><td>@Model.Fingerprint.AverageKnowledgeStock.ToString("0.000")</td><th>AverageKnowledgeDiversity</th><td>@Model.Fingerprint.AverageKnowledgeDiversity.ToString("0.000")</td></tr>
-                    <tr><th>AverageKnowledgeReconfigurationScore</th><td>@Model.Fingerprint.AverageKnowledgeReconfigurationScore.ToString("0.000")</td><th>MaxKnowledgeRewiringScore</th><td>@Model.Fingerprint.MaxKnowledgeRewiringScore.ToString("0.000")</td></tr>
-                    <tr><th>FinalKnowledgeRewiringScore</th><td>@Model.Fingerprint.FinalKnowledgeRewiringScore.ToString("0.000")</td><th>ChallengeResolutionScore</th><td>@Model.Fingerprint.AverageChallengeResolutionScore.ToString("0.000")</td></tr>
+                    <tr><th>AverageExplorationScore</th><td>@Model.Fingerprint.AverageExplorationScore.ToString("0.000")</td><th>AverageSerendipityScore</th><td>@Model.Fingerprint.AverageSerendipityScore.ToString("0.000")</td></tr>
+                    <tr><th>AverageKnowledgeRecombinationScore</th><td>@Model.Fingerprint.AverageKnowledgeRecombinationScore.ToString("0.000")</td><th>AverageKnowledgeReconfigurationScore</th><td>@Model.Fingerprint.AverageKnowledgeReconfigurationScore.ToString("0.000")</td></tr>
+                    <tr><th>SerendipityOccurredCount</th><td>@Model.Fingerprint.SerendipityOccurredCount</td><th>SerendipityRate</th><td>@Model.Fingerprint.SerendipityRate.ToString("0.000")</td></tr>
+                    <tr><th>SerendipityToEmergenceLinkCount</th><td>@Model.Fingerprint.SerendipityToEmergenceLinkCount</td><th>SerendipityToEmergenceRate</th><td>@Model.Fingerprint.SerendipityToEmergenceRate.ToString("0.000")</td></tr>
+                    <tr><th>MaxKnowledgeRewiringScore</th><td>@Model.Fingerprint.MaxKnowledgeRewiringScore.ToString("0.000")</td><th>FinalKnowledgeRewiringScore</th><td>@Model.Fingerprint.FinalKnowledgeRewiringScore.ToString("0.000")</td></tr>
+                    <tr><th>ChallengeResolutionScore</th><td>@Model.Fingerprint.AverageChallengeResolutionScore.ToString("0.000")</td><th>ChallengeResolved</th><td>@(Model.Fingerprint.ChallengeResolved ? "Yes" : "No")</td></tr>
                     <tr><th>ShockOccurred</th><td>@(Model.Fingerprint.ShockOccurred ? "Yes" : "No")</td><th>ShockType</th><td>@Model.Fingerprint.ShockType</td></tr>
                     <tr><th>KnowledgeDrivenType</th><td>@Model.Fingerprint.KnowledgeDrivenType</td><th>分類</th><td>@Model.Fingerprint.ClassificationLabel</td></tr>
-                    <tr><th>ChallengeResolved</th><td>@(Model.Fingerprint.ChallengeResolved ? "Yes" : "No")</td><th>ChallengeResolvedStep</th><td>@(Model.Fingerprint.ChallengeResolvedStep?.ToString() ?? "-")</td></tr>
+                    <tr><th>ChallengeResolvedStep</th><td>@(Model.Fingerprint.ChallengeResolvedStep?.ToString() ?? "-")</td><th></th><td></td></tr>
                     <tr><th>AdaptationDuration</th><td>@Model.Fingerprint.AdaptationDuration</td><th>AverageChallengeGap</th><td>@Model.Fingerprint.AverageChallengeGap.ToString("0.000")</td></tr>
                 </tbody>
             </table>
@@ -423,7 +427,7 @@
                             <span class="phase-pill">@FormatPhase(point.Phase)</span>
                             @if (point.PhaseChanged)
                             {
-                                <span class="small text-warning-emphasis ms-2">ↁE相変化</span>
+                                <span class="small text-warning-emphasis ms-2">← 相変化</span>
                             }
                         </td>
                         <td>@point.ShareInfoRate.ToString("0.00")</td>
@@ -462,7 +466,9 @@
                 <tbody>
                     <tr><th>KnowledgeStock</th><td>@Model.KnowledgeTimeline.Last().KnowledgeStock.ToString("0.000")</td><th>KnowledgeDiversity</th><td>@Model.KnowledgeTimeline.Last().KnowledgeDiversity.ToString("0.000")</td></tr>
                     <tr><th>ExternalShockLevel</th><td>@Model.KnowledgeTimeline.Last().ExternalShockLevel.ToString("0.000")</td><th>CrossDomainExposure</th><td>@Model.KnowledgeTimeline.Last().CrossDomainExposure.ToString("0.000")</td></tr>
-                    <tr><th>KnowledgeRewiringScore</th><td>@Model.KnowledgeTimeline.Last().KnowledgeRewiringScore.ToString("0.000")</td><th>KnowledgeReconfigurationScore</th><td>@Model.KnowledgeTimeline.Last().KnowledgeReconfigurationScore.ToString("0.000")</td></tr>
+                    <tr><th>ExplorationScore</th><td>@Model.KnowledgeTimeline.Last().ExplorationScore.ToString("0.000")</td><th>SerendipityScore</th><td>@Model.KnowledgeTimeline.Last().SerendipityScore.ToString("0.000")</td></tr>
+                    <tr><th>KnowledgeRecombinationScore</th><td>@Model.KnowledgeTimeline.Last().KnowledgeRecombinationScore.ToString("0.000")</td><th>KnowledgeRewiringScore</th><td>@Model.KnowledgeTimeline.Last().KnowledgeRewiringScore.ToString("0.000")</td></tr>
+                    <tr><th>KnowledgeReconfigurationScore</th><td>@Model.KnowledgeTimeline.Last().KnowledgeReconfigurationScore.ToString("0.000")</td><th>SerendipityOccurred</th><td>@(Model.KnowledgeTimeline.Last().SerendipityOccurred ? "Yes" : "No")</td></tr>
                     <tr><th>Shock</th><td>@(Model.KnowledgeTimeline.Last().ShockOccurred ? Model.KnowledgeTimeline.Last().ShockType : "-")</td><th>Challenge</th><td>@(Model.KnowledgeTimeline.Last().ChallengeOccurred || Model.KnowledgeTimeline.Last().ChallengeActive || Model.KnowledgeTimeline.Last().ChallengeResolved ? Model.KnowledgeTimeline.Last().ChallengeType : "-")</td></tr>
                     <tr><th>ChallengeResolutionScore</th><td>@Model.KnowledgeTimeline.Last().ChallengeResolutionScore.ToString("0.000")</td><th>ChallengeGap</th><td>@Model.KnowledgeTimeline.Last().ChallengeGap.ToString("0.000")</td></tr>
                 </tbody>
@@ -475,6 +481,9 @@
                         <th>Step</th>
                         <th>KnowledgeStock</th>
                         <th>KnowledgeDiversity</th>
+                        <th>Exploration</th>
+                        <th>Serendipity</th>
+                        <th>Recombination</th>
                         <th>RewiringScore</th>
                         <th>Reconfiguration</th>
                         <th>Shock</th>
@@ -489,6 +498,9 @@
                         <td>@point.StepNo</td>
                         <td>@point.KnowledgeStock.ToString("0.000")</td>
                         <td>@point.KnowledgeDiversity.ToString("0.000")</td>
+                        <td>@point.ExplorationScore.ToString("0.000")</td>
+                        <td>@point.SerendipityScore.ToString("0.000")</td>
+                        <td>@point.KnowledgeRecombinationScore.ToString("0.000")</td>
                         <td>@point.KnowledgeRewiringScore.ToString("0.000")</td>
                         <td>@point.KnowledgeReconfigurationScore.ToString("0.000")</td>
                         <td>@(point.ShockOccurred ? point.ShockType : "-")</td>
@@ -500,6 +512,54 @@
             </table>
         </div>
         <canvas id="knowledgeTimelineChart" height="120"></canvas>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">セレンディピティタイムライン</h2>
+            <p class="text-muted small mb-0">探索行動・異分野接触・知識多様性から、偶然有用な知識結合が生じたかを分析します。</p>
+        </div>
+    </div>
+    @if (Model.KnowledgeTimeline.Count == 0)
+    {
+        <p class="text-muted mb-0">まだセレンディピティ分析を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Phase</th>
+                        <th>ExplorationScore</th>
+                        <th>SerendipityScore</th>
+                        <th>SerendipityOccurred</th>
+                        <th>KnowledgeRecombinationScore</th>
+                        <th>KnowledgeReconfigurationScore</th>
+                        <th>ChallengeGap</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.KnowledgeTimeline)
+                {
+                    <tr>
+                        <td>@point.StepNo</td>
+                        <td><span class="phase-pill">@FormatPhase(point.Phase)</span></td>
+                        <td>@point.ExplorationScore.ToString("0.000")</td>
+                        <td>@point.SerendipityScore.ToString("0.000")</td>
+                        <td>@(point.SerendipityOccurred ? "Yes" : "No")</td>
+                        <td>@point.KnowledgeRecombinationScore.ToString("0.000")</td>
+                        <td>@point.KnowledgeReconfigurationScore.ToString("0.000")</td>
+                        <td>@point.ChallengeGap.ToString("0.000")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <canvas id="serendipityTimelineChart" height="120"></canvas>
     }
 </section>
 
@@ -533,6 +593,11 @@
                 <tr><th>必要知識多様性</th><td>@Model.Project.RequiredKnowledgeDiversity.ToString("0.00")</td></tr>
                 <tr><th>必要異分野接触度</th><td>@Model.Project.RequiredCrossDomainExposure.ToString("0.00")</td></tr>
                 <tr><th>必要再配線スコア</th><td>@Model.Project.RequiredRewiringScore.ToString("0.00")</td></tr>
+                <tr><th>探索傾向</th><td>@Model.Project.ExplorationTendency.ToString("0.00")</td></tr>
+                <tr><th>セレンディピティ感受性</th><td>@Model.Project.SerendipitySensitivity.ToString("0.00")</td></tr>
+                <tr><th>知識再結合率</th><td>@Model.Project.KnowledgeRecombinationRate.ToString("0.00")</td></tr>
+                <tr><th>セレンディピティ閾値</th><td>@Model.Project.SerendipityThreshold.ToString("0.00")</td></tr>
+                <tr><th>セレンディピティを有効化</th><td>@(Model.Project.EnableSerendipity ? "Yes" : "No")</td></tr>
             </tbody>
         </table>
     </div>
@@ -986,6 +1051,7 @@
             arrangeAnalysisSections();
             renderPrecursorChart(precursorPoints);
             renderKnowledgeTimeline(knowledgeTimeline);
+            renderSerendipityTimeline(knowledgeTimeline);
             renderActionTimeline(actionTimeline);
             renderThresholdSweep(thresholdSweep);
             renderTrustNetwork(networkSnapshots);
@@ -1180,6 +1246,49 @@
                             buildRateDataset('KnowledgeRewiringScore', points.map(point => point.knowledgeRewiringScore), '#b45309'),
                             buildRateDataset('KnowledgeReconfigurationScore', points.map(point => point.knowledgeReconfigurationScore), '#7c3aed'),
                             buildRateDataset('ExternalShockLevel', points.map(point => point.externalShockLevel), '#c2410c')
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Step'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                ticks: {
+                                    callback: value => Number(value).toFixed(2)
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderSerendipityTimeline(points) {
+                const canvas = document.getElementById('serendipityTimelineChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [
+                            buildRateDataset('ExplorationScore', points.map(point => point.explorationScore), '#2563eb'),
+                            buildRateDataset('SerendipityScore', points.map(point => point.serendipityScore), '#0f766e'),
+                            buildRateDataset('KnowledgeRecombinationScore', points.map(point => point.knowledgeRecombinationScore), '#d97706'),
+                            buildRateDataset('KnowledgeReconfigurationScore', points.map(point => point.knowledgeReconfigurationScore), '#7c3aed')
                         ]
                     },
                     options: {

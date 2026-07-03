@@ -55,6 +55,10 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("EnableSerendipity")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -66,6 +70,10 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("ExternalShockLevel")
                         .HasColumnType("float")
                         .HasDefaultValue(0.0);
+
+                    b.Property<double>("ExplorationTendency")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<double>("InformationSharingLevel")
                         .HasColumnType("float");
@@ -81,6 +89,10 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("KnowledgeStock")
                         .HasColumnType("float")
                         .HasDefaultValue(0.0);
+
+                    b.Property<double>("KnowledgeRecombinationRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<double>("LearningOrientationLevel")
                         .HasColumnType("float");
@@ -106,6 +118,14 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<double>("PsychologicalSafetyLevel")
                         .HasColumnType("float");
+
+                    b.Property<double>("SerendipitySensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
+
+                    b.Property<double>("SerendipityThreshold")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
 
                     b.Property<double>("RewiringSensitivity")
                         .HasColumnType("float")
@@ -647,6 +667,10 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("EnableSerendipity")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<double>("EffectiveTrustThreshold")
                         .HasColumnType("float")
                         .HasDefaultValue(0.3);
@@ -654,6 +678,10 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("ExternalShockLevel")
                         .HasColumnType("float")
                         .HasDefaultValue(0.0);
+
+                    b.Property<double>("ExplorationTendency")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<int?>("ExperimentId")
                         .HasColumnType("int");
@@ -675,6 +703,10 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("KnowledgeStock")
                         .HasColumnType("float")
                         .HasDefaultValue(0.0);
+
+                    b.Property<double>("KnowledgeRecombinationRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<double>("LearningOrientationLevel")
                         .HasColumnType("float");
@@ -705,6 +737,14 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<double>("PsychologicalSafetyLevel")
                         .HasColumnType("float");
+
+                    b.Property<double>("SerendipitySensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
+
+                    b.Property<double>("SerendipityThreshold")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
 
                     b.Property<double>("RewiringSensitivity")
                         .HasColumnType("float")
@@ -811,6 +851,10 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("EnableSerendipity")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -822,6 +866,10 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("ExternalShockLevel")
                         .HasColumnType("float")
                         .HasDefaultValue(0.0);
+
+                    b.Property<double>("ExplorationTendency")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<double>("InformationSharingLevel")
                         .HasColumnType("float");
@@ -837,6 +885,10 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("KnowledgeStock")
                         .HasColumnType("float")
                         .HasDefaultValue(0.0);
+
+                    b.Property<double>("KnowledgeRecombinationRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
 
                     b.Property<double>("LearningOrientationLevel")
                         .HasColumnType("float");
@@ -858,6 +910,14 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<double>("PsychologicalSafetyLevel")
                         .HasColumnType("float");
+
+                    b.Property<double>("SerendipitySensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.3);
+
+                    b.Property<double>("SerendipityThreshold")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.5);
 
                     b.Property<string>("Purpose")
                         .IsRequired()

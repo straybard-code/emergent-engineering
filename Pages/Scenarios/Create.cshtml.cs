@@ -45,7 +45,12 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         ChallengeDescription = ChallengeDefaults.ChallengeDescription,
         RequiredKnowledgeDiversity = ChallengeDefaults.RequiredKnowledgeDiversity,
         RequiredCrossDomainExposure = ChallengeDefaults.RequiredCrossDomainExposure,
-        RequiredRewiringScore = ChallengeDefaults.RequiredRewiringScore
+        RequiredRewiringScore = ChallengeDefaults.RequiredRewiringScore,
+        ExplorationTendency = SerendipityDefaults.ExplorationTendency,
+        SerendipitySensitivity = SerendipityDefaults.SerendipitySensitivity,
+        KnowledgeRecombinationRate = SerendipityDefaults.KnowledgeRecombinationRate,
+        SerendipityThreshold = SerendipityDefaults.SerendipityThreshold,
+        EnableSerendipity = SerendipityDefaults.EnableSerendipity
     };
 
     public async Task<IActionResult> OnPostAsync()

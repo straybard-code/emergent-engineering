@@ -166,6 +166,11 @@
                 <tr><th>必要知識多様性</th><td>@Model.Experiment.RequiredKnowledgeDiversity.ToString("0.00")</td></tr>
                 <tr><th>必要異分野接触度</th><td>@Model.Experiment.RequiredCrossDomainExposure.ToString("0.00")</td></tr>
                 <tr><th>必要再配線スコア</th><td>@Model.Experiment.RequiredRewiringScore.ToString("0.00")</td></tr>
+                <tr><th>探索傾向</th><td>@Model.Experiment.ExplorationTendency.ToString("0.00")</td></tr>
+                <tr><th>セレンディピティ感受性</th><td>@Model.Experiment.SerendipitySensitivity.ToString("0.00")</td></tr>
+                <tr><th>知識再結合率</th><td>@Model.Experiment.KnowledgeRecombinationRate.ToString("0.00")</td></tr>
+                <tr><th>セレンディピティ閾値</th><td>@Model.Experiment.SerendipityThreshold.ToString("0.00")</td></tr>
+                <tr><th>セレンディピティを有効化</th><td>@(Model.Experiment.EnableSerendipity ? "Yes" : "No")</td></tr>
             </tbody>
         </table>
     </div>
@@ -341,6 +346,84 @@
                         <td>@item.AdaptationDuration</td>
                         <td>@item.FinalKnowledgeRewiringScore.ToString("0.000")</td>
                         <td>@item.KnowledgeDrivenType</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">セレンディピティ分析</h2>
+            <p class="text-muted small mb-0">探索行動・異分野接触・知識多様性から、偶然有用な知識結合が生じたかを分析します。</p>
+        </div>
+    </div>
+    @if (Model.RunFingerprints.Count == 0)
+    {
+        <p class="text-muted mb-0">まだセレンディピティ分析を集計できる Run はありません。</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均ExplorationScore</div>
+                    <div class="fs-5">@Model.AverageExplorationScoreMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均SerendipityScore</div>
+                    <div class="fs-5">@Model.AverageSerendipityScoreMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均KnowledgeRecombinationScore</div>
+                    <div class="fs-5">@Model.AverageKnowledgeRecombinationScoreMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">Serendipity発生Run数 / 発生率</div>
+                    <div class="fs-5">@Model.SerendipityOccurredRunCount / @Model.SerendipityOccurredRate.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">Serendipity→Emergenceリンク数 / 率</div>
+                    <div class="fs-5">@Model.SerendipityToEmergenceLinkRunCount / @Model.SerendipityToEmergenceRate.ToString("0.000")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Run</th>
+                        <th>FinalPhase</th>
+                        <th>AverageExplorationScore</th>
+                        <th>AverageSerendipityScore</th>
+                        <th>SerendipityOccurredCount</th>
+                        <th>AverageKnowledgeRecombinationScore</th>
+                        <th>SerendipityToEmergenceLinkCount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.RunFingerprints.OrderBy(fingerprint => fingerprint.RunNo ?? int.MaxValue).ThenBy(fingerprint => fingerprint.SimulationProjectId))
+                {
+                    <tr>
+                        <td>@(item.RunNo?.ToString() ?? "-")</td>
+                        <td><span class="phase-pill">@FormatPhase(item.FinalPhase)</span></td>
+                        <td>@item.AverageExplorationScore.ToString("0.000")</td>
+                        <td>@item.AverageSerendipityScore.ToString("0.000")</td>
+                        <td>@item.SerendipityOccurredCount</td>
+                        <td>@item.AverageKnowledgeRecombinationScore.ToString("0.000")</td>
+                        <td>@item.SerendipityToEmergenceLinkCount</td>
                     </tr>
                 }
                 </tbody>

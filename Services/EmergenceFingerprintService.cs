@@ -33,6 +33,17 @@ public static class EmergenceFingerprintService
         var averageKnowledgeDiversity = knowledgeTimeline.Count == 0 ? project.KnowledgeDiversity : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeDiversity), 4);
         var averageKnowledgeRewiringScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeRewiringScore), 4);
         var averageKnowledgeReconfigurationScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeReconfigurationScore), 4);
+        var averageExplorationScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ExplorationScore), 4);
+        var averageSerendipityScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.SerendipityScore), 4);
+        var averageKnowledgeRecombinationScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeRecombinationScore), 4);
+        var serendipityOccurredCount = knowledgeTimeline.Count(item => item.SerendipityOccurred);
+        var serendipityRate = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(serendipityOccurredCount / (double)knowledgeTimeline.Count, 4);
+        var serendipityToEmergenceLinkCount = knowledgeTimeline.Count(item => item.SerendipityToEmergenceLink);
+        var serendipityToEmergenceRate = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(serendipityToEmergenceLinkCount / (double)knowledgeTimeline.Count, 4);
         var maxKnowledgeRewiringScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Max(item => item.KnowledgeRewiringScore), 4);
         var finalKnowledgeRewiringScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.OrderBy(item => item.StepNo).Last().KnowledgeRewiringScore, 4);
         var challengeOccurred = knowledgeTimeline.Any(item => item.ChallengeOccurred);
@@ -86,6 +97,13 @@ public static class EmergenceFingerprintService
             AverageKnowledgeStock = averageKnowledgeStock,
             AverageKnowledgeDiversity = averageKnowledgeDiversity,
             AverageKnowledgeRewiringScore = averageKnowledgeRewiringScore,
+            AverageExplorationScore = averageExplorationScore,
+            AverageSerendipityScore = averageSerendipityScore,
+            AverageKnowledgeRecombinationScore = averageKnowledgeRecombinationScore,
+            SerendipityOccurredCount = serendipityOccurredCount,
+            SerendipityRate = serendipityRate,
+            SerendipityToEmergenceLinkCount = serendipityToEmergenceLinkCount,
+            SerendipityToEmergenceRate = serendipityToEmergenceRate,
             AverageKnowledgeReconfigurationScore = averageKnowledgeReconfigurationScore,
             MaxKnowledgeRewiringScore = maxKnowledgeRewiringScore,
             FinalKnowledgeRewiringScore = finalKnowledgeRewiringScore,
@@ -107,6 +125,26 @@ public static class EmergenceFingerprintService
 
     public static string Classify(EmergenceFingerprint fingerprint)
     {
+        if (fingerprint.SerendipityToEmergenceRate >= 0.20
+            && string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return "セレンディピティ駆動創発型";
+        }
+
+        if (fingerprint.SerendipityRate >= 0.20
+            && (string.Equals(fingerprint.FinalPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(fingerprint.FinalPhase, SimulationPhase.Stable, StringComparison.OrdinalIgnoreCase))
+            && !string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return "セレンディピティ豊富な学習型";
+        }
+
+        if (fingerprint.AverageSerendipityScore < 0.25
+            && fingerprint.PhaseStability >= 0.70)
+        {
+            return "低セレンディピティ安定型";
+        }
+
         if (fingerprint.ChallengeResolved
             && string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase)
             && fingerprint.AverageKnowledgeReconfigurationScore >= 0.45)
@@ -159,6 +197,12 @@ public static class EmergenceFingerprintService
 
     public static string ClassifyKnowledgeDrivenType(EmergenceFingerprint fingerprint)
     {
+        if (fingerprint.SerendipityToEmergenceRate >= 0.20
+            && string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return "セレンディピティ駆動創発型";
+        }
+
         if (fingerprint.ShockOccurred
             && fingerprint.AverageKnowledgeReconfigurationScore >= 0.50)
         {
@@ -231,6 +275,13 @@ public sealed class EmergenceFingerprint
     public double AverageKnowledgeStock { get; init; }
     public double AverageKnowledgeDiversity { get; init; }
     public double AverageKnowledgeRewiringScore { get; init; }
+    public double AverageExplorationScore { get; init; }
+    public double AverageSerendipityScore { get; init; }
+    public double AverageKnowledgeRecombinationScore { get; init; }
+    public int SerendipityOccurredCount { get; init; }
+    public double SerendipityRate { get; init; }
+    public int SerendipityToEmergenceLinkCount { get; init; }
+    public double SerendipityToEmergenceRate { get; init; }
     public double AverageKnowledgeReconfigurationScore { get; init; }
     public double MaxKnowledgeRewiringScore { get; init; }
     public double FinalKnowledgeRewiringScore { get; init; }

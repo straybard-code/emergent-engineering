@@ -38,7 +38,7 @@ If you are using an existing SQL Server database that was created before the lat
 dotnet ef database update
 ```
 
-This is required for newly added columns such as the Knowledge / Shock / Rewiring fields and the Challenge Event fields on `Experiments`, `Scenarios`, and `SimulationProjects`. If this step is skipped, SQL Server will return errors such as `Invalid column name`.
+This is required for newly added columns such as the Knowledge / Shock / Rewiring fields, the Challenge Event fields, and the Serendipity fields on `Experiments`, `Scenarios`, and `SimulationProjects`. If this step is skipped, SQL Server will return errors such as `Invalid column name`.
 
 ## Database connection
 
@@ -356,16 +356,16 @@ This keeps the current MVP simple while still allowing cleanup of accidental dat
 
 ## Data model
 
-- `Scenarios`: reusable experiment-condition templates with LLM settings, numeric boundary parameters, and `EffectiveTrustThreshold`
+- `Scenarios`: reusable experiment-condition templates with LLM settings, numeric boundary parameters, knowledge / challenge / serendipity settings, and `EffectiveTrustThreshold`
 - `ParameterSweeps`: one-parameter sensitivity analysis batches built from a base scenario
 - `ParameterSweepRuns`: one result summary per tested parameter value
-- `SimulationProjects`: simulation definition, status, progress, current phase, optional experiment linkage, `LlmProvider`, `LlmModel`, copied boundary parameters, and `EffectiveTrustThreshold`
+- `SimulationProjects`: simulation definition, status, progress, current phase, optional experiment linkage, `LlmProvider`, `LlmModel`, copied boundary parameters, knowledge / challenge / serendipity settings, and `EffectiveTrustThreshold`
 - `Agents`: generated agents with role, memory, trust JSON, position, personality, and orientation
 - `SimulationSteps`: step-level state snapshots with persisted phase history
 - `AgentActions`: per-agent message, action, target, memory, raw LLM response, and trust delta log
 - `TrustSnapshots`: step-level trust network state for every directed agent pair
 - `SimulationMetrics`: final aggregate metrics for one simulation
-- `Experiments`: shared condition definitions for repeated runs, optional `ScenarioId`, `LlmProvider`, `LlmModel`, copied boundary parameters, and `EffectiveTrustThreshold`
+- `Experiments`: shared condition definitions for repeated runs, optional `ScenarioId`, `LlmProvider`, `LlmModel`, copied boundary parameters, knowledge / challenge / serendipity settings, and `EffectiveTrustThreshold`
 - `ExperimentRuns`: one completed run result per experiment execution
 
 ## Agent diversity
@@ -1087,6 +1087,7 @@ The modeling assumption is that emergence is not only visible at the final phase
 - `Action Distribution`
 - `Trust Network`
 - `Knowledge Stock / Knowledge Diversity`
+- `Exploration / Serendipity / Knowledge Recombination`
 - `Knowledge Rewiring`
 - `Phase`
 
@@ -1113,6 +1114,11 @@ The fingerprint includes:
 - threshold fragility
 - average knowledge stock
 - average knowledge diversity
+- average exploration score
+- average serendipity score
+- average knowledge recombination score
+- serendipity occurrence count and rate
+- serendipity-to-emergence link count and rate
 - max and final knowledge rewiring score
 - shock occurrence and shock type
 - cross-domain exposure
@@ -1189,6 +1195,75 @@ The goal is to observe whether the organization absorbs the shock, fragments und
 
 This models situations where unfamiliar expertise, outside methods, or non-native problem frames enter the organization and make recombination more likely.
 
+### Serendipity layer
+
+This MVP now separates `Serendipity` from `Emergence`.
+
+- `Emergence`: a phase transition where the system-level organizational state changes
+- `Serendipity`: a prior condition where exploration and cross-domain contact create an accidental but useful knowledge combination
+
+The current causal view is:
+
+- `Challenge`
+- `Exploration`
+- `Serendipity`
+- `Knowledge Recombination`
+- `Knowledge Reconfiguration`
+- `Network Change`
+- `Emergence`
+
+Serendipity is therefore not treated as emergence itself. It is a mediating layer that may or may not propagate into network change and phase change.
+
+### ExplorationScore
+
+`ExplorationScore` is a lightweight proxy for how much exploratory behavior occurred in one step.
+
+It combines:
+
+- `AskHelp`
+- `ShareInfo`
+- `ProposeIdea`
+- `SupportOther`
+- `CrossDomainExposure`
+- `ExplorationTendency`
+
+Challenge pressure can raise this score further.
+
+### SerendipityScore
+
+`SerendipityScore` estimates how likely it is that exploration, diversity, and cross-domain contact produce an accidental useful combination.
+
+It combines:
+
+- `ExplorationScore`
+- `KnowledgeDiversity`
+- `CrossDomainExposure`
+- positive `ChallengeGap`
+- `SerendipitySensitivity`
+
+If `SerendipityScore >= SerendipityThreshold`, the step is marked as `SerendipityOccurred`.
+
+### KnowledgeRecombinationScore
+
+`KnowledgeRecombinationScore` estimates how strongly the organization is recombining existing knowledge rather than only accumulating it.
+
+It combines:
+
+- `SerendipityScore`
+- `ProposeIdea`
+- constructive `Criticize`
+- `SupportOther`
+- `KnowledgeRecombinationRate`
+
+### SerendipityToEmergenceLink
+
+`SerendipityToEmergenceLink` is a rule-based flag used when serendipity occurred and was followed within a short window by `Adaptation` or `Emergent`.
+
+This is meant to support the research hypothesis:
+
+> Serendipity is not emergence itself.  
+> It is a prior condition that can mediate emergence through knowledge recombination and knowledge reconfiguration.
+
 ### Knowledge Rewiring
 
 `Knowledge Rewiring` is not treated as simple knowledge growth.
@@ -1204,6 +1279,12 @@ The app calculates a `KnowledgeRewiringScore` at each step and stores it in `Sim
 - `knowledgeDiversity`
 - `externalShockLevel`
 - `crossDomainExposure`
+- `explorationScore`
+- `serendipityScore`
+- `serendipityOccurred`
+- `knowledgeRecombinationScore`
+- `serendipityDrivenReconfiguration`
+- `serendipityToEmergenceLink`
 - `shockOccurred`
 - `shockType`
 
@@ -1304,6 +1385,7 @@ Migrations are included under `Migrations/`, including:
 - experiment status on `Experiments`
 - explicit LLM provider/model columns on `Experiments` and `SimulationProjects`
 - knowledge / shock / rewiring columns on `Experiments`, `Scenarios`, and `SimulationProjects` via `20260703081000_AddKnowledgeAndShockParameters`
+- serendipity-layer columns on `Experiments`, `Scenarios`, and `SimulationProjects` via `20260703083000_AddSerendipityParameters`
 
 For future schema changes:
 
@@ -1447,6 +1529,57 @@ Research hypothesis:
 
 > Emergence is not caused only by knowledge accumulation.  
 > It emerges when a challenge forces the organization to reconfigure its knowledge network.
+
+## Serendipity analysis
+
+The app now exposes serendipity-related parameters on:
+
+- `Scenario`
+- `Experiment`
+- `SimulationProject`
+
+Stored fields:
+
+- `ExplorationTendency`
+- `SerendipitySensitivity`
+- `KnowledgeRecombinationRate`
+- `SerendipityThreshold`
+- `EnableSerendipity`
+
+Migration:
+
+- `20260703083000_AddSerendipityParameters`
+
+Simulation detail pages show a serendipity timeline with:
+
+- `ExplorationScore`
+- `SerendipityScore`
+- `SerendipityOccurred`
+- `KnowledgeRecombinationScore`
+- `KnowledgeReconfigurationScore`
+- `ChallengeGap`
+
+Experiment detail pages aggregate:
+
+- average exploration score
+- average serendipity score
+- serendipity occurrence run count and rate
+- average knowledge recombination score
+- serendipity-to-emergence link count and rate
+
+### Research hypothesis
+
+The working hypothesis for this layer is:
+
+> Serendipity is not the cause of emergence by itself.  
+> It mediates emergence by increasing the chance of knowledge recombination, which can then propagate into knowledge reconfiguration and network-level phase change.
+
+Future extensions:
+
+- LLM-generated serendipity explanations
+- explicit knowledge-graph visualization
+- comparison against real research-and-development organization logs
+- calibration of trigger weights for exploration and recombination
 
 This implementation is still rule-based. It does not use an LLM to explain or solve the challenge.
 

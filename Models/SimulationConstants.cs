@@ -90,6 +90,15 @@ public static class ChallengeDefaults
     public const double RequiredRewiringScore = 0.3;
 }
 
+public static class SerendipityDefaults
+{
+    public const double ExplorationTendency = 0.3;
+    public const double SerendipitySensitivity = 0.3;
+    public const double KnowledgeRecombinationRate = 0.3;
+    public const double SerendipityThreshold = 0.5;
+    public const bool EnableSerendipity = true;
+}
+
 public static class ShockTypes
 {
     public const string None = "None";

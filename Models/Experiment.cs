@@ -40,6 +40,11 @@ public sealed class Experiment
     public double RequiredKnowledgeDiversity { get; set; } = ChallengeDefaults.RequiredKnowledgeDiversity;
     public double RequiredCrossDomainExposure { get; set; } = ChallengeDefaults.RequiredCrossDomainExposure;
     public double RequiredRewiringScore { get; set; } = ChallengeDefaults.RequiredRewiringScore;
+    public double ExplorationTendency { get; set; } = SerendipityDefaults.ExplorationTendency;
+    public double SerendipitySensitivity { get; set; } = SerendipityDefaults.SerendipitySensitivity;
+    public double KnowledgeRecombinationRate { get; set; } = SerendipityDefaults.KnowledgeRecombinationRate;
+    public double SerendipityThreshold { get; set; } = SerendipityDefaults.SerendipityThreshold;
+    public bool EnableSerendipity { get; set; } = SerendipityDefaults.EnableSerendipity;
     public string Status { get; set; } = ExperimentStatus.Created;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public List<ExperimentRun> Runs { get; set; } = [];

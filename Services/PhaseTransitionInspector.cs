@@ -64,7 +64,13 @@ public static class PhaseTransitionInspector
                 ChallengeResolved = after.ChallengeResolved,
                 ChallengeResolutionScore = after.ChallengeResolutionScore,
                 ChallengeGap = after.ChallengeGap,
-                KnowledgeReconfigurationScore = after.KnowledgeReconfigurationScore
+                KnowledgeReconfigurationScore = after.KnowledgeReconfigurationScore,
+                ExplorationScore = after.ExplorationScore,
+                SerendipityScore = after.SerendipityScore,
+                SerendipityOccurred = after.SerendipityOccurred,
+                KnowledgeRecombinationScore = after.KnowledgeRecombinationScore,
+                SerendipityDrivenReconfiguration = after.SerendipityDrivenReconfiguration,
+                SerendipityToEmergenceLink = after.SerendipityToEmergenceLink
             };
 
             insight.MainActionChange = DescribeMainActionChange(insight);
@@ -462,7 +468,21 @@ public static class PhaseTransitionInspector
             challengeText = $" Challenge resolution={insight.ChallengeResolutionScore:0.00}, gap={insight.ChallengeGap:+0.00;-0.00;0.00}, reconfiguration={insight.KnowledgeReconfigurationScore:0.00}.";
         }
 
-        return $"Step {insight.StepNo} \u3067 {insight.FromPhaseLabel}\u304B\u3089{insight.ToPhaseLabel}\u3078\u79FB\u884C\u3057\u307E\u3057\u305F\u3002\u76F4\u524D{windowSize}step\u3067\u306F{agentText}\u3001{insight.MainActionChange}\u3002{edgeText}\u3001{causeText}\u3002{challengeText}";
+        var serendipityText = "";
+        if (insight.SerendipityOccurred && string.Equals(insight.ToPhase, SimulationPhase.Adaptation, StringComparison.OrdinalIgnoreCase))
+        {
+            serendipityText = " セレンディピティスコアが閾値を超え、知識再結合が適応相への移行を促した可能性があります。";
+        }
+        else if (insight.SerendipityOccurred && insight.SerendipityToEmergenceLink)
+        {
+            serendipityText = " セレンディピティ発生後に強いリンクと知識再結合が重なり、創発相への遷移につながった可能性があります。";
+        }
+        else if (insight.SerendipityOccurred && insight.KnowledgeReconfigurationScore < 0.40)
+        {
+            serendipityText = " セレンディピティは発生しましたが、知識再構成が十分ではなく学習相に留まった可能性があります。";
+        }
+
+        return $"Step {insight.StepNo} \u3067 {insight.FromPhaseLabel}\u304B\u3089{insight.ToPhaseLabel}\u3078\u79FB\u884C\u3057\u307E\u3057\u305F\u3002\u76F4\u524D{windowSize}step\u3067\u306F{agentText}\u3001{insight.MainActionChange}\u3002{edgeText}\u3001{causeText}\u3002{challengeText}{serendipityText}";
     }
 
     private static string FormatEdge(TriggerEdgeChange edge)
@@ -514,6 +534,12 @@ public sealed class PhaseTransitionStepState
     public double ChallengeResolutionScore { get; init; }
     public double ChallengeGap { get; init; }
     public double KnowledgeReconfigurationScore { get; init; }
+    public double ExplorationScore { get; init; }
+    public double SerendipityScore { get; init; }
+    public bool SerendipityOccurred { get; init; }
+    public double KnowledgeRecombinationScore { get; init; }
+    public bool SerendipityDrivenReconfiguration { get; init; }
+    public bool SerendipityToEmergenceLink { get; init; }
 }
 
 public sealed class PhaseTransitionInsight
@@ -555,6 +581,12 @@ public sealed class PhaseTransitionInsight
     public double ChallengeResolutionScore { get; set; }
     public double ChallengeGap { get; set; }
     public double KnowledgeReconfigurationScore { get; set; }
+    public double ExplorationScore { get; set; }
+    public double SerendipityScore { get; set; }
+    public bool SerendipityOccurred { get; set; }
+    public double KnowledgeRecombinationScore { get; set; }
+    public bool SerendipityDrivenReconfiguration { get; set; }
+    public bool SerendipityToEmergenceLink { get; set; }
     public string MainIncreasingAction { get; set; } = "";
     public string MainDecreasingAction { get; set; } = "";
     public string WindowDominantAction { get; set; } = "";

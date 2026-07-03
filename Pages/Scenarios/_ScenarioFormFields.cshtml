@@ -93,14 +93,14 @@
         <div class="col-md-6 mb-3">
             <label asp-for="EffectiveTrustThreshold" class="form-label">実効信頼閾値</label>
             <input asp-for="EffectiveTrustThreshold" class="form-control" type="number" min="0" max="1" step="0.01" />
-            <div class="form-text">この値以上のTrustのみネットワーク接続として扱います。</div>
+            <div class="form-text">この値以上の Trust のみネットワーク接続として扱います。</div>
             <span asp-validation-for="EffectiveTrustThreshold" class="text-danger"></span>
         </div>
     </div>
 </section>
 
 <section class="log-section mb-4">
-    <h2 class="h5 mb-3">知識再配線パラメータ</h2>
+    <h2 class="h5 mb-3">知識・再配線パラメータ</h2>
     <div class="row">
         <div class="col-md-6 mb-3">
             <label asp-for="KnowledgeStock" class="form-label">知識蓄積</label>
@@ -141,7 +141,7 @@
             <span asp-validation-for="EnableExternalShock" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
-            <label asp-for="ShockStep" class="form-label">外部刺激Step</label>
+            <label asp-for="ShockStep" class="form-label">外部刺激 Step</label>
             <input asp-for="ShockStep" class="form-control" type="number" min="0" max="100" step="1" />
             <span asp-validation-for="ShockStep" class="text-danger"></span>
         </div>
@@ -164,22 +164,22 @@
 </section>
 
 <section class="log-section mb-4">
-    <h2 class="h5 mb-3">Challenge設定</h2>
+    <h2 class="h5 mb-3">Challenge 設定</h2>
     <div class="row">
         <div class="col-md-6 mb-3">
             <div class="form-check mt-4">
                 <input asp-for="EnableChallengeEvent" class="form-check-input" type="checkbox" />
-                <label asp-for="EnableChallengeEvent" class="form-check-label">Challengeを有効化</label>
+                <label asp-for="EnableChallengeEvent" class="form-check-label">Challenge を有効化</label>
             </div>
             <span asp-validation-for="EnableChallengeEvent" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
-            <label asp-for="ChallengeStep" class="form-label">Challenge発生Step</label>
+            <label asp-for="ChallengeStep" class="form-label">Challenge 発生 Step</label>
             <input asp-for="ChallengeStep" class="form-control" type="number" min="0" max="100" step="1" />
             <span asp-validation-for="ChallengeStep" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
-            <label asp-for="ChallengeType" class="form-label">Challengeタイプ</label>
+            <label asp-for="ChallengeType" class="form-label">Challenge タイプ</label>
             <select asp-for="ChallengeType" class="form-select">
                 @foreach (var challengeType in EmergentEngineering.Models.ChallengeTypes.All)
                 {
@@ -189,12 +189,12 @@
             <span asp-validation-for="ChallengeType" class="text-danger"></span>
         </div>
         <div class="col-md-6 mb-3">
-            <label asp-for="ChallengeLevel" class="form-label">Challengeレベル</label>
+            <label asp-for="ChallengeLevel" class="form-label">Challenge レベル</label>
             <input asp-for="ChallengeLevel" class="form-control" type="number" min="0" max="1" step="0.01" />
             <span asp-validation-for="ChallengeLevel" class="text-danger"></span>
         </div>
         <div class="col-md-12 mb-3">
-            <label asp-for="ChallengeDescription" class="form-label">Challenge説明</label>
+            <label asp-for="ChallengeDescription" class="form-label">Challenge 説明</label>
             <input asp-for="ChallengeDescription" class="form-control" />
             <span asp-validation-for="ChallengeDescription" class="text-danger"></span>
         </div>
@@ -216,6 +216,39 @@
     </div>
 </section>
 
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">セレンディピティ設定</h2>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="form-check mt-4">
+                <input asp-for="EnableSerendipity" class="form-check-input" type="checkbox" />
+                <label asp-for="EnableSerendipity" class="form-check-label">セレンディピティを有効化</label>
+            </div>
+            <span asp-validation-for="EnableSerendipity" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="SerendipityThreshold" class="form-label">セレンディピティ閾値</label>
+            <input asp-for="SerendipityThreshold" class="form-control" type="number" min="0" max="1" step="0.01" />
+            <span asp-validation-for="SerendipityThreshold" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="ExplorationTendency" class="form-label">探索傾向</label>
+            <input asp-for="ExplorationTendency" class="form-control" type="number" min="0" max="1" step="0.01" />
+            <span asp-validation-for="ExplorationTendency" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="SerendipitySensitivity" class="form-label">セレンディピティ感受性</label>
+            <input asp-for="SerendipitySensitivity" class="form-control" type="number" min="0" max="1" step="0.01" />
+            <span asp-validation-for="SerendipitySensitivity" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="KnowledgeRecombinationRate" class="form-label">知識再結合率</label>
+            <input asp-for="KnowledgeRecombinationRate" class="form-control" type="number" min="0" max="1" step="0.01" />
+            <span asp-validation-for="KnowledgeRecombinationRate" class="text-danger"></span>
+        </div>
+    </div>
+</section>
+
 <div class="row">
     <div class="col-md-4 mb-3">
         <label asp-for="AgentCount" class="form-label">Agent数</label>
@@ -228,7 +261,7 @@
         <span asp-validation-for="TotalSteps" class="text-danger"></span>
     </div>
     <div class="col-md-4 mb-3">
-        <label asp-for="RunCount" class="form-label">Run回数</label>
+        <label asp-for="RunCount" class="form-label">Run数</label>
         <input asp-for="RunCount" class="form-control" type="number" min="1" max="20" />
         <span asp-validation-for="RunCount" class="text-danger"></span>
     </div>

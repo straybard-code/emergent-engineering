@@ -543,7 +543,13 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
                 ChallengeResolved = knowledge?.ChallengeResolved ?? false,
                 ChallengeResolutionScore = knowledge?.ChallengeResolutionScore ?? 0,
                 ChallengeGap = knowledge?.ChallengeGap ?? 0,
-                KnowledgeReconfigurationScore = knowledge?.KnowledgeReconfigurationScore ?? 0
+                KnowledgeReconfigurationScore = knowledge?.KnowledgeReconfigurationScore ?? 0,
+                ExplorationScore = knowledge?.ExplorationScore ?? 0,
+                SerendipityScore = knowledge?.SerendipityScore ?? 0,
+                SerendipityOccurred = knowledge?.SerendipityOccurred ?? false,
+                KnowledgeRecombinationScore = knowledge?.KnowledgeRecombinationScore ?? 0,
+                SerendipityDrivenReconfiguration = knowledge?.SerendipityDrivenReconfiguration ?? false,
+                SerendipityToEmergenceLink = knowledge?.SerendipityToEmergenceLink ?? false
             });
         }
 

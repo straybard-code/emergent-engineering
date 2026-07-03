@@ -36,6 +36,12 @@ public sealed class SimulationRunner(
             .Where(action => action.SimulationProjectId == simulationId && action.StepNo == project.CurrentStep)
             .OrderBy(action => action.Id)
             .ToListAsync(cancellationToken);
+        var previousSteps = await db.SimulationSteps
+            .Where(step => step.SimulationProjectId == simulationId)
+            .OrderBy(step => step.StepNo)
+            .ToListAsync(cancellationToken);
+        var previousKnowledgeTimeline = KnowledgeAnalysisService.BuildTimeline(previousSteps);
+        var previousKnowledgePoint = previousKnowledgeTimeline.LastOrDefault();
         List<AgentAction> currentStepActions = [];
 
         foreach (var agent in project.Agents)
@@ -71,7 +77,7 @@ public sealed class SimulationRunner(
         }
 
         var stepActionSummary = ActionDistributionCalculator.Calculate(currentStepActions.Select(action => action.Action));
-        var knowledgePoint = ApplyKnowledgeShockAndChallenge(project, stepNo, stepActionSummary);
+        var knowledgePoint = ApplyKnowledgeShockAndChallenge(project, stepNo, stepActionSummary, previousKnowledgePoint);
 
         project.Phase = await DeterminePhaseAsync(
             project,
@@ -79,6 +85,9 @@ public sealed class SimulationRunner(
             currentStepActions,
             knowledgePoint,
             cancellationToken);
+        knowledgePoint.Phase = project.Phase;
+        knowledgePoint.SerendipityDrivenReconfiguration = DetermineSerendipityDrivenReconfiguration(previousKnowledgePoint, previousKnowledgeTimeline, knowledgePoint);
+        knowledgePoint.SerendipityToEmergenceLink = DetermineSerendipityToEmergenceLink(previousKnowledgeTimeline, knowledgePoint, project.Phase);
         project.CurrentStep = stepNo;
         if (project.CurrentStep >= project.TotalSteps)
         {
@@ -116,12 +125,23 @@ public sealed class SimulationRunner(
             project.RequiredKnowledgeDiversity,
             project.RequiredCrossDomainExposure,
             project.RequiredRewiringScore,
+            project.ExplorationTendency,
+            project.SerendipitySensitivity,
+            project.KnowledgeRecombinationRate,
+            project.SerendipityThreshold,
+            project.EnableSerendipity,
             knowledgeStock = knowledgePoint.KnowledgeStock,
             knowledgeDiversity = knowledgePoint.KnowledgeDiversity,
             externalShockLevel = knowledgePoint.ExternalShockLevel,
             crossDomainExposure = knowledgePoint.CrossDomainExposure,
             knowledgeRewiringScore = knowledgePoint.KnowledgeRewiringScore,
+            explorationScore = knowledgePoint.ExplorationScore,
+            serendipityScore = knowledgePoint.SerendipityScore,
+            serendipityOccurred = knowledgePoint.SerendipityOccurred,
+            knowledgeRecombinationScore = knowledgePoint.KnowledgeRecombinationScore,
             knowledgeReconfigurationScore = knowledgePoint.KnowledgeReconfigurationScore,
+            serendipityDrivenReconfiguration = knowledgePoint.SerendipityDrivenReconfiguration,
+            serendipityToEmergenceLink = knowledgePoint.SerendipityToEmergenceLink,
             shockOccurred = knowledgePoint.ShockOccurred,
             shockType = knowledgePoint.ShockType,
             challengeOccurred = knowledgePoint.ChallengeOccurred,
@@ -287,6 +307,13 @@ public sealed class SimulationRunner(
         - RequiredCrossDomainExposure: {{project.RequiredCrossDomainExposure.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
         - RequiredRewiringScore: {{project.RequiredRewiringScore.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
 
+        Serendipity settings:
+        - EnableSerendipity: {{project.EnableSerendipity}}
+        - ExplorationTendency: {{project.ExplorationTendency.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+        - SerendipitySensitivity: {{project.SerendipitySensitivity.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+        - KnowledgeRecombinationRate: {{project.KnowledgeRecombinationRate.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+        - SerendipityThreshold: {{project.SerendipityThreshold.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}}
+
         Other agents:
         {{roster}}
 
@@ -344,14 +371,17 @@ public sealed class SimulationRunner(
         var supportRatio = Ratio(AgentActionType.SupportOther);
         var diversity = counts.Values.Count(value => value > 0);
         var adaptationSignal = collaborationRatio + ideaRatio;
+        var networkMetrics = NetworkMetricsCalculator.CalculateFromAgents(project.Agents, project.EffectiveTrustThreshold);
 
         if (waitRatio >= 0.35 && ideaRatio <= 0.15 && shareRatio <= 0.15)
         {
             return SimulationPhase.Collapse;
         }
 
-        if (knowledgePoint.ChallengeActive
+        if ((knowledgePoint.ChallengeActive || knowledgePoint.ChallengeOccurred)
             && !knowledgePoint.ChallengeResolved
+            && knowledgePoint.ExplorationScore >= 0.40
+            && knowledgePoint.KnowledgeRecombinationScore >= 0.40
             && knowledgePoint.KnowledgeReconfigurationScore >= 0.40
             && adaptationSignal >= 0.55
             && soloRatio < 0.35
@@ -381,18 +411,26 @@ public sealed class SimulationRunner(
         if (((ideaRatio >= 0.20
                 && shareRatio >= 0.14
                 && supportRatio >= 0.10
+                && networkMetrics.EffectiveNetworkDensity >= 0.35
+                && knowledgePoint.SerendipityOccurred
+                && knowledgePoint.KnowledgeRecombinationScore >= 0.40
                 && knowledgePoint.KnowledgeRewiringScore >= 0.45))
             || (knowledgePoint.ChallengeResolved
                 && knowledgePoint.ChallengeResolutionScore >= 0.45
+                && knowledgePoint.SerendipityOccurred
+                && knowledgePoint.KnowledgeRecombinationScore >= 0.40
                 && knowledgePoint.KnowledgeReconfigurationScore >= 0.45
                 && ideaRatio >= 0.18
                 && shareRatio >= 0.12
-                && supportRatio >= 0.10))
+                && supportRatio >= 0.10
+                && networkMetrics.EffectiveNetworkDensity >= 0.35))
         {
             return SimulationPhase.Emergent;
         }
 
-        if (collaborationRatio >= 0.45 || knowledgePoint.KnowledgeStock >= 0.35)
+        if (collaborationRatio >= 0.45
+            || (knowledgePoint.KnowledgeStock >= 0.35
+                && (!knowledgePoint.SerendipityOccurred || knowledgePoint.KnowledgeRecombinationScore < 0.35)))
         {
             return SimulationPhase.Learning;
         }
@@ -685,7 +723,8 @@ public sealed class SimulationRunner(
     private static KnowledgeTimelinePoint ApplyKnowledgeShockAndChallenge(
         SimulationProject project,
         int stepNo,
-        ActionDistributionSummary actions)
+        ActionDistributionSummary actions,
+        KnowledgeTimelinePoint? previousKnowledgePoint)
     {
         var shockOccurred = project.EnableExternalShock
             && project.ShockStep > 0
@@ -734,24 +773,59 @@ public sealed class SimulationRunner(
             && project.ChallengeStep > 0
             && stepNo >= project.ChallengeStep
             && !string.Equals(project.ChallengeType, ChallengeTypes.None, StringComparison.OrdinalIgnoreCase);
+        var challengeRequirementAverage = challengeWindowStarted
+            ? KnowledgeAnalysisService.CalculateChallengeRequirementAverage(
+                project.RequiredKnowledgeDiversity,
+                project.RequiredCrossDomainExposure,
+                project.RequiredRewiringScore)
+            : 0;
+        var provisionalChallengeGap = challengeWindowStarted
+            ? Math.Round(Math.Max(
+                challengeRequirementAverage - (previousKnowledgePoint?.ChallengeResolutionScore ?? 0),
+                0), 4)
+            : 0;
+        var explorationScore = project.EnableSerendipity
+            ? SerendipityAnalysisService.CalculateExplorationScore(
+                actions,
+                project.CrossDomainExposure,
+                project.ExplorationTendency,
+                challengeWindowStarted,
+                effectiveChallengeLevel)
+            : 0;
+        var serendipityScore = project.EnableSerendipity
+            ? SerendipityAnalysisService.CalculateSerendipityScore(
+                explorationScore,
+                project.KnowledgeDiversity,
+                project.CrossDomainExposure,
+                provisionalChallengeGap,
+                project.SerendipitySensitivity,
+                challengeWindowStarted,
+                effectiveChallengeLevel,
+                project.PsychologicalSafetyLevel,
+                actions.WorkAloneRate)
+            : 0;
+        var serendipityOccurred = project.EnableSerendipity
+            && serendipityScore >= Math.Clamp(project.SerendipityThreshold, 0, 1);
+        var knowledgeRecombinationScore = project.EnableSerendipity
+            ? SerendipityAnalysisService.CalculateKnowledgeRecombinationScore(
+                serendipityScore,
+                actions,
+                project.PsychologicalSafetyLevel,
+                project.KnowledgeRecombinationRate)
+            : 0;
         var knowledgeReconfigurationScore = KnowledgeAnalysisService.CalculateKnowledgeReconfigurationScore(
             rewiringScore,
             effectiveChallengeLevel,
             actions,
             project.PsychologicalSafetyLevel,
-            challengeWindowStarted);
+            challengeWindowStarted,
+            knowledgeRecombinationScore);
         var challengeResolutionScore = challengeWindowStarted
             ? KnowledgeAnalysisService.CalculateChallengeResolutionScore(
                 project.KnowledgeDiversity,
                 project.CrossDomainExposure,
                 knowledgeReconfigurationScore,
                 actions)
-            : 0;
-        var challengeRequirementAverage = challengeWindowStarted
-            ? KnowledgeAnalysisService.CalculateChallengeRequirementAverage(
-                project.RequiredKnowledgeDiversity,
-                project.RequiredCrossDomainExposure,
-                project.RequiredRewiringScore)
             : 0;
         var challengeResolved = challengeWindowStarted && challengeResolutionScore >= challengeRequirementAverage;
         var challengeActive = challengeWindowStarted && !challengeResolved;
@@ -766,6 +840,10 @@ public sealed class SimulationRunner(
             project.CrossDomainExposure,
             rewiringScore,
             knowledgeReconfigurationScore,
+            explorationScore,
+            serendipityScore,
+            knowledgeRecombinationScore,
+            serendipityOccurred,
             challengeActive,
             challengeResolved,
             challengeGap,
@@ -779,7 +857,15 @@ public sealed class SimulationRunner(
             ExternalShockLevel = Math.Round(effectiveExternalShockLevel, 4),
             CrossDomainExposure = Math.Round(project.CrossDomainExposure, 4),
             KnowledgeRewiringScore = rewiringScore,
+            ExplorationScore = explorationScore,
+            SerendipityScore = serendipityScore,
+            SerendipityOccurred = serendipityOccurred,
+            KnowledgeRecombinationScore = knowledgeRecombinationScore,
             KnowledgeReconfigurationScore = knowledgeReconfigurationScore,
+            SerendipityDrivenReconfiguration = previousKnowledgePoint is not null
+                && serendipityOccurred
+                && knowledgeReconfigurationScore > previousKnowledgePoint.KnowledgeReconfigurationScore,
+            SerendipityToEmergenceLink = false,
             ShockOccurred = shockOccurred,
             ShockType = shockOccurred ? project.ShockType : ShockTypes.None,
             ChallengeOccurred = challengeOccurred,
@@ -790,6 +876,41 @@ public sealed class SimulationRunner(
             ChallengeGap = challengeGap,
             Interpretation = interpretation
         };
+    }
+
+    private static bool DetermineSerendipityDrivenReconfiguration(
+        KnowledgeTimelinePoint? previousKnowledgePoint,
+        IReadOnlyCollection<KnowledgeTimelinePoint> previousKnowledgeTimeline,
+        KnowledgeTimelinePoint currentKnowledgePoint)
+    {
+        var priorSerendipity = previousKnowledgeTimeline
+            .Where(point => point.StepNo >= currentKnowledgePoint.StepNo - 2)
+            .Any(point => point.SerendipityOccurred);
+        var previousReconfiguration = previousKnowledgePoint?.KnowledgeReconfigurationScore ?? 0;
+
+        return (currentKnowledgePoint.SerendipityOccurred || priorSerendipity)
+            && currentKnowledgePoint.KnowledgeReconfigurationScore > previousReconfiguration + 0.03;
+    }
+
+    private static bool DetermineSerendipityToEmergenceLink(
+        IReadOnlyCollection<KnowledgeTimelinePoint> previousKnowledgeTimeline,
+        KnowledgeTimelinePoint currentKnowledgePoint,
+        string currentPhase)
+    {
+        if (!string.Equals(currentPhase, SimulationPhase.Adaptation, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(currentPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (currentKnowledgePoint.SerendipityOccurred)
+        {
+            return true;
+        }
+
+        return previousKnowledgeTimeline
+            .Where(point => point.StepNo >= currentKnowledgePoint.StepNo - 3)
+            .Any(point => point.SerendipityOccurred);
     }
 
     private static void ApplyShockEffects(SimulationProject project)

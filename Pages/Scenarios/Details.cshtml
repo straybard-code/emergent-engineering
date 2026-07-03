@@ -45,7 +45,7 @@
         <p>@Model.Scenario.TotalSteps</p>
     </div>
     <div>
-        <h2 class="h6">Run回数</h2>
+        <h2 class="h6">Run数</h2>
         <p>@Model.Scenario.RunCount</p>
     </div>
     <div>
@@ -67,13 +67,13 @@
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
             <tbody>
-                <tr><th>情報共有</th><td>@Model.Scenario.InformationSharingLevel.ToString("0.0")</td></tr>
-                <tr><th>協調性</th><td>@Model.Scenario.CooperationLevel.ToString("0.0")</td></tr>
-                <tr><th>競争性</th><td>@Model.Scenario.CompetitionLevel.ToString("0.0")</td></tr>
-                <tr><th>心理的安全性</th><td>@Model.Scenario.PsychologicalSafetyLevel.ToString("0.0")</td></tr>
-                <tr><th>学習志向</th><td>@Model.Scenario.LearningOrientationLevel.ToString("0.0")</td></tr>
-                <tr><th>顧客志向</th><td>@Model.Scenario.CustomerOrientationLevel.ToString("0.0")</td></tr>
-                <tr><th>短期成果圧力</th><td>@Model.Scenario.ShortTermResultPressureLevel.ToString("0.0")</td></tr>
+                <tr><th>情報共有</th><td>@Model.Scenario.InformationSharingLevel.ToString("0.00")</td></tr>
+                <tr><th>協調性</th><td>@Model.Scenario.CooperationLevel.ToString("0.00")</td></tr>
+                <tr><th>競争性</th><td>@Model.Scenario.CompetitionLevel.ToString("0.00")</td></tr>
+                <tr><th>心理的安全性</th><td>@Model.Scenario.PsychologicalSafetyLevel.ToString("0.00")</td></tr>
+                <tr><th>学習志向</th><td>@Model.Scenario.LearningOrientationLevel.ToString("0.00")</td></tr>
+                <tr><th>顧客志向</th><td>@Model.Scenario.CustomerOrientationLevel.ToString("0.00")</td></tr>
+                <tr><th>短期成果圧力</th><td>@Model.Scenario.ShortTermResultPressureLevel.ToString("0.00")</td></tr>
                 <tr><th>実効信頼閾値</th><td>@Model.Scenario.EffectiveTrustThreshold.ToString("0.00")</td></tr>
                 <tr><th>知識蓄積</th><td>@Model.Scenario.KnowledgeStock.ToString("0.00")</td></tr>
                 <tr><th>知識多様性</th><td>@Model.Scenario.KnowledgeDiversity.ToString("0.00")</td></tr>
@@ -81,19 +81,23 @@
                 <tr><th>異分野接触度</th><td>@Model.Scenario.CrossDomainExposure.ToString("0.00")</td></tr>
                 <tr><th>再配線感度</th><td>@Model.Scenario.RewiringSensitivity.ToString("0.00")</td></tr>
                 <tr><th>外部刺激を有効化</th><td>@(Model.Scenario.EnableExternalShock ? "Yes" : "No")</td></tr>
-                <tr><th>外部刺激Step</th><td>@Model.Scenario.ShockStep</td></tr>
+                <tr><th>外部刺激 Step</th><td>@Model.Scenario.ShockStep</td></tr>
                 <tr><th>外部刺激タイプ</th><td>@Model.Scenario.ShockType</td></tr>
                 <tr><th>外部刺激説明</th><td>@(string.IsNullOrWhiteSpace(Model.Scenario.ShockDescription) ? "-" : Model.Scenario.ShockDescription)</td></tr>
-                <tr><th>Challengeを有効化</th><td>@(Model.Scenario.EnableChallengeEvent ? "Yes" : "No")</td></tr>
-                <tr><th>Challenge発生Step</th><td>@Model.Scenario.ChallengeStep</td></tr>
-                <tr><th>Challengeタイプ</th><td>@Model.Scenario.ChallengeType</td></tr>
-                <tr><th>Challengeレベル</th><td>@Model.Scenario.ChallengeLevel.ToString("0.00")</td></tr>
-                <tr><th>Challenge説明</th><td>@(string.IsNullOrWhiteSpace(Model.Scenario.ChallengeDescription) ? "-" : Model.Scenario.ChallengeDescription)</td></tr>
+                <tr><th>Challenge を有効化</th><td>@(Model.Scenario.EnableChallengeEvent ? "Yes" : "No")</td></tr>
+                <tr><th>Challenge 発生 Step</th><td>@Model.Scenario.ChallengeStep</td></tr>
+                <tr><th>Challenge タイプ</th><td>@Model.Scenario.ChallengeType</td></tr>
+                <tr><th>Challenge レベル</th><td>@Model.Scenario.ChallengeLevel.ToString("0.00")</td></tr>
+                <tr><th>Challenge 説明</th><td>@(string.IsNullOrWhiteSpace(Model.Scenario.ChallengeDescription) ? "-" : Model.Scenario.ChallengeDescription)</td></tr>
                 <tr><th>必要知識多様性</th><td>@Model.Scenario.RequiredKnowledgeDiversity.ToString("0.00")</td></tr>
                 <tr><th>必要異分野接触度</th><td>@Model.Scenario.RequiredCrossDomainExposure.ToString("0.00")</td></tr>
                 <tr><th>必要再配線スコア</th><td>@Model.Scenario.RequiredRewiringScore.ToString("0.00")</td></tr>
+                <tr><th>探索傾向</th><td>@Model.Scenario.ExplorationTendency.ToString("0.00")</td></tr>
+                <tr><th>セレンディピティ感受性</th><td>@Model.Scenario.SerendipitySensitivity.ToString("0.00")</td></tr>
+                <tr><th>知識再結合率</th><td>@Model.Scenario.KnowledgeRecombinationRate.ToString("0.00")</td></tr>
+                <tr><th>セレンディピティ閾値</th><td>@Model.Scenario.SerendipityThreshold.ToString("0.00")</td></tr>
+                <tr><th>セレンディピティを有効化</th><td>@(Model.Scenario.EnableSerendipity ? "Yes" : "No")</td></tr>
             </tbody>
         </table>
     </div>
 </section>
-

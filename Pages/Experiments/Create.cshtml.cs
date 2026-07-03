@@ -49,7 +49,12 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         ChallengeDescription = ChallengeDefaults.ChallengeDescription,
         RequiredKnowledgeDiversity = ChallengeDefaults.RequiredKnowledgeDiversity,
         RequiredCrossDomainExposure = ChallengeDefaults.RequiredCrossDomainExposure,
-        RequiredRewiringScore = ChallengeDefaults.RequiredRewiringScore
+        RequiredRewiringScore = ChallengeDefaults.RequiredRewiringScore,
+        ExplorationTendency = SerendipityDefaults.ExplorationTendency,
+        SerendipitySensitivity = SerendipityDefaults.SerendipitySensitivity,
+        KnowledgeRecombinationRate = SerendipityDefaults.KnowledgeRecombinationRate,
+        SerendipityThreshold = SerendipityDefaults.SerendipityThreshold,
+        EnableSerendipity = SerendipityDefaults.EnableSerendipity
     };
 
     public List<ScenarioOption> Scenarios { get; private set; } = [];
@@ -135,7 +140,12 @@ public sealed class CreateModel(AppDbContext db) : PageModel
             ChallengeDescription = scenario.ChallengeDescription,
             RequiredKnowledgeDiversity = scenario.RequiredKnowledgeDiversity,
             RequiredCrossDomainExposure = scenario.RequiredCrossDomainExposure,
-            RequiredRewiringScore = scenario.RequiredRewiringScore
+            RequiredRewiringScore = scenario.RequiredRewiringScore,
+            ExplorationTendency = scenario.ExplorationTendency,
+            SerendipitySensitivity = scenario.SerendipitySensitivity,
+            KnowledgeRecombinationRate = scenario.KnowledgeRecombinationRate,
+            SerendipityThreshold = scenario.SerendipityThreshold,
+            EnableSerendipity = scenario.EnableSerendipity
         };
     }
 

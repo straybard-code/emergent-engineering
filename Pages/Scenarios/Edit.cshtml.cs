@@ -71,6 +71,11 @@ public sealed class EditModel(AppDbContext db) : PageModel
         scenario.RequiredKnowledgeDiversity = Input.RequiredKnowledgeDiversity;
         scenario.RequiredCrossDomainExposure = Input.RequiredCrossDomainExposure;
         scenario.RequiredRewiringScore = Input.RequiredRewiringScore;
+        scenario.ExplorationTendency = Input.ExplorationTendency;
+        scenario.SerendipitySensitivity = Input.SerendipitySensitivity;
+        scenario.KnowledgeRecombinationRate = Input.KnowledgeRecombinationRate;
+        scenario.SerendipityThreshold = Input.SerendipityThreshold;
+        scenario.EnableSerendipity = Input.EnableSerendipity;
         scenario.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();

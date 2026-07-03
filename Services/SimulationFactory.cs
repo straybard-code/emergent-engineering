@@ -73,6 +73,11 @@ public static class SimulationFactory
             RequiredKnowledgeDiversity = request.RequiredKnowledgeDiversity,
             RequiredCrossDomainExposure = request.RequiredCrossDomainExposure,
             RequiredRewiringScore = request.RequiredRewiringScore,
+            ExplorationTendency = request.ExplorationTendency,
+            SerendipitySensitivity = request.SerendipitySensitivity,
+            KnowledgeRecombinationRate = request.KnowledgeRecombinationRate,
+            SerendipityThreshold = request.SerendipityThreshold,
+            EnableSerendipity = request.EnableSerendipity,
             CurrentStep = 0,
             Status = SimulationStatus.Created,
             Phase = SimulationPhase.Forming,
@@ -136,6 +141,11 @@ public static class SimulationFactory
             RequiredKnowledgeDiversity = request.RequiredKnowledgeDiversity,
             RequiredCrossDomainExposure = request.RequiredCrossDomainExposure,
             RequiredRewiringScore = request.RequiredRewiringScore,
+            ExplorationTendency = request.ExplorationTendency,
+            SerendipitySensitivity = request.SerendipitySensitivity,
+            KnowledgeRecombinationRate = request.KnowledgeRecombinationRate,
+            SerendipityThreshold = request.SerendipityThreshold,
+            EnableSerendipity = request.EnableSerendipity,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -188,6 +198,11 @@ public static class SimulationFactory
             RequiredKnowledgeDiversity = scenario.RequiredKnowledgeDiversity,
             RequiredCrossDomainExposure = scenario.RequiredCrossDomainExposure,
             RequiredRewiringScore = scenario.RequiredRewiringScore,
+            ExplorationTendency = scenario.ExplorationTendency,
+            SerendipitySensitivity = scenario.SerendipitySensitivity,
+            KnowledgeRecombinationRate = scenario.KnowledgeRecombinationRate,
+            SerendipityThreshold = scenario.SerendipityThreshold,
+            EnableSerendipity = scenario.EnableSerendipity,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -231,6 +246,11 @@ public static class SimulationFactory
             RequiredKnowledgeDiversity = request.RequiredKnowledgeDiversity,
             RequiredCrossDomainExposure = request.RequiredCrossDomainExposure,
             RequiredRewiringScore = request.RequiredRewiringScore,
+            ExplorationTendency = request.ExplorationTendency,
+            SerendipitySensitivity = request.SerendipitySensitivity,
+            KnowledgeRecombinationRate = request.KnowledgeRecombinationRate,
+            SerendipityThreshold = request.SerendipityThreshold,
+            EnableSerendipity = request.EnableSerendipity,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
@@ -272,7 +292,12 @@ public static class SimulationFactory
             ChallengeDescription = experiment.ChallengeDescription,
             RequiredKnowledgeDiversity = experiment.RequiredKnowledgeDiversity,
             RequiredCrossDomainExposure = experiment.RequiredCrossDomainExposure,
-            RequiredRewiringScore = experiment.RequiredRewiringScore
+            RequiredRewiringScore = experiment.RequiredRewiringScore,
+            ExplorationTendency = experiment.ExplorationTendency,
+            SerendipitySensitivity = experiment.SerendipitySensitivity,
+            KnowledgeRecombinationRate = experiment.KnowledgeRecombinationRate,
+            SerendipityThreshold = experiment.SerendipityThreshold,
+            EnableSerendipity = experiment.EnableSerendipity
         });
 
         project.ExperimentId = experiment.Id;

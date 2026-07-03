@@ -53,7 +53,9 @@ public static class PrecursorAnalysisService
                 + (state.NewStrongLinkRate * 0.15)
                 + (state.EffectiveNetworkDensity * 0.10)
                 + (state.ChallengeResolutionScore * 0.10)
-                + (state.KnowledgeReconfigurationScore * 0.10));
+                + (state.KnowledgeReconfigurationScore * 0.10)
+                + (state.SerendipityScore * 0.10)
+                + (state.KnowledgeRecombinationScore * 0.10));
 
             var forecastPhase = DetermineForecastPhase(siloRiskScore, stableScore, emergentScore);
             var mainSignal = DetermineMainSignal(state, siloRiskScore, stableScore, emergentScore);
@@ -67,6 +69,9 @@ public static class PrecursorAnalysisService
                 SiloRiskScore = Math.Round(siloRiskScore, 4),
                 StableScore = Math.Round(stableScore, 4),
                 EmergentScore = Math.Round(emergentScore, 4),
+                ExplorationScore = Math.Round(state.ExplorationScore, 4),
+                SerendipityScore = Math.Round(state.SerendipityScore, 4),
+                KnowledgeRecombinationScore = Math.Round(state.KnowledgeRecombinationScore, 4),
                 MainSignal = mainSignal,
                 Interpretation = interpretation
             });
@@ -113,6 +118,16 @@ public static class PrecursorAnalysisService
         if (state.NewStrongLinkRate > 0.05)
         {
             return "\u65B0Strong Link\u5F62\u6210";
+        }
+
+        if (state.SerendipityOccurred && state.KnowledgeRecombinationScore >= 0.45)
+        {
+            return "\u30BB\u30EC\u30F3\u30C7\u30A3\u30D4\u30C6\u30A3\u767A\u751F";
+        }
+
+        if (state.ExplorationScore >= 0.45)
+        {
+            return "\u63A2\u7D22\u884C\u52D5\u5897\u52A0";
         }
 
         if (state.ChallengeActive && state.KnowledgeReconfigurationScore >= 0.45)
@@ -175,6 +190,11 @@ public static class PrecursorAnalysisService
             return "Challenge\u306B\u5BFE\u3057\u3066\u77E5\u8B58\u518D\u69CB\u6210\u304C\u9032\u307F\u3001\u9069\u5FDC\u76F8\u3078\u306E\u79FB\u884C\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059\u3002";
         }
 
+        if (state.SerendipityOccurred && state.KnowledgeRecombinationScore >= 0.45)
+        {
+            return "\u63A2\u7D22\u3068\u7570\u5206\u91CE\u63A5\u89E6\u304B\u3089\u6709\u7528\u306A\u77E5\u8B58\u7D50\u5408\u304C\u751F\u307E\u308C\u3001\u5275\u767A\u76F8\u306E\u6761\u4EF6\u304C\u6574\u3044\u3064\u3064\u3042\u308A\u307E\u3059\u3002";
+        }
+
         if (emergentScore >= siloRiskScore && emergentScore >= stableScore)
         {
             return "\u60C5\u5831\u5171\u6709\u30FB\u652F\u63F4\u30FB\u63D0\u6848\u304C\u4E26\u7ACB\u3057\u3066\u304A\u308A\u3001\u5275\u767A\u76F8\u3078\u306E\u79FB\u884C\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059\u3002";
@@ -197,6 +217,9 @@ public sealed class PrecursorPoint
     public double SiloRiskScore { get; init; }
     public double StableScore { get; init; }
     public double EmergentScore { get; init; }
+    public double ExplorationScore { get; init; }
+    public double SerendipityScore { get; init; }
+    public double KnowledgeRecombinationScore { get; init; }
     public string MainSignal { get; init; } = "";
     public string Interpretation { get; init; } = "";
 }

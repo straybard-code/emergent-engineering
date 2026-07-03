@@ -112,6 +112,20 @@ public sealed class Scenario
     [Range(0, 1)]
     public double RequiredRewiringScore { get; set; } = ChallengeDefaults.RequiredRewiringScore;
 
+    [Range(0, 1)]
+    public double ExplorationTendency { get; set; } = SerendipityDefaults.ExplorationTendency;
+
+    [Range(0, 1)]
+    public double SerendipitySensitivity { get; set; } = SerendipityDefaults.SerendipitySensitivity;
+
+    [Range(0, 1)]
+    public double KnowledgeRecombinationRate { get; set; } = SerendipityDefaults.KnowledgeRecombinationRate;
+
+    [Range(0, 1)]
+    public double SerendipityThreshold { get; set; } = SerendipityDefaults.SerendipityThreshold;
+
+    public bool EnableSerendipity { get; set; } = SerendipityDefaults.EnableSerendipity;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     public List<Experiment> Experiments { get; set; } = [];

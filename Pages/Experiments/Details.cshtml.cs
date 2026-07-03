@@ -40,7 +40,14 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
     public double AverageKnowledgeStockMean { get; private set; }
     public double AverageKnowledgeDiversityMean { get; private set; }
     public double AverageKnowledgeRewiringScoreMean { get; private set; }
+    public double AverageExplorationScoreMean { get; private set; }
+    public double AverageSerendipityScoreMean { get; private set; }
+    public double AverageKnowledgeRecombinationScoreMean { get; private set; }
     public double AverageKnowledgeReconfigurationScoreMean { get; private set; }
+    public int SerendipityOccurredRunCount { get; private set; }
+    public double SerendipityOccurredRate { get; private set; }
+    public int SerendipityToEmergenceLinkRunCount { get; private set; }
+    public double SerendipityToEmergenceRate { get; private set; }
     public int ChallengeResolvedRunCount { get; private set; }
     public double AverageChallengeResolutionScoreMean { get; private set; }
     public double AverageAdaptationDurationMean { get; private set; }
@@ -88,7 +95,14 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         AverageKnowledgeStockMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeStock), 3);
         AverageKnowledgeDiversityMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeDiversity), 3);
         AverageKnowledgeRewiringScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeRewiringScore), 3);
+        AverageExplorationScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageExplorationScore), 3);
+        AverageSerendipityScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageSerendipityScore), 3);
+        AverageKnowledgeRecombinationScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeRecombinationScore), 3);
         AverageKnowledgeReconfigurationScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeReconfigurationScore), 3);
+        SerendipityOccurredRunCount = RunFingerprints.Count(item => item.SerendipityOccurredCount > 0);
+        SerendipityOccurredRate = RunFingerprints.Count == 0 ? 0 : Math.Round(SerendipityOccurredRunCount / (double)RunFingerprints.Count, 3);
+        SerendipityToEmergenceLinkRunCount = RunFingerprints.Count(item => item.SerendipityToEmergenceLinkCount > 0);
+        SerendipityToEmergenceRate = RunFingerprints.Count == 0 ? 0 : Math.Round(SerendipityToEmergenceLinkRunCount / (double)RunFingerprints.Count, 3);
         ChallengeResolvedRunCount = RunFingerprints.Count(item => item.ChallengeResolved);
         AverageChallengeResolutionScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageChallengeResolutionScore), 3);
         AverageAdaptationDurationMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AdaptationDuration), 3);
@@ -674,7 +688,13 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
                 ChallengeResolved = knowledge?.ChallengeResolved ?? false,
                 ChallengeResolutionScore = knowledge?.ChallengeResolutionScore ?? 0,
                 ChallengeGap = knowledge?.ChallengeGap ?? 0,
-                KnowledgeReconfigurationScore = knowledge?.KnowledgeReconfigurationScore ?? 0
+                KnowledgeReconfigurationScore = knowledge?.KnowledgeReconfigurationScore ?? 0,
+                ExplorationScore = knowledge?.ExplorationScore ?? 0,
+                SerendipityScore = knowledge?.SerendipityScore ?? 0,
+                SerendipityOccurred = knowledge?.SerendipityOccurred ?? false,
+                KnowledgeRecombinationScore = knowledge?.KnowledgeRecombinationScore ?? 0,
+                SerendipityDrivenReconfiguration = knowledge?.SerendipityDrivenReconfiguration ?? false,
+                SerendipityToEmergenceLink = knowledge?.SerendipityToEmergenceLink ?? false
             });
         }
 

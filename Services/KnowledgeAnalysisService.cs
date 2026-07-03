@@ -58,11 +58,13 @@ public static class KnowledgeAnalysisService
         double challengeLevel,
         ActionDistributionSummary actions,
         double psychologicalSafetyLevel,
-        bool challengeActive)
+        bool challengeActive,
+        double knowledgeRecombinationScore)
     {
         var rawScore =
-            (knowledgeRewiringScore * 0.45)
-            + (challengeLevel * 0.20)
+            (knowledgeRewiringScore * 0.35)
+            + (knowledgeRecombinationScore * 0.30)
+            + (challengeLevel * 0.15)
             + (actions.ProposeIdeaRate * 0.15)
             + (actions.ShareInfoRate * 0.10)
             + (actions.SupportOtherRate * 0.10)
@@ -104,6 +106,10 @@ public static class KnowledgeAnalysisService
         double crossDomainExposure,
         double rewiringScore,
         double knowledgeReconfigurationScore,
+        double explorationScore,
+        double serendipityScore,
+        double knowledgeRecombinationScore,
+        bool serendipityOccurred,
         bool challengeActive,
         bool challengeResolved,
         double challengeGap,
@@ -111,45 +117,55 @@ public static class KnowledgeAnalysisService
     {
         if (challengeResolved)
         {
-            return "Challenge has been resolved and the organization is reconfiguring knowledge successfully.";
+            return "Challenge が解決され、組織の知識再構成が前進しています。";
         }
 
         if (challengeActive && challengeGap > 0.15)
         {
-            return "The challenge remains unresolved and a large adaptation gap is still open.";
+            return "Challenge が未解決で、適応ギャップがまだ大きく残っています。";
         }
 
         if (challengeActive && knowledgeReconfigurationScore >= 0.45)
         {
-            return "Challenge pressure is increasing cross-boundary adaptation and knowledge reconfiguration.";
+            return "Challenge 圧力により、越境的な適応と知識再構成が進んでいます。";
+        }
+
+        if (serendipityOccurred && knowledgeRecombinationScore >= 0.45)
+        {
+            return "セレンディピティが閾値を超え、知識再結合が加速しています。";
+        }
+
+        if (explorationScore >= 0.45 && serendipityScore >= 0.45)
+        {
+            return "探索行動と異分野接触が増え、有用な知識結合の可能性が高まっています。";
         }
 
         if (externalShockLevel >= 0.25)
         {
-            return "External shock is disturbing the knowledge network.";
+            return "外部刺激により知識ネットワークが揺さぶられています。";
         }
 
         if (crossDomainExposure >= 0.30 && rewiringScore >= 0.45)
         {
-            return "Cross-domain exposure and idea generation are increasing rewiring potential.";
+            return "異分野接触と提案行動が、再配線の可能性を高めています。";
         }
 
         if (workAloneRate >= 0.35 && rewiringScore <= 0.30)
         {
-            return "Solo work is dominant, so knowledge is not becoming organizational.";
+            return "単独作業が優勢で、知識が組織的に共有されにくい状態です。";
         }
 
         if (knowledgeStock >= 0.40 && rewiringScore <= 0.40)
         {
-            return "Knowledge stock is accumulating and learning is stabilizing.";
+            return "知識蓄積が進み、組織学習が安定しています。";
         }
 
         if (knowledgeDiversity >= 0.45 || rewiringScore >= 0.50)
         {
-            return "New knowledge combinations are emerging and rewiring is active.";
+            return "新しい知識結合が生まれ、再配線が活発化しています。";
         }
 
-        return "Knowledge stock and diversity are increasing gradually.";
+        return "知識蓄積と知識多様性が緩やかに増加しています。";
     }
 
     public static List<KnowledgeTimelinePoint> BuildTimeline(IEnumerable<SimulationStep> steps)
@@ -178,7 +194,13 @@ public static class KnowledgeAnalysisService
                 ExternalShockLevel = GetDouble(root, "externalShockLevel", KnowledgeDefaults.ExternalShockLevel),
                 CrossDomainExposure = GetDouble(root, "crossDomainExposure", KnowledgeDefaults.CrossDomainExposure),
                 KnowledgeRewiringScore = GetDouble(root, "knowledgeRewiringScore", 0),
+                ExplorationScore = GetDouble(root, "explorationScore", 0),
+                SerendipityScore = GetDouble(root, "serendipityScore", 0),
+                SerendipityOccurred = GetBool(root, "serendipityOccurred"),
+                KnowledgeRecombinationScore = GetDouble(root, "knowledgeRecombinationScore", 0),
                 KnowledgeReconfigurationScore = GetDouble(root, "knowledgeReconfigurationScore", 0),
+                SerendipityDrivenReconfiguration = GetBool(root, "serendipityDrivenReconfiguration"),
+                SerendipityToEmergenceLink = GetBool(root, "serendipityToEmergenceLink"),
                 ShockOccurred = GetBool(root, "shockOccurred"),
                 ShockType = GetString(root, "shockType", ShockTypes.None),
                 ChallengeOccurred = GetBool(root, "challengeOccurred"),
@@ -201,7 +223,13 @@ public static class KnowledgeAnalysisService
                 ExternalShockLevel = KnowledgeDefaults.ExternalShockLevel,
                 CrossDomainExposure = KnowledgeDefaults.CrossDomainExposure,
                 KnowledgeRewiringScore = 0,
+                ExplorationScore = 0,
+                SerendipityScore = 0,
+                SerendipityOccurred = false,
+                KnowledgeRecombinationScore = 0,
                 KnowledgeReconfigurationScore = 0,
+                SerendipityDrivenReconfiguration = false,
+                SerendipityToEmergenceLink = false,
                 ShockOccurred = false,
                 ShockType = ShockTypes.None,
                 ChallengeOccurred = false,
@@ -249,21 +277,27 @@ public static class KnowledgeAnalysisService
 
 public sealed class KnowledgeTimelinePoint
 {
-    public int StepNo { get; init; }
-    public string Phase { get; init; } = "";
-    public double KnowledgeStock { get; init; }
-    public double KnowledgeDiversity { get; init; }
-    public double ExternalShockLevel { get; init; }
-    public double CrossDomainExposure { get; init; }
-    public double KnowledgeRewiringScore { get; init; }
-    public double KnowledgeReconfigurationScore { get; init; }
-    public bool ShockOccurred { get; init; }
-    public string ShockType { get; init; } = ShockTypes.None;
-    public bool ChallengeOccurred { get; init; }
-    public bool ChallengeActive { get; init; }
-    public bool ChallengeResolved { get; init; }
-    public string ChallengeType { get; init; } = ChallengeTypes.None;
-    public double ChallengeResolutionScore { get; init; }
-    public double ChallengeGap { get; init; }
-    public string Interpretation { get; init; } = "";
+    public int StepNo { get; set; }
+    public string Phase { get; set; } = "";
+    public double KnowledgeStock { get; set; }
+    public double KnowledgeDiversity { get; set; }
+    public double ExternalShockLevel { get; set; }
+    public double CrossDomainExposure { get; set; }
+    public double KnowledgeRewiringScore { get; set; }
+    public double ExplorationScore { get; set; }
+    public double SerendipityScore { get; set; }
+    public bool SerendipityOccurred { get; set; }
+    public double KnowledgeRecombinationScore { get; set; }
+    public double KnowledgeReconfigurationScore { get; set; }
+    public bool SerendipityDrivenReconfiguration { get; set; }
+    public bool SerendipityToEmergenceLink { get; set; }
+    public bool ShockOccurred { get; set; }
+    public string ShockType { get; set; } = ShockTypes.None;
+    public bool ChallengeOccurred { get; set; }
+    public bool ChallengeActive { get; set; }
+    public bool ChallengeResolved { get; set; }
+    public string ChallengeType { get; set; } = ChallengeTypes.None;
+    public double ChallengeResolutionScore { get; set; }
+    public double ChallengeGap { get; set; }
+    public string Interpretation { get; set; } = "";
 }

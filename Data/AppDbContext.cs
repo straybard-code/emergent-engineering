@@ -44,6 +44,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.RequiredKnowledgeDiversity).HasDefaultValue(ChallengeDefaults.RequiredKnowledgeDiversity);
             entity.Property(project => project.RequiredCrossDomainExposure).HasDefaultValue(ChallengeDefaults.RequiredCrossDomainExposure);
             entity.Property(project => project.RequiredRewiringScore).HasDefaultValue(ChallengeDefaults.RequiredRewiringScore);
+            entity.Property(project => project.ExplorationTendency).HasDefaultValue(SerendipityDefaults.ExplorationTendency);
+            entity.Property(project => project.SerendipitySensitivity).HasDefaultValue(SerendipityDefaults.SerendipitySensitivity);
+            entity.Property(project => project.KnowledgeRecombinationRate).HasDefaultValue(SerendipityDefaults.KnowledgeRecombinationRate);
+            entity.Property(project => project.SerendipityThreshold).HasDefaultValue(SerendipityDefaults.SerendipityThreshold);
+            entity.Property(project => project.EnableSerendipity).HasDefaultValue(SerendipityDefaults.EnableSerendipity);
             entity.HasOne(project => project.Experiment)
                 .WithMany(experiment => experiment.SimulationProjects)
                 .HasForeignKey(project => project.ExperimentId)
@@ -90,6 +95,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.RequiredKnowledgeDiversity).HasDefaultValue(ChallengeDefaults.RequiredKnowledgeDiversity);
             entity.Property(project => project.RequiredCrossDomainExposure).HasDefaultValue(ChallengeDefaults.RequiredCrossDomainExposure);
             entity.Property(project => project.RequiredRewiringScore).HasDefaultValue(ChallengeDefaults.RequiredRewiringScore);
+            entity.Property(project => project.ExplorationTendency).HasDefaultValue(SerendipityDefaults.ExplorationTendency);
+            entity.Property(project => project.SerendipitySensitivity).HasDefaultValue(SerendipityDefaults.SerendipitySensitivity);
+            entity.Property(project => project.KnowledgeRecombinationRate).HasDefaultValue(SerendipityDefaults.KnowledgeRecombinationRate);
+            entity.Property(project => project.SerendipityThreshold).HasDefaultValue(SerendipityDefaults.SerendipityThreshold);
+            entity.Property(project => project.EnableSerendipity).HasDefaultValue(SerendipityDefaults.EnableSerendipity);
             entity.HasOne(project => project.Scenario)
                 .WithMany(scenario => scenario.Experiments)
                 .HasForeignKey(project => project.ScenarioId)
@@ -119,6 +129,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(item => item.RequiredKnowledgeDiversity).HasDefaultValue(ChallengeDefaults.RequiredKnowledgeDiversity);
             entity.Property(item => item.RequiredCrossDomainExposure).HasDefaultValue(ChallengeDefaults.RequiredCrossDomainExposure);
             entity.Property(item => item.RequiredRewiringScore).HasDefaultValue(ChallengeDefaults.RequiredRewiringScore);
+            entity.Property(item => item.ExplorationTendency).HasDefaultValue(SerendipityDefaults.ExplorationTendency);
+            entity.Property(item => item.SerendipitySensitivity).HasDefaultValue(SerendipityDefaults.SerendipitySensitivity);
+            entity.Property(item => item.KnowledgeRecombinationRate).HasDefaultValue(SerendipityDefaults.KnowledgeRecombinationRate);
+            entity.Property(item => item.SerendipityThreshold).HasDefaultValue(SerendipityDefaults.SerendipityThreshold);
+            entity.Property(item => item.EnableSerendipity).HasDefaultValue(SerendipityDefaults.EnableSerendipity);
         });
 
         modelBuilder.Entity<ParameterSweep>(entity =>
