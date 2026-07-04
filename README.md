@@ -269,6 +269,8 @@ Stored fields include:
 
 Each parameter value produces one `Experiment`, and the sweep stores a compact result summary in `ParameterSweepRun`.
 
+Sweep status is recalculated from stored data when you open the sweep list or details page. If all parameter values have finished, all related experiments are completed, and the run counts are sufficient, the sweep becomes `Completed`. If an error occurs during execution, the sweep is marked `Failed`. A stale `Running` status can therefore be corrected by reopening the sweep pages, and once a sweep reaches `Completed` it stays `Completed` instead of being rewritten back to `Running`.
+
 Use `TrustGrowthRate` when you want to inspect the trust-to-emergence curve directly. A typical sweep is:
 
 - Parameter: `TrustGrowthRate`
@@ -286,13 +288,30 @@ The parameter sweep details page now shows:
 - emergent / stable / learning / silo rates
 - serendipity rate and serendipity-to-emergence link rate
 - signed deltas between neighboring parameter values
+- knowledge diversity and knowledge recombination curves
+- emergent unmet reasons, such as trust shortage, density shortage, or missing knowledge recombination
 
 This makes it easier to inspect trust-emergence curves, especially when sweeping `TrustGrowthRate`.
+
+## Execution Scale Presets
+
+The create screens for Scenario, Experiment, Simulation, and Parameter Sweep include an execution scale preset panel. It only adjusts `AgentCount`, `TotalSteps`, and run-count style fields such as `RunCount` or `RunCountPerValue`. It does not touch organizational parameters, trust dynamics, or other research condition settings.
+
+Available presets:
+
+- Fast: `10` agents / `50` steps / `5` runs
+- Standard: `20` agents / `100` steps / `10` runs
+- Research: `30` agents / `200` steps / `20` runs
+- Publication: `50` agents / `500` steps / `50` runs
+
+`Publication` is intentionally heavy and should be used with care. For Parameter Sweep, `Fast` or `Standard` is recommended.
 
 Research hypothesis:
 
 > Emergence may not rise as a simple monotonic increase in average trust.  
 > It may appear when trust-network density, serendipity, and knowledge recombination enter a particular region together.
+
+Phase judgement is ordered so that `Collapse`, `Chaos`, `Silo`, and `Adaptation` are checked before `Emergent`, `Stable`, `Learning`, and `Forming`. `Learning` means sharing and learning are progressing, but the run has not yet reached a structural change. `Stable` means trust and density are high, but recombination and serendipity are still weak. `Emergent` requires both network conditions and knowledge-rewiring signals to be present.
 
 ### SimulationMetrics
 

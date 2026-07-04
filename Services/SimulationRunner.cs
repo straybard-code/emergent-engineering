@@ -81,13 +81,23 @@ public sealed class SimulationRunner(
         var knowledgePoint = ApplyKnowledgeShockAndChallenge(project, stepNo, stepActionSummary, previousKnowledgePoint);
         var trustDynamicsSummary = ApplyTrustDynamics(project, touchedTrustEdges, trustDynamicsState);
 
-        project.Phase = await DeterminePhaseAsync(
+        var phaseDecision = await DeterminePhaseAsync(
             project,
             stepNo,
             currentStepActions,
             knowledgePoint,
             cancellationToken);
+        project.Phase = phaseDecision.Phase;
         knowledgePoint.Phase = project.Phase;
+        knowledgePoint.PhaseDecisionScore = phaseDecision.PhaseDecisionScore;
+        knowledgePoint.EmergentScore = phaseDecision.EmergentScore;
+        knowledgePoint.StableScore = phaseDecision.StableScore;
+        knowledgePoint.LearningScore = phaseDecision.LearningScore;
+        knowledgePoint.SiloScore = phaseDecision.SiloScore;
+        knowledgePoint.ChaosScore = phaseDecision.ChaosScore;
+        knowledgePoint.CollapseScore = phaseDecision.CollapseScore;
+        knowledgePoint.EmergentCriteriaJson = phaseDecision.EmergentCriteriaJson;
+        knowledgePoint.PhaseDecisionReason = phaseDecision.PhaseDecisionReason;
         knowledgePoint.SerendipityDrivenReconfiguration = DetermineSerendipityDrivenReconfiguration(previousKnowledgePoint, previousKnowledgeTimeline, knowledgePoint);
         knowledgePoint.SerendipityToEmergenceLink = DetermineSerendipityToEmergenceLink(previousKnowledgeTimeline, knowledgePoint, project.Phase);
         project.CurrentStep = stepNo;
@@ -166,6 +176,15 @@ public sealed class SimulationRunner(
             challengeResolutionScore = knowledgePoint.ChallengeResolutionScore,
             challengeGap = knowledgePoint.ChallengeGap,
             knowledgeInterpretation = knowledgePoint.Interpretation,
+            phaseDecisionScore = knowledgePoint.PhaseDecisionScore,
+            emergentScore = knowledgePoint.EmergentScore,
+            stableScore = knowledgePoint.StableScore,
+            learningScore = knowledgePoint.LearningScore,
+            siloScore = knowledgePoint.SiloScore,
+            chaosScore = knowledgePoint.ChaosScore,
+            collapseScore = knowledgePoint.CollapseScore,
+            emergentCriteriaJson = knowledgePoint.EmergentCriteriaJson,
+            phaseDecisionReason = knowledgePoint.PhaseDecisionReason,
             Agents = project.Agents.Select(agent => new
             {
                 agent.Id,
@@ -348,7 +367,7 @@ public sealed class SimulationRunner(
         """;
     }
 
-    private async Task<string> DeterminePhaseAsync(
+    private async Task<PhaseDecisionResult> DeterminePhaseAsync(
         SimulationProject project,
         int stepNo,
         IReadOnlyCollection<AgentAction> currentStepActions,
@@ -357,7 +376,19 @@ public sealed class SimulationRunner(
     {
         if (stepNo <= 2)
         {
-            return SimulationPhase.Forming;
+            return new PhaseDecisionResult
+            {
+                Phase = SimulationPhase.Forming,
+                PhaseDecisionScore = 0,
+                EmergentScore = 0,
+                StableScore = 0,
+                LearningScore = 0,
+                SiloScore = 0,
+                ChaosScore = 0,
+                CollapseScore = 0,
+                EmergentCriteria = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
+                PhaseDecisionReason = "初期ステップのため Forming と判定しました。"
+            };
         }
 
         var minStep = Math.Max(1, stepNo - (PhaseWindowSize - 1));
@@ -368,8 +399,25 @@ public sealed class SimulationRunner(
 
         if (recentActions.Count == 0)
         {
-            return SimulationPhase.Forming;
+            return new PhaseDecisionResult
+            {
+                Phase = SimulationPhase.Forming,
+                PhaseDecisionScore = 0,
+                EmergentScore = 0,
+                StableScore = 0,
+                LearningScore = 0,
+                SiloScore = 0,
+                ChaosScore = 0,
+                CollapseScore = 0,
+                EmergentCriteria = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
+                PhaseDecisionReason = "直近の行動がないため Forming と判定しました。"
+            };
         }
+
+        var recentSteps = await db.SimulationSteps
+            .Where(step => step.SimulationProjectId == project.Id && step.StepNo >= minStep && step.StepNo < stepNo)
+            .OrderBy(step => step.StepNo)
+            .ToListAsync(cancellationToken);
 
         var counts = AgentActionType.All.ToDictionary(
             action => action,
@@ -384,83 +432,237 @@ public sealed class SimulationRunner(
         var waitRatio = Ratio(AgentActionType.Wait);
         var shareRatio = Ratio(AgentActionType.ShareInfo);
         var supportRatio = Ratio(AgentActionType.SupportOther);
-        var diversity = counts.Values.Count(value => value > 0);
-        var adaptationSignal = collaborationRatio + ideaRatio;
+        var actionConcentration = counts.Values.Count == 0 ? 0 : counts.Values.Max() / (double)total;
+        var phaseStabilityLocal = CalculateRecentPhaseStability(recentSteps);
         var networkMetrics = NetworkMetricsCalculator.CalculateFromAgents(project.Agents, project.EffectiveTrustThreshold);
+        var trustComponent = Clamp01((networkMetrics.AverageTrust - 0.15) / 0.35);
+        var densityComponent = Clamp01((networkMetrics.EffectiveNetworkDensity - 0.15) / 0.35);
+        var strongLinkComponent = Clamp01(networkMetrics.StrongLinkCount / (double)Math.Max(project.Agents.Count * 2, 1));
+        var diversityComponent = Clamp01((knowledgePoint.KnowledgeDiversity - 0.40) / 0.30);
+        var recombinationComponent = Clamp01((knowledgePoint.KnowledgeRecombinationScore - 0.20) / 0.30);
+        var reconfigurationComponent = Clamp01((knowledgePoint.KnowledgeReconfigurationScore - 0.20) / 0.30);
+        var serendipityComponent = knowledgePoint.SerendipityOccurred
+            ? 1.0
+            : Clamp01(knowledgePoint.SerendipityScore / 0.35);
+        var proposeComponent = Clamp01((ideaRatio - 0.07) / 0.10);
+        var shareComponent = Clamp01((shareRatio - 0.20) / 0.15);
+        var constructiveCriticismComponent = project.PsychologicalSafetyLevel >= 0.60 && criticismRatio >= 0.08
+            ? Clamp01((criticismRatio - 0.08) / 0.12)
+            : 0;
 
-        if (waitRatio >= 0.35 && ideaRatio <= 0.15 && shareRatio <= 0.15)
+        var collapseScore = Clamp01(
+            (waitRatio * 0.45)
+            + ((1 - ideaRatio) * 0.20)
+            + ((1 - shareRatio) * 0.20)
+            + ((1 - collaborationRatio) * 0.15));
+
+        var chaosScore = Clamp01(
+            (criticismRatio * 0.30)
+            + ((1 - supportRatio) * 0.20)
+            + ((1 - networkMetrics.EffectiveNetworkDensity) * 0.10)
+            + ((project.PsychologicalSafetyLevel < 0.60 ? 1.0 : 0.0) * 0.10)
+            + ((1 - knowledgePoint.KnowledgeRewiringScore) * 0.30));
+
+        var siloScore = Clamp01(
+            (soloRatio * 0.35)
+            + ((1 - shareRatio) * 0.15)
+            + ((1 - supportRatio) * 0.15)
+            + ((1 - networkMetrics.EffectiveNetworkDensity) * 0.20)
+            + ((1 - knowledgePoint.KnowledgeRewiringScore) * 0.10)
+            + (Math.Max(knowledgePoint.ChallengeGap, 0) * 0.05));
+
+        var adaptationScore = Clamp01(
+            (knowledgePoint.ExplorationScore * 0.25)
+            + (knowledgePoint.KnowledgeRecombinationScore * 0.25)
+            + (knowledgePoint.KnowledgeReconfigurationScore * 0.25)
+            + ((shareRatio + supportRatio + proposeComponent) / 3.0 * 0.25));
+
+        var emergentScore = Clamp01(
+            (trustComponent * 0.15)
+            + (densityComponent * 0.15)
+            + (strongLinkComponent * 0.10)
+            + (diversityComponent * 0.15)
+            + (recombinationComponent * 0.15)
+            + (reconfigurationComponent * 0.10)
+            + (serendipityComponent * 0.10)
+            + (proposeComponent * 0.07)
+            + (shareComponent * 0.05)
+            + (constructiveCriticismComponent * 0.03));
+
+        var stableScore = Clamp01(
+            (trustComponent * 0.30)
+            + (densityComponent * 0.30)
+            + ((1 - actionConcentration) * 0.20)
+            + (phaseStabilityLocal * 0.20));
+
+        var learningScore = Clamp01(
+            (collaborationRatio * 0.35)
+            + (knowledgePoint.KnowledgeStock * 0.25)
+            + (shareRatio * 0.20)
+            + (knowledgePoint.KnowledgeDiversity * 0.10)
+            + ((1 - knowledgePoint.KnowledgeRecombinationScore) * 0.05)
+            + ((1 - knowledgePoint.SerendipityScore) * 0.05));
+
+        var emergentCriteria = BuildEmergentCriteria(
+            project,
+            knowledgePoint,
+            networkMetrics,
+            ideaRatio,
+            shareRatio,
+            criticismRatio);
+        var emergentCriteriaJson = JsonSerializer.Serialize(emergentCriteria, JsonOptions);
+        var emergentCriteriaMetCount = emergentCriteria.Count(item => item.Value);
+        var emergentReason = $"Emergent 条件 {emergentCriteriaMetCount}/{emergentCriteria.Count} を満たし、知識再結合と再配線が進んでいるため創発期と判定しました。";
+
+        if (collapseScore >= 0.60)
         {
-            return SimulationPhase.Collapse;
+            return new PhaseDecisionResult
+            {
+                Phase = SimulationPhase.Collapse,
+                PhaseDecisionScore = collapseScore,
+                EmergentScore = emergentScore,
+                StableScore = stableScore,
+                LearningScore = learningScore,
+                SiloScore = siloScore,
+                ChaosScore = chaosScore,
+                CollapseScore = collapseScore,
+                EmergentCriteria = emergentCriteria,
+                PhaseDecisionReason = "待機と情報不足が支配的なため Collapse と判定しました。"
+            };
+        }
+
+        if (chaosScore >= 0.60)
+        {
+            return new PhaseDecisionResult
+            {
+                Phase = SimulationPhase.Chaos,
+                PhaseDecisionScore = chaosScore,
+                EmergentScore = emergentScore,
+                StableScore = stableScore,
+                LearningScore = learningScore,
+                SiloScore = siloScore,
+                ChaosScore = chaosScore,
+                CollapseScore = collapseScore,
+                EmergentCriteria = emergentCriteria,
+                PhaseDecisionReason = "批判優勢とネットワーク不安定化が強いため Chaos と判定しました。"
+            };
+        }
+
+        if (siloScore >= 0.60
+            || (knowledgePoint.ChallengeActive
+                && knowledgePoint.ChallengeGap > 0.15
+                && soloRatio >= 0.30
+                && supportRatio <= 0.10)
+            || (soloRatio >= 0.35 && shareRatio <= 0.15 && knowledgePoint.KnowledgeRewiringScore < 0.35))
+        {
+            return new PhaseDecisionResult
+            {
+                Phase = SimulationPhase.Silo,
+                PhaseDecisionScore = siloScore,
+                EmergentScore = emergentScore,
+                StableScore = stableScore,
+                LearningScore = learningScore,
+                SiloScore = siloScore,
+                ChaosScore = chaosScore,
+                CollapseScore = collapseScore,
+                EmergentCriteria = emergentCriteria,
+                PhaseDecisionReason = "単独作業と共有不足が支配的なため Silo と判定しました。"
+            };
         }
 
         if ((knowledgePoint.ChallengeActive || knowledgePoint.ChallengeOccurred)
             && !knowledgePoint.ChallengeResolved
-            && knowledgePoint.ExplorationScore >= 0.40
-            && knowledgePoint.KnowledgeRecombinationScore >= 0.40
-            && knowledgePoint.KnowledgeReconfigurationScore >= 0.40
-            && adaptationSignal >= 0.55
-            && soloRatio < 0.35
-            && supportRatio >= 0.08)
+            && knowledgePoint.ExplorationScore >= 0.35
+            && knowledgePoint.KnowledgeRecombinationScore >= 0.25
+            && knowledgePoint.KnowledgeReconfigurationScore >= 0.25
+            && (shareRatio + supportRatio + ideaRatio) >= 0.45
+            && soloRatio < 0.35)
         {
-            return SimulationPhase.Adaptation;
+            return new PhaseDecisionResult
+            {
+                Phase = SimulationPhase.Adaptation,
+                PhaseDecisionScore = adaptationScore,
+                EmergentScore = emergentScore,
+                StableScore = stableScore,
+                LearningScore = learningScore,
+                SiloScore = siloScore,
+                ChaosScore = chaosScore,
+                CollapseScore = collapseScore,
+                EmergentCriteria = emergentCriteria,
+                PhaseDecisionReason = "Challenge 後に探索と再構成が進んでいるため Adaptation と判定しました。"
+            };
         }
 
-        if (criticismRatio >= 0.3 && supportRatio <= 0.1 && knowledgePoint.KnowledgeRewiringScore < 0.45)
+        if ((emergentScore >= 0.55 || emergentCriteriaMetCount >= 6)
+            && siloScore < 0.55
+            && chaosScore < 0.55
+            && collapseScore < 0.55)
         {
-            return SimulationPhase.Chaos;
+            return new PhaseDecisionResult
+            {
+                Phase = SimulationPhase.Emergent,
+                PhaseDecisionScore = emergentScore,
+                EmergentScore = emergentScore,
+                StableScore = stableScore,
+                LearningScore = learningScore,
+                SiloScore = siloScore,
+                ChaosScore = chaosScore,
+                CollapseScore = collapseScore,
+                EmergentCriteria = emergentCriteria,
+                PhaseDecisionReason = emergentReason
+            };
         }
 
-        if (knowledgePoint.ChallengeActive
-            && knowledgePoint.ChallengeGap > 0.15
-            && soloRatio >= 0.30
-            && supportRatio <= 0.10)
-        {
-            return SimulationPhase.Silo;
-        }
-
-        if (soloRatio >= 0.35 && shareRatio <= 0.15 && knowledgePoint.KnowledgeRewiringScore < 0.35)
-        {
-            return SimulationPhase.Silo;
-        }
-
-        if (((ideaRatio >= 0.20
-                && shareRatio >= 0.14
-                && supportRatio >= 0.10
-                && networkMetrics.EffectiveNetworkDensity >= 0.35
-                && knowledgePoint.SerendipityOccurred
-                && knowledgePoint.KnowledgeRecombinationScore >= 0.40
-                && knowledgePoint.KnowledgeRewiringScore >= 0.45))
-            || (knowledgePoint.ChallengeResolved
-                && knowledgePoint.ChallengeResolutionScore >= 0.45
-                && knowledgePoint.SerendipityOccurred
-                && knowledgePoint.KnowledgeRecombinationScore >= 0.40
-                && knowledgePoint.KnowledgeReconfigurationScore >= 0.45
-                && ideaRatio >= 0.18
-                && shareRatio >= 0.12
-                && supportRatio >= 0.10
-                && networkMetrics.EffectiveNetworkDensity >= 0.35))
-        {
-            return SimulationPhase.Emergent;
-        }
-
-        if (collaborationRatio >= 0.45
-            || (knowledgePoint.KnowledgeStock >= 0.35
-                && (!knowledgePoint.SerendipityOccurred || knowledgePoint.KnowledgeRecombinationScore < 0.35)))
-        {
-            return SimulationPhase.Learning;
-        }
-
-        if (diversity >= 5
-            && soloRatio < 0.3
-            && criticismRatio < 0.25
-            && waitRatio < 0.25
-            && knowledgePoint.KnowledgeRewiringScore < 0.45
+        if (stableScore >= 0.55
+            && knowledgePoint.KnowledgeRecombinationScore < 0.30
+            && knowledgePoint.SerendipityScore < 0.30
             && !knowledgePoint.ChallengeActive)
         {
-            return SimulationPhase.Stable;
+            return new PhaseDecisionResult
+            {
+                Phase = SimulationPhase.Stable,
+                PhaseDecisionScore = stableScore,
+                EmergentScore = emergentScore,
+                StableScore = stableScore,
+                LearningScore = learningScore,
+                SiloScore = siloScore,
+                ChaosScore = chaosScore,
+                CollapseScore = collapseScore,
+                EmergentCriteria = emergentCriteria,
+                PhaseDecisionReason = "信頼と密度は高いが、知識再結合と探索が弱いため Stable と判定しました。"
+            };
         }
 
-        return SimulationPhase.Stable;
+        if (learningScore >= 0.45 || collaborationRatio >= 0.45 || knowledgePoint.KnowledgeStock >= 0.35)
+        {
+            return new PhaseDecisionResult
+            {
+                Phase = SimulationPhase.Learning,
+                PhaseDecisionScore = learningScore,
+                EmergentScore = emergentScore,
+                StableScore = stableScore,
+                LearningScore = learningScore,
+                SiloScore = siloScore,
+                ChaosScore = chaosScore,
+                CollapseScore = collapseScore,
+                EmergentCriteria = emergentCriteria,
+                PhaseDecisionReason = "知識共有と学習は進んでいますが、構造変化には届いていないため Learning と判定しました。"
+            };
+        }
+
+        return new PhaseDecisionResult
+        {
+            Phase = SimulationPhase.Forming,
+            PhaseDecisionScore = 0,
+            EmergentScore = emergentScore,
+            StableScore = stableScore,
+            LearningScore = learningScore,
+            SiloScore = siloScore,
+            ChaosScore = chaosScore,
+            CollapseScore = collapseScore,
+            EmergentCriteria = emergentCriteria,
+            PhaseDecisionReason = "初期形成段階に近いため Forming と判定しました。"
+        };
     }
 
     private TrustChangeMetrics ApplyTrustUpdate(
@@ -1060,6 +1262,64 @@ public sealed class SimulationRunner(
             .Any(point => point.SerendipityOccurred);
     }
 
+    private static double CalculateRecentPhaseStability(IReadOnlyList<SimulationStep> recentSteps)
+    {
+        if (recentSteps.Count == 0)
+        {
+            return 1.0;
+        }
+
+        var ordered = recentSteps
+            .OrderBy(step => step.StepNo)
+            .TakeLast(3)
+            .ToList();
+
+        if (ordered.Count <= 1)
+        {
+            return 1.0;
+        }
+
+        var changes = 0;
+        for (var index = 1; index < ordered.Count; index++)
+        {
+            if (!string.Equals(ordered[index - 1].Phase, ordered[index].Phase, StringComparison.OrdinalIgnoreCase))
+            {
+                changes++;
+            }
+        }
+
+        return changes == 0 ? 1.0 : 0.5;
+    }
+
+    private static Dictionary<string, bool> BuildEmergentCriteria(
+        SimulationProject project,
+        KnowledgeTimelinePoint knowledgePoint,
+        NetworkMetricsResult networkMetrics,
+        double ideaRatio,
+        double shareRatio,
+        double criticismRatio)
+    {
+        var strongLinkThreshold = Math.Max(project.Agents.Count * 2, 1);
+        return new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["AverageTrust"] = networkMetrics.AverageTrust >= 0.30,
+            ["EffectiveDensity"] = networkMetrics.EffectiveNetworkDensity >= 0.30,
+            ["StrongLinks"] = networkMetrics.StrongLinkCount >= strongLinkThreshold,
+            ["KnowledgeDiversity"] = knowledgePoint.KnowledgeDiversity >= 0.60,
+            ["KnowledgeRecombination"] = knowledgePoint.KnowledgeRecombinationScore >= 0.25,
+            ["KnowledgeReconfiguration"] = knowledgePoint.KnowledgeReconfigurationScore >= 0.25,
+            ["Serendipity"] = knowledgePoint.SerendipityOccurred || knowledgePoint.SerendipityScore >= 0.30,
+            ["ProposeIdea"] = ideaRatio >= 0.07,
+            ["ShareInfo"] = shareRatio >= 0.30,
+            ["ConstructiveCriticism"] = criticismRatio >= 0.08 && project.PsychologicalSafetyLevel >= 0.60
+        };
+    }
+
+    private static double Clamp01(double value)
+    {
+        return Math.Clamp(value, 0, 1);
+    }
+
     private static void ApplyShockEffects(SimulationProject project)
     {
         switch (project.ShockType)
@@ -1199,4 +1459,19 @@ public sealed class SimulationRunner(
 
     private sealed record TrustPairChange(double? Before, double? After);
     private sealed record TrustChangeMetrics(double? Before, double? Delta, double? After);
+
+    private sealed class PhaseDecisionResult
+    {
+        public string Phase { get; init; } = SimulationPhase.Forming;
+        public double PhaseDecisionScore { get; init; }
+        public double EmergentScore { get; init; }
+        public double StableScore { get; init; }
+        public double LearningScore { get; init; }
+        public double SiloScore { get; init; }
+        public double ChaosScore { get; init; }
+        public double CollapseScore { get; init; }
+        public Dictionary<string, bool> EmergentCriteria { get; init; } = [];
+        public string PhaseDecisionReason { get; init; } = "";
+        public string EmergentCriteriaJson => JsonSerializer.Serialize(EmergentCriteria, JsonOptions);
+    }
 }

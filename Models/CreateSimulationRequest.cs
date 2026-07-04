@@ -17,10 +17,10 @@ public sealed class CreateSimulationRequest : IValidatableObject
     [Required]
     public string KpiDefinition { get; set; } = "";
 
-    [Range(1, 20)]
+    [Range(1, 100)]
     public int AgentCount { get; set; } = 4;
 
-    [Range(1, 100)]
+    [Range(1, 5000)]
     public int TotalSteps { get; set; } = 5;
 
     [Required]

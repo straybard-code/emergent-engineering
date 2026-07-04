@@ -282,14 +282,14 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
     {
         return phase switch
         {
-            SimulationPhase.Forming => 0,
-            SimulationPhase.Learning => 1,
-            SimulationPhase.Adaptation => 2,
-            SimulationPhase.Stable => 3,
-            SimulationPhase.Emergent => 4,
-            SimulationPhase.Silo => -1,
-            SimulationPhase.Chaos => -2,
             SimulationPhase.Collapse => -3,
+            SimulationPhase.Chaos => -2,
+            SimulationPhase.Silo => -1,
+            SimulationPhase.Adaptation => 2,
+            SimulationPhase.Emergent => 4,
+            SimulationPhase.Stable => 3,
+            SimulationPhase.Learning => 1,
+            SimulationPhase.Forming => 0,
             _ => 0
         };
     }

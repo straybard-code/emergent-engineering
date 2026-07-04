@@ -22,13 +22,13 @@ public sealed class Scenario : IValidatableObject
     [Required]
     public string KpiDefinition { get; set; } = "";
 
-    [Range(1, 20)]
+    [Range(1, 100)]
     public int AgentCount { get; set; }
 
-    [Range(1, 100)]
+    [Range(1, 5000)]
     public int TotalSteps { get; set; }
 
-    [Range(1, 20)]
+    [Range(1, 100)]
     public int RunCount { get; set; }
 
     [Required]

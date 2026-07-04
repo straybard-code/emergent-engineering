@@ -29,13 +29,13 @@ public sealed class ParameterSweep
     [Range(typeof(double), "0.001", "20")]
     public double StepValue { get; set; } = 0.1;
 
-    [Range(1, 50)]
+    [Range(1, 100)]
     public int RunCountPerValue { get; set; } = 3;
 
-    [Range(2, 50)]
+    [Range(2, 100)]
     public int AgentCount { get; set; } = 4;
 
-    [Range(1, 200)]
+    [Range(1, 5000)]
     public int TotalSteps { get; set; } = 5;
 
     [Required]

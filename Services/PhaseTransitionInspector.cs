@@ -497,14 +497,14 @@ public static class PhaseTransitionInspector
 
     private static int GetPhaseOrder(string? phase) => phase switch
     {
-        "Forming" => 0,
-        "Learning" => 1,
-        "Adaptation" => 2,
-        "Stable" => 3,
+        "Collapse" => 0,
+        "Chaos" => 1,
+        "Silo" => 2,
+        "Adaptation" => 3,
         "Emergent" => 4,
-        "Silo" => 5,
-        "Chaos" => 6,
-        "Collapse" => 7,
+        "Stable" => 5,
+        "Learning" => 6,
+        "Forming" => 7,
         _ => 99
     };
 }

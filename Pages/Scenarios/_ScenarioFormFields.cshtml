@@ -302,20 +302,22 @@
     </div>
 </section>
 
+<partial name="_ExecutionScalePresetPanel" />
+
 <div class="row">
     <div class="col-md-4 mb-3">
         <label asp-for="AgentCount" class="form-label">Agent数</label>
-        <input asp-for="AgentCount" class="form-control" type="number" min="1" max="20" />
+        <input asp-for="AgentCount" class="form-control" type="number" min="1" max="100" />
         <span asp-validation-for="AgentCount" class="text-danger"></span>
     </div>
     <div class="col-md-4 mb-3">
         <label asp-for="TotalSteps" class="form-label">Step数</label>
-        <input asp-for="TotalSteps" class="form-control" type="number" min="1" max="100" />
+        <input asp-for="TotalSteps" class="form-control" type="number" min="1" max="5000" />
         <span asp-validation-for="TotalSteps" class="text-danger"></span>
     </div>
     <div class="col-md-4 mb-3">
         <label asp-for="RunCount" class="form-label">Run数</label>
-        <input asp-for="RunCount" class="form-control" type="number" min="1" max="20" />
+        <input asp-for="RunCount" class="form-control" type="number" min="1" max="100" />
         <span asp-validation-for="RunCount" class="text-danger"></span>
     </div>
 </div>

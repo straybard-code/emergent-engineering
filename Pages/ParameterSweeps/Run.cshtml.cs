@@ -8,7 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EmergentEngineering.Pages.ParameterSweeps;
 
-public sealed class RunModel(AppDbContext db, IExperimentExecutionService experimentExecutionService) : PageModel
+public sealed class RunModel(
+    AppDbContext db,
+    IExperimentExecutionService experimentExecutionService,
+    ParameterSweepRunner sweepRunner) : PageModel
 {
     [TempData]
     public string? SweepMessage { get; set; }
@@ -45,21 +48,21 @@ public sealed class RunModel(AppDbContext db, IExperimentExecutionService experi
             return RedirectToPage("/ParameterSweeps/Details", new { id });
         }
 
-        var scenario = await db.Scenarios.FirstOrDefaultAsync(item => item.Id == sweep.ScenarioId);
-        if (scenario is null)
-        {
-            sweep.Status = ParameterSweepStatus.Failed;
-            await db.SaveChangesAsync();
-            TempData["SweepMessage"] = "基準シナリオが見つからないため、スイープを開始できませんでした。";
-            return RedirectToPage("/ParameterSweeps/Details", new { id });
-        }
-
-        sweep.Status = ParameterSweepStatus.Running;
-        sweep.CompletedAt = null;
-        await db.SaveChangesAsync();
-
         try
         {
+            var scenario = await db.Scenarios.FirstOrDefaultAsync(item => item.Id == sweep.ScenarioId);
+            if (scenario is null)
+            {
+                sweep.Status = ParameterSweepStatus.Failed;
+                await db.SaveChangesAsync();
+                TempData["SweepMessage"] = "基準シナリオが見つからないため、スイープを開始できませんでした。";
+                return RedirectToPage("/ParameterSweeps/Details", new { id });
+            }
+
+            sweep.Status = ParameterSweepStatus.Running;
+            sweep.CompletedAt = null;
+            await db.SaveChangesAsync();
+
             await DeleteExistingResultsAsync(sweep.Id);
 
             foreach (var parameterValue in BuildParameterValues(sweep.StartValue, sweep.EndValue, sweep.StepValue))
@@ -134,6 +137,20 @@ public sealed class RunModel(AppDbContext db, IExperimentExecutionService experi
             await db.SaveChangesAsync();
             SweepMessage = "スイープ実行中にエラーが発生したため、状態を Failed に更新しました。";
             return RedirectToPage("/ParameterSweeps/Details", new { id = sweep.Id });
+        }
+        finally
+        {
+            if (sweep is not null)
+            {
+                try
+                {
+                    await sweepRunner.RecalculateSweepStatusAsync(sweep.Id);
+                }
+                catch
+                {
+                    // Keep the existing status transition even if recalculation fails.
+                }
+            }
         }
     }
 

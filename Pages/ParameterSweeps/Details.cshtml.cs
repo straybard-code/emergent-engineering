@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EmergentEngineering.Pages.ParameterSweeps;
 
-public sealed class DetailsModel(AppDbContext db) : PageModel
+public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunner) : PageModel
 {
     [TempData]
     public string? SweepMessage { get; set; }
@@ -32,6 +32,23 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         if (Sweep is null)
         {
             return RedirectToPage("/ParameterSweeps/Index");
+        }
+
+        if (Sweep.Status == ParameterSweepStatus.Running)
+        {
+            try
+            {
+                await sweepRunner.RecalculateSweepStatusAsync(Sweep.Id);
+            }
+            catch
+            {
+                // Keep the stored status if recalculation fails.
+            }
+            Sweep = await db.ParameterSweeps.FirstOrDefaultAsync(item => item.Id == id);
+            if (Sweep is null)
+            {
+                return RedirectToPage("/ParameterSweeps/Index");
+            }
         }
 
         ScenarioName = await db.Scenarios
@@ -186,6 +203,19 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         return JsonSerializer.Serialize(points);
     }
 
+    public string GetKnowledgeChartJson()
+    {
+        var points = AnalysisPoints.Select(item => new
+        {
+            parameterValue = item.ParameterValue.ToString("0.000"),
+            averageKnowledgeDiversity = item.AverageKnowledgeDiversity,
+            averageKnowledgeRecombinationScore = item.AverageKnowledgeRecombinationScore,
+            averageKnowledgeReconfigurationScore = item.AverageKnowledgeReconfigurationScore
+        });
+
+        return JsonSerializer.Serialize(points);
+    }
+
     public string FormatDelta(double? value)
     {
         if (!value.HasValue)
@@ -233,6 +263,12 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             .ToListAsync();
 
         var projectIds = projects.Select(item => item.Id).ToList();
+        var actions = await db.AgentActions
+            .Where(item => projectIds.Contains(item.SimulationProjectId))
+            .OrderBy(item => item.SimulationProjectId)
+            .ThenBy(item => item.StepNo)
+            .ThenBy(item => item.Id)
+            .ToListAsync();
         var steps = await db.SimulationSteps
             .Where(item => projectIds.Contains(item.SimulationProjectId))
             .OrderBy(item => item.SimulationProjectId)
@@ -246,6 +282,9 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             .Where(item => item.ExperimentId.HasValue)
             .GroupBy(item => item.ExperimentId!.Value)
             .ToDictionary(group => group.Key, group => group.ToList());
+        var actionsByProjectId = actions
+            .GroupBy(item => item.SimulationProjectId)
+            .ToDictionary(group => group.Key, group => group.ToList());
         var stepsByProjectId = steps
             .GroupBy(item => item.SimulationProjectId)
             .ToDictionary(group => group.Key, group => group.ToList());
@@ -256,7 +295,10 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             var experimentProjects = projectsByExperimentId.GetValueOrDefault(sweepRun.ExperimentId, []);
             var projectRuns = runsByExperimentId.GetValueOrDefault(sweepRun.ExperimentId, []);
             var analyses = experimentProjects
-                .Select(project => AnalyzeProject(project, stepsByProjectId.GetValueOrDefault(project.Id, [])))
+                .Select(project => AnalyzeProject(
+                    project,
+                    stepsByProjectId.GetValueOrDefault(project.Id, []),
+                    actionsByProjectId.GetValueOrDefault(project.Id, [])))
                 .ToList();
 
             points.Add(BuildAnalysisPoint(sweepRun.ParameterValue, analyses, projectRuns));
@@ -276,6 +318,50 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         var stableRunCount = runs.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Stable, StringComparison.OrdinalIgnoreCase));
         var learningRunCount = runs.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase));
         var siloRunCount = runs.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Silo, StringComparison.OrdinalIgnoreCase));
+        var trustInsufficientRunCount = 0;
+        var effectiveDensityInsufficientRunCount = 0;
+        var knowledgeDiversityInsufficientRunCount = 0;
+        var knowledgeRecombinationInsufficientRunCount = 0;
+        var serendipityInsufficientRunCount = 0;
+        var ideaProposalInsufficientRunCount = 0;
+        var constructiveCriticismInsufficientRunCount = 0;
+        List<string> failureReasons = [];
+
+        foreach (var analysis in analyses)
+        {
+            var reason = DetermineEmergentFailureReason(
+                analysis,
+                out var trustInsufficient,
+                out var densityInsufficient,
+                out var knowledgeDiversityInsufficient,
+                out var knowledgeRecombinationInsufficient,
+                out var serendipityInsufficient,
+                out var ideaProposalInsufficient,
+                out var constructiveCriticismInsufficient);
+
+            if (!string.IsNullOrWhiteSpace(reason))
+            {
+                failureReasons.Add(reason);
+            }
+
+            trustInsufficientRunCount += trustInsufficient ? 1 : 0;
+            effectiveDensityInsufficientRunCount += densityInsufficient ? 1 : 0;
+            knowledgeDiversityInsufficientRunCount += knowledgeDiversityInsufficient ? 1 : 0;
+            knowledgeRecombinationInsufficientRunCount += knowledgeRecombinationInsufficient ? 1 : 0;
+            serendipityInsufficientRunCount += serendipityInsufficient ? 1 : 0;
+            ideaProposalInsufficientRunCount += ideaProposalInsufficient ? 1 : 0;
+            constructiveCriticismInsufficientRunCount += constructiveCriticismInsufficient ? 1 : 0;
+        }
+
+        var mainFailureReason = failureReasons.Count == 0
+            ? "--"
+            : failureReasons
+                .GroupBy(item => item)
+                .Select(group => new { Reason = group.Key, Count = group.Count() })
+                .OrderByDescending(item => item.Count)
+                .ThenBy(item => item.Reason)
+                .First()
+                .Reason;
 
         return new ParameterSweepAnalysisPoint
         {
@@ -287,6 +373,9 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             WeakLinks = RoundAverage(analyses.Select(item => (double)item.Metrics.WeakLinkCount)),
             ComponentCount = RoundAverage(analyses.Select(item => (double)item.Metrics.ComponentCount)),
             IsolatedAgents = RoundAverage(analyses.Select(item => (double)item.Metrics.IsolatedCount)),
+            AverageKnowledgeDiversity = RoundAverage(analyses.Select(item => item.AverageKnowledgeDiversity)),
+            AverageKnowledgeRecombinationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeRecombinationScore)),
+            AverageKnowledgeReconfigurationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeReconfigurationScore)),
             EmergentRunCount = emergentRunCount,
             StableRunCount = stableRunCount,
             LearningRunCount = learningRunCount,
@@ -300,24 +389,52 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             SerendipityOccurredRunCount = analyses.Count(item => item.SerendipityOccurred),
             SerendipityRate = totalRunCount == 0 ? 0 : Math.Round(analyses.Count(item => item.SerendipityOccurred) / (double)totalRunCount, 3),
             SerendipityToEmergenceLinkCount = analyses.Count(item => item.SerendipityToEmergenceLink),
-            SerendipityToEmergenceRate = totalRunCount == 0 ? 0 : Math.Round(analyses.Count(item => item.SerendipityToEmergenceLink) / (double)totalRunCount, 3)
+            SerendipityToEmergenceRate = totalRunCount == 0 ? 0 : Math.Round(analyses.Count(item => item.SerendipityToEmergenceLink) / (double)totalRunCount, 3),
+            TrustInsufficientRunCount = trustInsufficientRunCount,
+            EffectiveDensityInsufficientRunCount = effectiveDensityInsufficientRunCount,
+            KnowledgeDiversityInsufficientRunCount = knowledgeDiversityInsufficientRunCount,
+            KnowledgeRecombinationInsufficientRunCount = knowledgeRecombinationInsufficientRunCount,
+            SerendipityInsufficientRunCount = serendipityInsufficientRunCount,
+            IdeaProposalInsufficientRunCount = ideaProposalInsufficientRunCount,
+            ConstructiveCriticismInsufficientRunCount = constructiveCriticismInsufficientRunCount,
+            MainEmergentFailureReason = mainFailureReason
         };
     }
 
-    private static ProjectAnalysisResult AnalyzeProject(SimulationProject project, IReadOnlyCollection<SimulationStep> steps)
+    private static ProjectAnalysisResult AnalyzeProject(
+        SimulationProject project,
+        IReadOnlyCollection<SimulationStep> steps,
+        IReadOnlyCollection<AgentAction> actions)
     {
         var metrics = NetworkMetricsCalculator.CalculateFromAgents(project.Agents, project.EffectiveTrustThreshold);
         var knowledgeTimeline = KnowledgeAnalysisService.BuildTimeline(steps);
+        var actionDistribution = ActionDistributionCalculator.Calculate(actions.Select(action => action.Action));
         var averageSerendipityScore = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.SerendipityScore), 3);
+        var averageKnowledgeDiversity = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeDiversity), 3);
+        var averageKnowledgeRecombinationScore = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeRecombinationScore), 3);
+        var averageKnowledgeReconfigurationScore = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeReconfigurationScore), 3);
 
         return new ProjectAnalysisResult
         {
             Metrics = metrics,
             AverageSerendipityScore = averageSerendipityScore,
+            AverageKnowledgeDiversity = averageKnowledgeDiversity,
+            AverageKnowledgeRecombinationScore = averageKnowledgeRecombinationScore,
+            AverageKnowledgeReconfigurationScore = averageKnowledgeReconfigurationScore,
             SerendipityOccurred = knowledgeTimeline.Any(item => item.SerendipityOccurred),
-            SerendipityToEmergenceLink = knowledgeTimeline.Any(item => item.SerendipityToEmergenceLink)
+            SerendipityToEmergenceLink = knowledgeTimeline.Any(item => item.SerendipityToEmergenceLink),
+            FinalKnowledgePoint = knowledgeTimeline.OrderBy(item => item.StepNo).LastOrDefault(),
+            ActionDistribution = actionDistribution,
+            AgentCount = project.Agents.Count,
+            PsychologicalSafetyLevel = project.PsychologicalSafetyLevel
         };
     }
 
@@ -332,6 +449,9 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
                 current.DeltaEffectiveDensity = null;
                 current.DeltaEmergentRate = null;
                 current.DeltaSerendipityRate = null;
+                current.DeltaKnowledgeDiversity = null;
+                current.DeltaKnowledgeRecombinationScore = null;
+                current.DeltaKnowledgeReconfigurationScore = null;
                 current.PreviousParameterValue = null;
                 current.TransitionCandidates = "";
                 continue;
@@ -343,6 +463,9 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             current.DeltaEffectiveDensity = Math.Round(current.EffectiveDensity - previous.EffectiveDensity, 3);
             current.DeltaEmergentRate = Math.Round(current.EmergentRate - previous.EmergentRate, 3);
             current.DeltaSerendipityRate = Math.Round(current.SerendipityRate - previous.SerendipityRate, 3);
+            current.DeltaKnowledgeDiversity = Math.Round(current.AverageKnowledgeDiversity - previous.AverageKnowledgeDiversity, 3);
+            current.DeltaKnowledgeRecombinationScore = Math.Round(current.AverageKnowledgeRecombinationScore - previous.AverageKnowledgeRecombinationScore, 3);
+            current.DeltaKnowledgeReconfigurationScore = Math.Round(current.AverageKnowledgeReconfigurationScore - previous.AverageKnowledgeReconfigurationScore, 3);
 
             List<string> candidates = [];
             if (current.DeltaAverageTrust >= 0.15)
@@ -418,12 +541,133 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         return list.Count == 0 ? 0 : Math.Round(list.Average(), 3);
     }
 
+    private static string DetermineEmergentFailureReason(
+        ProjectAnalysisResult analysis,
+        out bool trustInsufficient,
+        out bool effectiveDensityInsufficient,
+        out bool knowledgeDiversityInsufficient,
+        out bool knowledgeRecombinationInsufficient,
+        out bool serendipityInsufficient,
+        out bool ideaProposalInsufficient,
+        out bool constructiveCriticismInsufficient)
+    {
+        trustInsufficient = false;
+        effectiveDensityInsufficient = false;
+        knowledgeDiversityInsufficient = false;
+        knowledgeRecombinationInsufficient = false;
+        serendipityInsufficient = false;
+        ideaProposalInsufficient = false;
+        constructiveCriticismInsufficient = false;
+
+        if (analysis.FinalKnowledgePoint is not null
+            && string.Equals(analysis.FinalKnowledgePoint.Phase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return "";
+        }
+
+        var criteria = BuildEmergentCriteria(analysis);
+        trustInsufficient = !criteria["AverageTrust"];
+        effectiveDensityInsufficient = !criteria["EffectiveDensity"];
+        knowledgeDiversityInsufficient = !criteria["KnowledgeDiversity"];
+        knowledgeRecombinationInsufficient = !criteria["KnowledgeRecombination"];
+        serendipityInsufficient = !criteria["Serendipity"];
+        ideaProposalInsufficient = !criteria["ProposeIdea"];
+        constructiveCriticismInsufficient = !criteria["ConstructiveCriticism"];
+
+        if (analysis.FinalKnowledgePoint is null)
+        {
+            return "データ不足";
+        }
+
+        if (trustInsufficient)
+        {
+            return "信頼不足";
+        }
+
+        if (effectiveDensityInsufficient)
+        {
+            return "実効密度不足";
+        }
+
+        if (knowledgeDiversityInsufficient)
+        {
+            return "知識多様性不足";
+        }
+
+        if (knowledgeRecombinationInsufficient)
+        {
+            return "知識再結合不足";
+        }
+
+        if (serendipityInsufficient)
+        {
+            return "セレンディピティ不足";
+        }
+
+        if (ideaProposalInsufficient)
+        {
+            return "アイデア提案不足";
+        }
+
+        if (constructiveCriticismInsufficient)
+        {
+            return "建設的批判不足";
+        }
+
+        if (string.Equals(analysis.FinalKnowledgePoint.Phase, SimulationPhase.Stable, StringComparison.OrdinalIgnoreCase)
+            || analysis.FinalKnowledgePoint.StableScore >= analysis.FinalKnowledgePoint.EmergentScore)
+        {
+            return "Stable優勢";
+        }
+
+        if (string.Equals(analysis.FinalKnowledgePoint.Phase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase))
+        {
+            return "Learning優勢";
+        }
+
+        return "未達要因複合";
+    }
+
+    private static Dictionary<string, bool> BuildEmergentCriteria(ProjectAnalysisResult analysis)
+    {
+        var finalPoint = analysis.FinalKnowledgePoint;
+        var averageTrust = analysis.Metrics.AverageTrust;
+        var effectiveDensity = analysis.Metrics.EffectiveNetworkDensity;
+        var strongLinkThreshold = Math.Max(analysis.AgentCount * 2, 1);
+        var knowledgeDiversity = finalPoint?.KnowledgeDiversity ?? 0;
+        var knowledgeRecombination = finalPoint?.KnowledgeRecombinationScore ?? 0;
+        var knowledgeReconfiguration = finalPoint?.KnowledgeReconfigurationScore ?? 0;
+        var serendipityScore = finalPoint?.SerendipityScore ?? 0;
+        var serendipityOccurred = finalPoint?.SerendipityOccurred ?? false;
+
+        return new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["AverageTrust"] = averageTrust >= 0.30,
+            ["EffectiveDensity"] = effectiveDensity >= 0.30,
+            ["StrongLinks"] = analysis.Metrics.StrongLinkCount >= strongLinkThreshold,
+            ["KnowledgeDiversity"] = knowledgeDiversity >= 0.60,
+            ["KnowledgeRecombination"] = knowledgeRecombination >= 0.25,
+            ["KnowledgeReconfiguration"] = knowledgeReconfiguration >= 0.25,
+            ["Serendipity"] = serendipityOccurred || serendipityScore >= 0.30,
+            ["ProposeIdea"] = analysis.ActionDistribution.ProposeIdeaRate >= 0.07,
+            ["ShareInfo"] = analysis.ActionDistribution.ShareInfoRate >= 0.30,
+            ["ConstructiveCriticism"] = analysis.ActionDistribution.CriticizeRate >= 0.08 && analysis.PsychologicalSafetyLevel >= 0.60
+        };
+    }
+
     private sealed class ProjectAnalysisResult
     {
         public NetworkMetricsResult Metrics { get; init; } = new();
         public double AverageSerendipityScore { get; init; }
+        public double AverageKnowledgeDiversity { get; init; }
+        public double AverageKnowledgeRecombinationScore { get; init; }
+        public double AverageKnowledgeReconfigurationScore { get; init; }
         public bool SerendipityOccurred { get; init; }
         public bool SerendipityToEmergenceLink { get; init; }
+        public KnowledgeTimelinePoint? FinalKnowledgePoint { get; init; }
+        public ActionDistributionSummary ActionDistribution { get; init; } = new();
+        public int AgentCount { get; init; }
+        public double PsychologicalSafetyLevel { get; init; }
     }
 
     private static Dictionary<string, int> DeserializePhaseSummary(string json)

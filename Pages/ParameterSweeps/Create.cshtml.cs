@@ -17,9 +17,9 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         StartValue = 0.2,
         EndValue = 0.8,
         StepValue = 0.1,
-        RunCountPerValue = 3,
-        AgentCount = 4,
-        TotalSteps = 5,
+        RunCountPerValue = 5,
+        AgentCount = 10,
+        TotalSteps = 50,
         LlmProvider = LlmProviderType.Mock,
         LlmModel = LlmDefaults.MockModel
     };

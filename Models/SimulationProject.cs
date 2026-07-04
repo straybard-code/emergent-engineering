@@ -12,7 +12,9 @@ public sealed class SimulationProject : IValidatableObject
     public string Purpose { get; set; } = "";
     public string BoundaryConditions { get; set; } = "";
     public string KpiDefinition { get; set; } = "";
+    [Range(1, 100)]
     public int AgentCount { get; set; }
+    [Range(1, 5000)]
     public int TotalSteps { get; set; }
     public int CurrentStep { get; set; }
     public string LlmProvider { get; set; } = LlmDefaults.Provider;

@@ -1,0 +1,161 @@
+@using System.Collections.Generic
+@using System.Text.Json
+@{
+    var fieldPrefix = (string?)ViewData["ExecutionScaleFieldPrefix"] ?? "";
+    var idPrefix = string.IsNullOrWhiteSpace(fieldPrefix) ? "" : $"{fieldPrefix}_";
+    var namePrefix = string.IsNullOrWhiteSpace(fieldPrefix) ? "" : $"{fieldPrefix}.";
+    var presets = new Dictionary<string, object?>
+    {
+        ["fast"] = new
+        {
+            values = new
+            {
+                agentCount = 10,
+                totalSteps = 50,
+                runCount = 5
+            },
+            message = "Fast preset applied.",
+            severity = "info"
+        },
+        ["standard"] = new
+        {
+            values = new
+            {
+                agentCount = 20,
+                totalSteps = 100,
+                runCount = 10
+            },
+            message = "Standard preset applied.",
+            severity = "info"
+        },
+        ["research"] = new
+        {
+            values = new
+            {
+                agentCount = 30,
+                totalSteps = 200,
+                runCount = 20
+            },
+            message = "Research may take a while to run.",
+            severity = "warning"
+        },
+        ["publication"] = new
+        {
+            values = new
+            {
+                agentCount = 50,
+                totalSteps = 500,
+                runCount = 50
+            },
+            message = "Publication is a heavy setting. Watch execution time and DB size.",
+            severity = "danger"
+        }
+    };
+    var presetsJson = JsonSerializer.Serialize(presets, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+}
+
+<section class="log-section mb-4" id="executionScalePresetPanel" data-field-prefix="@fieldPrefix" data-id-prefix="@idPrefix" data-name-prefix="@namePrefix">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <h2 class="h5 mb-1">実行規模プリセット</h2>
+            <p class="text-muted small mb-0">用途に応じて Agent数・Step数・Run数を自動設定します。適用後も手動で変更できます。</p>
+        </div>
+    </div>
+    <div class="row g-2 align-items-end">
+        <div class="col-md-8">
+            <label class="form-label" for="executionScalePresetSelect">プリセット</label>
+            <select class="form-select" id="executionScalePresetSelect">
+                <option value="">選択してください</option>
+                <option value="fast">Fast（高速確認）</option>
+                <option value="standard">Standard（標準検証）</option>
+                <option value="research">Research（研究用）</option>
+                <option value="publication">Publication（発表・論文用）</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button type="button" class="btn btn-outline-primary w-100" id="executionScalePresetApply">実行規模を適用</button>
+        </div>
+    </div>
+    <div class="alert d-none mt-3 mb-0" id="executionScalePresetMessage" role="alert"></div>
+    <script>
+        (() => {
+            const panel = document.getElementById('executionScalePresetPanel');
+            if (!panel) {
+                return;
+            }
+
+            const presets = @Html.Raw(presetsJson);
+            const presetSelect = panel.querySelector('#executionScalePresetSelect');
+            const applyButton = panel.querySelector('#executionScalePresetApply');
+            const messageBox = panel.querySelector('#executionScalePresetMessage');
+            const idPrefix = panel.dataset.idPrefix || '';
+            const namePrefix = panel.dataset.namePrefix || '';
+
+            function resolveControl(fieldName) {
+                return document.getElementById(idPrefix + fieldName)
+                    || document.querySelector(`[name="${namePrefix}${fieldName}"]`)
+                    || (fieldName === 'RunCount'
+                        ? document.getElementById(idPrefix + 'RunCountPerValue') || document.querySelector(`[name="${namePrefix}RunCountPerValue"]`)
+                        : null);
+            }
+
+            function toFieldName(key) {
+                if (!key || typeof key !== 'string') {
+                    return key;
+                }
+
+                return key.charAt(0).toUpperCase() + key.slice(1);
+            }
+
+            function setValue(fieldName, value) {
+                const control = resolveControl(fieldName);
+                if (!control) {
+                    return;
+                }
+
+                if (control.type === 'checkbox') {
+                    control.checked = Boolean(value);
+                } else {
+                    control.value = String(value);
+                }
+
+                control.dispatchEvent(new Event('input', { bubbles: true }));
+                control.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            function showMessage(message, severity) {
+                if (!messageBox) {
+                    return;
+                }
+
+                messageBox.textContent = message || '';
+                messageBox.className = 'alert mt-3 mb-0';
+
+                if (!message) {
+                    messageBox.classList.add('d-none');
+                    return;
+                }
+
+                messageBox.classList.remove('d-none');
+                messageBox.classList.add(severity === 'danger' ? 'alert-danger'
+                    : severity === 'warning' ? 'alert-warning'
+                    : 'alert-info');
+            }
+
+            function applyPreset() {
+                const presetKey = presetSelect?.value;
+                if (!presetKey || !presets[presetKey]) {
+                    showMessage('', 'info');
+                    return;
+                }
+
+                const preset = presets[presetKey];
+                const values = preset.values || preset;
+                Object.entries(values).forEach(([key, value]) => setValue(toFieldName(key), value));
+                showMessage(preset.message || '', preset.severity || 'info');
+            }
+
+            applyButton?.addEventListener('click', applyPreset);
+        })();
+    </script>
+</section>

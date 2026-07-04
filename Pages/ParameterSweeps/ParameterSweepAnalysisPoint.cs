@@ -11,6 +11,9 @@ public sealed class ParameterSweepAnalysisPoint
     public double WeakLinks { get; set; }
     public double ComponentCount { get; set; }
     public double IsolatedAgents { get; set; }
+    public double AverageKnowledgeDiversity { get; set; }
+    public double AverageKnowledgeRecombinationScore { get; set; }
+    public double AverageKnowledgeReconfigurationScore { get; set; }
     public int EmergentRunCount { get; set; }
     public int StableRunCount { get; set; }
     public int LearningRunCount { get; set; }
@@ -29,5 +32,16 @@ public sealed class ParameterSweepAnalysisPoint
     public double? DeltaEffectiveDensity { get; set; }
     public double? DeltaEmergentRate { get; set; }
     public double? DeltaSerendipityRate { get; set; }
+    public double? DeltaKnowledgeDiversity { get; set; }
+    public double? DeltaKnowledgeRecombinationScore { get; set; }
+    public double? DeltaKnowledgeReconfigurationScore { get; set; }
+    public int TrustInsufficientRunCount { get; set; }
+    public int EffectiveDensityInsufficientRunCount { get; set; }
+    public int KnowledgeDiversityInsufficientRunCount { get; set; }
+    public int KnowledgeRecombinationInsufficientRunCount { get; set; }
+    public int SerendipityInsufficientRunCount { get; set; }
+    public int IdeaProposalInsufficientRunCount { get; set; }
+    public int ConstructiveCriticismInsufficientRunCount { get; set; }
+    public string MainEmergentFailureReason { get; set; } = "";
     public string TransitionCandidates { get; set; } = "";
 }

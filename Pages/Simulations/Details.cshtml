@@ -752,6 +752,66 @@
     }
 </section>
 
+<section class="log-section mb-4" id="phaseDecisionSection">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Phase 判定内訳</h2>
+            <p class="text-muted small mb-0">各Stepでどの相に判定されたか、また Emergent / Stable / Learning などのスコアと判定理由を表示します。</p>
+        </div>
+    </div>
+    @if (Model.KnowledgeTimeline.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ Phase 判定内訳を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Phase</th>
+                        <th>Decision</th>
+                        <th>Emergent</th>
+                        <th>Stable</th>
+                        <th>Learning</th>
+                        <th>Silo</th>
+                        <th>Chaos</th>
+                        <th>Collapse</th>
+                        <th>判定理由</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.KnowledgeTimeline)
+                {
+                    <tr>
+                        <td>@point.StepNo</td>
+                        <td><span class="phase-pill">@FormatPhase(point.Phase)</span></td>
+                        <td>@point.PhaseDecisionScore.ToString("0.000")</td>
+                        <td>@point.EmergentScore.ToString("0.000")</td>
+                        <td>@point.StableScore.ToString("0.000")</td>
+                        <td>@point.LearningScore.ToString("0.000")</td>
+                        <td>@point.SiloScore.ToString("0.000")</td>
+                        <td>@point.ChaosScore.ToString("0.000")</td>
+                        <td>@point.CollapseScore.ToString("0.000")</td>
+                        <td>
+                            <div>@(string.IsNullOrWhiteSpace(point.PhaseDecisionReason) ? "-" : point.PhaseDecisionReason)</div>
+                            @if (!string.IsNullOrWhiteSpace(point.EmergentCriteriaJson))
+                            {
+                                <details class="mt-1">
+                                    <summary class="small text-primary">EmergentCriteria</summary>
+                                    <pre class="small mb-0">@point.EmergentCriteriaJson</pre>
+                                </details>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
 <section class="log-section mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
@@ -1377,13 +1437,19 @@
                 const inspectorSection = document.getElementById('phaseTransitionInspectorSection');
                 const precursorSection = document.getElementById('precursorSection');
                 const actionSection = document.getElementById('actionTimelineSection');
+                const phaseDecisionSection = document.getElementById('phaseDecisionSection');
                 const phaseSection = document.getElementById('phaseTimelineSection');
                 if (!actionSection || !phaseSection || !phaseSection.parentNode) {
                     return;
                 }
 
+                if (phaseDecisionSection) {
+                    phaseSection.parentNode.insertBefore(phaseDecisionSection, phaseSection.nextElementSibling);
+                }
+
                 if (inspectorSection) {
-                    phaseSection.parentNode.insertBefore(inspectorSection, phaseSection.nextElementSibling);
+                    const inspectorAnchor = phaseDecisionSection ?? phaseSection;
+                    phaseSection.parentNode.insertBefore(inspectorSection, inspectorAnchor.nextElementSibling);
                     if (precursorSection) {
                         phaseSection.parentNode.insertBefore(precursorSection, inspectorSection.nextElementSibling);
                         phaseSection.parentNode.insertBefore(actionSection, precursorSection.nextElementSibling);
@@ -1394,7 +1460,8 @@
                     return;
                 }
 
-                phaseSection.parentNode.insertBefore(actionSection, phaseSection.nextElementSibling);
+                const actionAnchor = phaseDecisionSection ?? phaseSection;
+                phaseSection.parentNode.insertBefore(actionSection, actionAnchor.nextElementSibling);
             }
 
             function renderTrustNetwork(snapshots) {

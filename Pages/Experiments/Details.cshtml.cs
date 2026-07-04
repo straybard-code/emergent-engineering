@@ -742,14 +742,14 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
 
     private static int GetPhaseOrder(string? phase) => phase switch
     {
-        SimulationPhase.Forming => 0,
-        SimulationPhase.Learning => 1,
-        SimulationPhase.Adaptation => 2,
-        SimulationPhase.Stable => 3,
+        SimulationPhase.Collapse => 0,
+        SimulationPhase.Chaos => 1,
+        SimulationPhase.Silo => 2,
+        SimulationPhase.Adaptation => 3,
         SimulationPhase.Emergent => 4,
-        SimulationPhase.Silo => 5,
-        SimulationPhase.Chaos => 6,
-        SimulationPhase.Collapse => 7,
+        SimulationPhase.Stable => 5,
+        SimulationPhase.Learning => 6,
+        SimulationPhase.Forming => 7,
         _ => 99
     };
 

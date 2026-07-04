@@ -120,55 +120,55 @@ public static class KnowledgeAnalysisService
     {
         if (challengeResolved)
         {
-            return "Challenge が解決され、組織の知識再構成が前進しています。";
+            return "Challenge は解決され、適応と再配線を通じて前進しています。";
         }
 
         if (challengeActive && challengeGap > 0.15)
         {
-            return "Challenge が未解決で、適応ギャップがまだ大きく残っています。";
+            return "Challenge は未解決で、ギャップがまだ大きい状態です。";
         }
 
         if (challengeActive && knowledgeReconfigurationScore >= 0.45)
         {
-            return "Challenge 圧力により、越境的な適応と知識再構成が進んでいます。";
+            return "Challenge の下で、再構成的な適応が進んでいます。";
         }
 
         if (serendipityOccurred && knowledgeRecombinationScore >= 0.45)
         {
-            return "セレンディピティが閾値を超え、知識再結合が加速しています。";
+            return "セレンディピティが有効に働き、知識再結合が進んでいます。";
         }
 
         if (explorationScore >= 0.45 && serendipityScore >= 0.45)
         {
-            return "探索行動と異分野接触が増え、有用な知識結合の可能性が高まっています。";
+            return "探索行動と偶然の有用結合が並立し、前兆が強まっています。";
         }
 
         if (externalShockLevel >= 0.25)
         {
-            return "外部刺激により知識ネットワークが揺さぶられています。";
+            return "外部刺激によりネットワークが揺さぶられています。";
         }
 
         if (crossDomainExposure >= 0.30 && rewiringScore >= 0.45)
         {
-            return "異分野接触と提案行動が、再配線の可能性を高めています。";
+            return "異分野接触と再配線が進み、新しい結合が生まれています。";
         }
 
         if (workAloneRate >= 0.35 && rewiringScore <= 0.30)
         {
-            return "単独作業が優勢で、知識が組織的に共有されにくい状態です。";
+            return "単独作業が多く、組織的な知識再構成が起こりにくい状態です。";
         }
 
         if (knowledgeStock >= 0.40 && rewiringScore <= 0.40)
         {
-            return "知識蓄積が進み、組織学習が安定しています。";
+            return "知識蓄積は進んでいますが、再配線はまだ弱いです。";
         }
 
         if (knowledgeDiversity >= 0.45 || rewiringScore >= 0.50)
         {
-            return "新しい知識結合が生まれ、再配線が活発化しています。";
+            return "知識の多様性が確保され、新しい結合の準備が進んでいます。";
         }
 
-        return "知識蓄積と知識多様性が緩やかに増加しています。";
+        return "知識蓄積と再構成の動きはまだ限定的です。";
     }
 
     public static List<KnowledgeTimelinePoint> BuildTimeline(IEnumerable<SimulationStep> steps)
@@ -202,6 +202,15 @@ public static class KnowledgeAnalysisService
                 SerendipityOccurred = GetBool(root, "serendipityOccurred"),
                 KnowledgeRecombinationScore = GetDouble(root, "knowledgeRecombinationScore", 0),
                 KnowledgeReconfigurationScore = GetDouble(root, "knowledgeReconfigurationScore", 0),
+                PhaseDecisionScore = GetDouble(root, "phaseDecisionScore", 0),
+                EmergentScore = GetDouble(root, "emergentScore", 0),
+                StableScore = GetDouble(root, "stableScore", 0),
+                LearningScore = GetDouble(root, "learningScore", 0),
+                SiloScore = GetDouble(root, "siloScore", 0),
+                ChaosScore = GetDouble(root, "chaosScore", 0),
+                CollapseScore = GetDouble(root, "collapseScore", 0),
+                EmergentCriteriaJson = GetString(root, "emergentCriteriaJson", ""),
+                PhaseDecisionReason = GetString(root, "phaseDecisionReason", ""),
                 AverageTrustGrowthRateEffective = GetDouble(root, "averageTrustGrowthRateEffective", 0),
                 AverageTrustDecayApplied = GetDouble(root, "averageTrustDecayApplied", 0),
                 TrustCapacityPenaltyAppliedCount = GetInt(root, "trustCapacityPenaltyAppliedCount", 0),
@@ -236,6 +245,15 @@ public static class KnowledgeAnalysisService
                 SerendipityOccurred = false,
                 KnowledgeRecombinationScore = 0,
                 KnowledgeReconfigurationScore = 0,
+                PhaseDecisionScore = 0,
+                EmergentScore = 0,
+                StableScore = 0,
+                LearningScore = 0,
+                SiloScore = 0,
+                ChaosScore = 0,
+                CollapseScore = 0,
+                EmergentCriteriaJson = "",
+                PhaseDecisionReason = "",
                 AverageTrustGrowthRateEffective = 0,
                 AverageTrustDecayApplied = 0,
                 TrustCapacityPenaltyAppliedCount = 0,
@@ -317,6 +335,15 @@ public sealed class KnowledgeTimelinePoint
     public bool SerendipityOccurred { get; set; }
     public double KnowledgeRecombinationScore { get; set; }
     public double KnowledgeReconfigurationScore { get; set; }
+    public double PhaseDecisionScore { get; set; }
+    public double EmergentScore { get; set; }
+    public double StableScore { get; set; }
+    public double LearningScore { get; set; }
+    public double SiloScore { get; set; }
+    public double ChaosScore { get; set; }
+    public double CollapseScore { get; set; }
+    public string EmergentCriteriaJson { get; set; } = "";
+    public string PhaseDecisionReason { get; set; } = "";
     public double AverageTrustGrowthRateEffective { get; set; }
     public double AverageTrustDecayApplied { get; set; }
     public int TrustCapacityPenaltyAppliedCount { get; set; }
