@@ -59,6 +59,10 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("EnableTrustDynamics")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -130,6 +134,34 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("RewiringSensitivity")
                         .HasColumnType("float")
                         .HasDefaultValue(0.5);
+
+                    b.Property<int>("TrustCapacity")
+                        .HasColumnType("int")
+                        .HasDefaultValue(5);
+
+                    b.Property<double>("TrustCapacityPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("TrustDecayRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.002);
+
+                    b.Property<double>("DistrustPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.05);
+
+                    b.Property<double>("ConstructiveCriticismBonus")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.01);
+
+                    b.Property<double>("TrustGrowthRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(1.0);
+
+                    b.Property<double>("TrustSaturationStrength")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.7);
 
                     b.Property<string>("ChallengeDescription")
                         .IsRequired()
@@ -671,6 +703,10 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("EnableTrustDynamics")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<double>("EffectiveTrustThreshold")
                         .HasColumnType("float")
                         .HasDefaultValue(0.3);
@@ -749,6 +785,34 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("RewiringSensitivity")
                         .HasColumnType("float")
                         .HasDefaultValue(0.5);
+
+                    b.Property<int>("TrustCapacity")
+                        .HasColumnType("int")
+                        .HasDefaultValue(5);
+
+                    b.Property<double>("TrustCapacityPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("TrustDecayRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.002);
+
+                    b.Property<double>("DistrustPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.05);
+
+                    b.Property<double>("ConstructiveCriticismBonus")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.01);
+
+                    b.Property<double>("TrustGrowthRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(1.0);
+
+                    b.Property<double>("TrustSaturationStrength")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.7);
 
                     b.Property<string>("ChallengeDescription")
                         .IsRequired()
@@ -855,6 +919,10 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("EnableTrustDynamics")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -926,6 +994,34 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("RewiringSensitivity")
                         .HasColumnType("float")
                         .HasDefaultValue(0.5);
+
+                    b.Property<int>("TrustCapacity")
+                        .HasColumnType("int")
+                        .HasDefaultValue(5);
+
+                    b.Property<double>("TrustCapacityPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("TrustDecayRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.002);
+
+                    b.Property<double>("DistrustPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.05);
+
+                    b.Property<double>("ConstructiveCriticismBonus")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.01);
+
+                    b.Property<double>("TrustGrowthRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(1.0);
+
+                    b.Property<double>("TrustSaturationStrength")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.7);
 
                     b.Property<string>("ChallengeDescription")
                         .IsRequired()

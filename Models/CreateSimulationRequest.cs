@@ -117,4 +117,27 @@ public sealed class CreateSimulationRequest
     public double SerendipityThreshold { get; set; } = SerendipityDefaults.SerendipityThreshold;
 
     public bool EnableSerendipity { get; set; } = SerendipityDefaults.EnableSerendipity;
+
+    public bool EnableTrustDynamics { get; set; } = TrustDynamicsDefaults.EnableTrustDynamics;
+
+    [Range(0, 2)]
+    public double TrustGrowthRate { get; set; } = TrustDynamicsDefaults.TrustGrowthRate;
+
+    [Range(0, 1)]
+    public double TrustDecayRate { get; set; } = TrustDynamicsDefaults.TrustDecayRate;
+
+    [Range(0, 1)]
+    public double TrustSaturationStrength { get; set; } = TrustDynamicsDefaults.TrustSaturationStrength;
+
+    [Range(1, 20)]
+    public int TrustCapacity { get; set; } = TrustDynamicsDefaults.TrustCapacity;
+
+    [Range(0, 1)]
+    public double TrustCapacityPenalty { get; set; } = TrustDynamicsDefaults.TrustCapacityPenalty;
+
+    [Range(0, 1)]
+    public double DistrustPenalty { get; set; } = TrustDynamicsDefaults.DistrustPenalty;
+
+    [Range(0, 1)]
+    public double ConstructiveCriticismBonus { get; set; } = TrustDynamicsDefaults.ConstructiveCriticismBonus;
 }

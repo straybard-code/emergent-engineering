@@ -11,7 +11,6 @@ public sealed class SimulationRunner(
     OpenAiLlmService openAiLlmService) : ISimulationRunner
 {
     private const int PhaseWindowSize = 10;
-    private static readonly string[] ConstructiveCriticismKeywords = ["\u5fc3\u7406\u7684\u5b89\u5168\u6027", "\u5931\u6557\u3092\u8a31\u5bb9", "\u5efa\u8a2d\u7684\u6279\u5224"];
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true
@@ -43,6 +42,8 @@ public sealed class SimulationRunner(
         var previousKnowledgeTimeline = KnowledgeAnalysisService.BuildTimeline(previousSteps);
         var previousKnowledgePoint = previousKnowledgeTimeline.LastOrDefault();
         List<AgentAction> currentStepActions = [];
+        var trustDynamicsState = new TrustDynamicsStepState();
+        var touchedTrustEdges = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var agent in project.Agents)
         {
@@ -68,7 +69,7 @@ public sealed class SimulationRunner(
                 CreatedAt = DateTime.UtcNow
             };
 
-            var trustMetrics = ApplyTrustUpdate(project, agent, agentAction);
+            var trustMetrics = ApplyTrustUpdate(project, agent, agentAction, trustDynamicsState, touchedTrustEdges);
             agentAction.TrustBefore = trustMetrics.Before;
             agentAction.TrustDelta = trustMetrics.Delta;
             agentAction.TrustAfter = trustMetrics.After;
@@ -78,6 +79,7 @@ public sealed class SimulationRunner(
 
         var stepActionSummary = ActionDistributionCalculator.Calculate(currentStepActions.Select(action => action.Action));
         var knowledgePoint = ApplyKnowledgeShockAndChallenge(project, stepNo, stepActionSummary, previousKnowledgePoint);
+        var trustDynamicsSummary = ApplyTrustDynamics(project, touchedTrustEdges, trustDynamicsState);
 
         project.Phase = await DeterminePhaseAsync(
             project,
@@ -130,6 +132,14 @@ public sealed class SimulationRunner(
             project.KnowledgeRecombinationRate,
             project.SerendipityThreshold,
             project.EnableSerendipity,
+            project.EnableTrustDynamics,
+            project.TrustGrowthRate,
+            project.TrustDecayRate,
+            project.TrustSaturationStrength,
+            project.TrustCapacity,
+            project.TrustCapacityPenalty,
+            project.DistrustPenalty,
+            project.ConstructiveCriticismBonus,
             knowledgeStock = knowledgePoint.KnowledgeStock,
             knowledgeDiversity = knowledgePoint.KnowledgeDiversity,
             externalShockLevel = knowledgePoint.ExternalShockLevel,
@@ -142,6 +152,11 @@ public sealed class SimulationRunner(
             knowledgeReconfigurationScore = knowledgePoint.KnowledgeReconfigurationScore,
             serendipityDrivenReconfiguration = knowledgePoint.SerendipityDrivenReconfiguration,
             serendipityToEmergenceLink = knowledgePoint.SerendipityToEmergenceLink,
+            averageTrustDecayApplied = trustDynamicsSummary.AverageTrustDecayApplied,
+            trustCapacityPenaltyAppliedCount = trustDynamicsSummary.TrustCapacityPenaltyAppliedCount,
+            trustCapacityPenaltyTotal = trustDynamicsSummary.TrustCapacityPenaltyTotal,
+            averageTrustSaturationEffect = trustDynamicsSummary.AverageTrustSaturationEffect,
+            averageTrustGrowthRateEffective = trustDynamicsSummary.AverageTrustGrowthRateEffective,
             shockOccurred = knowledgePoint.ShockOccurred,
             shockType = knowledgePoint.ShockType,
             challengeOccurred = knowledgePoint.ChallengeOccurred,
@@ -448,12 +463,17 @@ public sealed class SimulationRunner(
         return SimulationPhase.Stable;
     }
 
-    private TrustChangeMetrics ApplyTrustUpdate(SimulationProject project, Agent actor, AgentAction agentAction)
+    private TrustChangeMetrics ApplyTrustUpdate(
+        SimulationProject project,
+        Agent actor,
+        AgentAction agentAction,
+        TrustDynamicsStepState trustDynamicsState,
+        ISet<string> touchedTrustEdges)
     {
         var targetName = NormalizeTarget(agentAction.TargetAgentName);
         var targetAgent = project.Agents.FirstOrDefault(candidate =>
             candidate.Name.Equals(targetName, StringComparison.OrdinalIgnoreCase));
-        var constructiveCriticism = ContainsAny(project.BoundaryConditions, ConstructiveCriticismKeywords);
+        var constructiveCriticism = project.PsychologicalSafetyLevel >= 0.7;
         List<TrustPairChange> actorSideChanges = [];
 
         switch (agentAction.Action)
@@ -461,52 +481,130 @@ public sealed class SimulationRunner(
             case AgentActionType.SupportOther:
                 if (targetAgent is not null)
                 {
-                    actorSideChanges.Add(UpdateTrust(actor, targetAgent, 0.10));
-                    UpdateTrust(targetAgent, actor, 0.15);
+                    actorSideChanges.Add(ApplyTrustDelta(project, actor, targetAgent, 0.10, trustDynamicsState, touchedTrustEdges));
+                    ApplyTrustDelta(project, targetAgent, actor, 0.15, trustDynamicsState, touchedTrustEdges);
                 }
                 break;
 
             case AgentActionType.AskHelp:
                 if (targetAgent is not null)
                 {
-                    actorSideChanges.Add(UpdateTrust(actor, targetAgent, 0.05));
-                    UpdateTrust(targetAgent, actor, 0.05);
+                    actorSideChanges.Add(ApplyTrustDelta(project, actor, targetAgent, 0.05, trustDynamicsState, touchedTrustEdges));
+                    ApplyTrustDelta(project, targetAgent, actor, 0.05, trustDynamicsState, touchedTrustEdges);
                 }
                 break;
 
             case AgentActionType.ShareInfo:
                 foreach (var otherAgent in project.Agents.Where(candidate => candidate.Id != actor.Id))
                 {
-                    actorSideChanges.Add(UpdateTrust(actor, otherAgent, 0.03));
-                    UpdateTrust(otherAgent, actor, 0.03);
+                    actorSideChanges.Add(ApplyTrustDelta(project, actor, otherAgent, 0.03, trustDynamicsState, touchedTrustEdges));
+                    ApplyTrustDelta(project, otherAgent, actor, 0.03, trustDynamicsState, touchedTrustEdges);
                 }
                 break;
 
             case AgentActionType.ProposeIdea:
                 foreach (var otherAgent in project.Agents.Where(candidate => candidate.Id != actor.Id))
                 {
-                    actorSideChanges.Add(UpdateTrust(actor, otherAgent, 0.02));
+                    actorSideChanges.Add(ApplyTrustDelta(project, actor, otherAgent, 0.02, trustDynamicsState, touchedTrustEdges));
                 }
                 break;
 
             case AgentActionType.Criticize:
                 if (targetAgent is not null)
                 {
-                    if (constructiveCriticism)
-                    {
-                        actorSideChanges.Add(UpdateTrust(actor, targetAgent, 0.02));
-                        UpdateTrust(targetAgent, actor, 0.02);
-                    }
-                    else
-                    {
-                        actorSideChanges.Add(UpdateTrust(actor, targetAgent, -0.05));
-                        UpdateTrust(targetAgent, actor, -0.10);
-                    }
+                    var criticismDelta = GetCriticizeTrustDelta(project, constructiveCriticism);
+                    actorSideChanges.Add(ApplyTrustDelta(project, actor, targetAgent, criticismDelta, trustDynamicsState, touchedTrustEdges));
+                    ApplyTrustDelta(project, targetAgent, actor, criticismDelta, trustDynamicsState, touchedTrustEdges);
                 }
                 break;
         }
 
         return CalculateTrustMetrics(actorSideChanges);
+    }
+
+    private TrustDynamicsSummary ApplyTrustDynamics(
+        SimulationProject project,
+        ISet<string> touchedTrustEdges,
+        TrustDynamicsStepState trustDynamicsState)
+    {
+        if (!project.EnableTrustDynamics || project.Agents.Count == 0)
+        {
+            return trustDynamicsState.ToSummary();
+        }
+
+        var totalPairs = 0;
+        var totalDecayApplied = 0.0;
+
+        foreach (var sourceAgent in project.Agents)
+        {
+            var trustMap = TrustJsonUtility.Deserialize(sourceAgent.TrustJson);
+            foreach (var targetAgent in project.Agents.Where(candidate => candidate.Id != sourceAgent.Id))
+            {
+                totalPairs++;
+                var key = GetTrustEdgeKey(sourceAgent.Name, targetAgent.Name);
+                var before = trustMap.TryGetValue(targetAgent.Name, out var currentValue) ? currentValue : 0;
+                var after = before;
+
+                if (project.EnableTrustDynamics && project.TrustDecayRate > 0)
+                {
+                    after = ApplyDecayTowardZero(after, project.TrustDecayRate);
+                    if (!touchedTrustEdges.Contains(key))
+                    {
+                        after = ApplyDecayTowardZero(after, project.TrustDecayRate * 0.5);
+                    }
+                }
+
+                totalDecayApplied += Math.Abs(before - after);
+                trustMap[targetAgent.Name] = after;
+            }
+
+            sourceAgent.TrustJson = JsonSerializer.Serialize(trustMap, JsonOptions);
+        }
+
+        var capacityPenaltyCount = 0;
+        var capacityPenaltyTotal = 0.0;
+        var capacityExceededAgentCount = 0;
+
+        foreach (var sourceAgent in project.Agents)
+        {
+            var trustMap = TrustJsonUtility.Deserialize(sourceAgent.TrustJson);
+            var stronglyTrustedTargets = project.Agents
+                .Where(candidate => candidate.Id != sourceAgent.Id)
+                .Select(candidate => new
+                {
+                    candidate.Name,
+                    Trust = trustMap.TryGetValue(candidate.Name, out var trustValue) ? trustValue : 0
+                })
+                .Where(item => item.Trust >= 0.7)
+                .OrderByDescending(item => item.Trust)
+                .ThenBy(item => item.Name)
+                .ToList();
+
+            var trustCapacity = Math.Max(1, project.TrustCapacity);
+            if (stronglyTrustedTargets.Count <= trustCapacity)
+            {
+                continue;
+            }
+
+            capacityExceededAgentCount++;
+            foreach (var target in stronglyTrustedTargets.Skip(trustCapacity))
+            {
+                var before = trustMap.TryGetValue(target.Name, out var currentValue) ? currentValue : 0;
+                var after = TrustJsonUtility.Clamp(before - Math.Clamp(project.TrustCapacityPenalty, 0, 1));
+                trustMap[target.Name] = after;
+                capacityPenaltyTotal += Math.Abs(before - after);
+                if (Math.Abs(before - after) > 0)
+                {
+                    capacityPenaltyCount++;
+                }
+            }
+
+            sourceAgent.TrustJson = JsonSerializer.Serialize(trustMap, JsonOptions);
+        }
+
+        trustDynamicsState.RecordDecay(totalDecayApplied, totalPairs);
+        trustDynamicsState.RecordCapacityPenalty(capacityPenaltyCount, capacityPenaltyTotal, capacityExceededAgentCount);
+        return trustDynamicsState.ToSummary();
     }
 
     private async Task SaveMetricsAsync(int simulationId, CancellationToken cancellationToken)
@@ -621,24 +719,70 @@ public sealed class SimulationRunner(
             : LlmDefaults.MockModel;
     }
 
-    private static bool ContainsAny(string source, IReadOnlyCollection<string> keywords)
-    {
-        return keywords.Any(keyword => source.Contains(keyword, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static TrustPairChange UpdateTrust(Agent sourceAgent, Agent targetAgent, double delta)
+    private static TrustPairChange ApplyTrustDelta(
+        SimulationProject project,
+        Agent sourceAgent,
+        Agent targetAgent,
+        double rawDelta,
+        TrustDynamicsStepState trustDynamicsState,
+        ISet<string> touchedTrustEdges)
     {
         if (sourceAgent.Id == targetAgent.Id)
         {
             return new TrustPairChange(null, null);
         }
 
+        touchedTrustEdges.Add(GetTrustEdgeKey(sourceAgent.Name, targetAgent.Name));
         var trustMap = TrustJsonUtility.Deserialize(sourceAgent.TrustJson);
         var before = trustMap.TryGetValue(targetAgent.Name, out var currentValue) ? currentValue : 0;
+        var delta = rawDelta;
+        if (project.EnableTrustDynamics && rawDelta > 0)
+        {
+            var saturationEffect = Math.Clamp(Math.Clamp(project.TrustSaturationStrength, 0, 1) * Math.Max(before, 0), 0, 1);
+            var growthMultiplier = Math.Clamp(project.TrustGrowthRate, 0, 2) * (1.0 - saturationEffect);
+            delta = rawDelta * growthMultiplier;
+            trustDynamicsState.RecordPositiveGrowth(growthMultiplier, saturationEffect);
+        }
+
         var after = TrustJsonUtility.Clamp(before + delta);
         trustMap[targetAgent.Name] = after;
         sourceAgent.TrustJson = JsonSerializer.Serialize(trustMap, JsonOptions);
         return new TrustPairChange(before, after);
+    }
+
+    private static double ApplyDecayTowardZero(double trust, double decayRate)
+    {
+        if (trust > 0)
+        {
+            return TrustJsonUtility.Clamp(Math.Max(0, trust - decayRate));
+        }
+
+        if (trust < 0)
+        {
+            return TrustJsonUtility.Clamp(Math.Min(0, trust + decayRate));
+        }
+
+        return 0;
+    }
+
+    private static double GetCriticizeTrustDelta(SimulationProject project, bool constructiveCriticism)
+    {
+        if (constructiveCriticism && project.PsychologicalSafetyLevel >= 0.7)
+        {
+            return Math.Clamp(project.ConstructiveCriticismBonus, 0, 1);
+        }
+
+        if (project.PsychologicalSafetyLevel >= 0.4)
+        {
+            return -Math.Clamp(project.DistrustPenalty, 0, 1) * 0.5;
+        }
+
+        return -Math.Clamp(project.DistrustPenalty, 0, 1);
+    }
+
+    private static string GetTrustEdgeKey(string sourceAgentName, string targetAgentName)
+    {
+        return $"{sourceAgentName}=>{targetAgentName}";
     }
 
     private static TrustChangeMetrics CalculateTrustMetrics(IReadOnlyCollection<TrustPairChange> changes)
@@ -811,7 +955,8 @@ public sealed class SimulationRunner(
                 serendipityScore,
                 actions,
                 project.PsychologicalSafetyLevel,
-                project.KnowledgeRecombinationRate)
+                project.KnowledgeRecombinationRate,
+                project.ConstructiveCriticismBonus)
             : 0;
         var knowledgeReconfigurationScore = KnowledgeAnalysisService.CalculateKnowledgeReconfigurationScore(
             rewiringScore,
@@ -819,7 +964,8 @@ public sealed class SimulationRunner(
             actions,
             project.PsychologicalSafetyLevel,
             challengeWindowStarted,
-            knowledgeRecombinationScore);
+            knowledgeRecombinationScore,
+            project.ConstructiveCriticismBonus);
         var challengeResolutionScore = challengeWindowStarted
             ? KnowledgeAnalysisService.CalculateChallengeResolutionScore(
                 project.KnowledgeDiversity,
@@ -847,7 +993,8 @@ public sealed class SimulationRunner(
             challengeActive,
             challengeResolved,
             challengeGap,
-            actions.WorkAloneRate);
+            actions.WorkAloneRate,
+            project.ConstructiveCriticismBonus);
 
         return new KnowledgeTimelinePoint
         {
@@ -981,6 +1128,73 @@ public sealed class SimulationRunner(
                 project.KnowledgeDiversity = Math.Clamp(project.KnowledgeDiversity + 0.08, 0, 1);
                 break;
         }
+    }
+
+    private sealed class TrustDynamicsStepState
+    {
+        private double PositiveGrowthMultiplierSum { get; set; }
+        private int PositiveGrowthCount { get; set; }
+        private double SaturationEffectSum { get; set; }
+        private int SaturationEffectCount { get; set; }
+        private double TotalDecayApplied { get; set; }
+        private int DecaySampleCount { get; set; }
+        public int TrustCapacityPenaltyAppliedCount { get; private set; }
+        public double TrustCapacityPenaltyTotal { get; private set; }
+        public int TrustCapacityExceededAgentCount { get; private set; }
+
+        public void RecordPositiveGrowth(double growthMultiplier, double saturationEffect)
+        {
+            PositiveGrowthMultiplierSum += Math.Clamp(growthMultiplier, 0, 2);
+            PositiveGrowthCount++;
+            SaturationEffectSum += Math.Clamp(saturationEffect, 0, 1);
+            SaturationEffectCount++;
+        }
+
+        public void RecordDecay(double totalDecayApplied, int sampleCount)
+        {
+            TotalDecayApplied += Math.Max(0, totalDecayApplied);
+            DecaySampleCount += Math.Max(0, sampleCount);
+        }
+
+        public void RecordCapacityPenalty(int appliedCount, double totalPenalty, int exceededAgentCount)
+        {
+            TrustCapacityPenaltyAppliedCount += Math.Max(0, appliedCount);
+            TrustCapacityPenaltyTotal += Math.Max(0, totalPenalty);
+            TrustCapacityExceededAgentCount += Math.Max(0, exceededAgentCount);
+        }
+
+        public TrustDynamicsSummary ToSummary()
+        {
+            var averageGrowthMultiplier = PositiveGrowthCount == 0
+                ? 0
+                : Math.Round(PositiveGrowthMultiplierSum / PositiveGrowthCount, 4);
+            var averageSaturationEffect = SaturationEffectCount == 0
+                ? 0
+                : Math.Round(SaturationEffectSum / SaturationEffectCount, 4);
+            var averageDecayApplied = DecaySampleCount == 0
+                ? 0
+                : Math.Round(TotalDecayApplied / DecaySampleCount, 4);
+
+            return new TrustDynamicsSummary
+            {
+                AverageTrustGrowthRateEffective = averageGrowthMultiplier,
+                AverageTrustDecayApplied = averageDecayApplied,
+                TrustCapacityPenaltyAppliedCount = TrustCapacityPenaltyAppliedCount,
+                TrustCapacityPenaltyTotal = Math.Round(TrustCapacityPenaltyTotal, 4),
+                AverageTrustSaturationEffect = averageSaturationEffect,
+                TrustCapacityExceededAgentCount = TrustCapacityExceededAgentCount
+            };
+        }
+    }
+
+    private sealed record TrustDynamicsSummary
+    {
+        public double AverageTrustGrowthRateEffective { get; init; }
+        public double AverageTrustDecayApplied { get; init; }
+        public int TrustCapacityPenaltyAppliedCount { get; init; }
+        public double TrustCapacityPenaltyTotal { get; init; }
+        public double AverageTrustSaturationEffect { get; init; }
+        public int TrustCapacityExceededAgentCount { get; init; }
     }
 
     private sealed record TrustPairChange(double? Before, double? After);

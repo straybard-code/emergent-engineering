@@ -36,6 +36,31 @@ public static class SimulationFactory
         "CostFocused"
     ];
 
+    public static Scenario CloneScenario(Scenario source)
+    {
+        return CreateScenario(source);
+    }
+
+    public static string BuildScenarioCopyName(string sourceName, IReadOnlyCollection<string> existingNames)
+    {
+        var baseName = string.IsNullOrWhiteSpace(sourceName) ? "シナリオ" : sourceName.Trim();
+        var candidate = $"{baseName} - コピー";
+        var names = new HashSet<string>(existingNames, StringComparer.OrdinalIgnoreCase);
+
+        if (!names.Contains(candidate))
+        {
+            return candidate;
+        }
+
+        var index = 2;
+        while (names.Contains($"{candidate} {index}"))
+        {
+            index++;
+        }
+
+        return $"{candidate} {index}";
+    }
+
     public static SimulationProject CreateProject(CreateSimulationRequest request)
     {
         var project = new SimulationProject
@@ -78,6 +103,14 @@ public static class SimulationFactory
             KnowledgeRecombinationRate = request.KnowledgeRecombinationRate,
             SerendipityThreshold = request.SerendipityThreshold,
             EnableSerendipity = request.EnableSerendipity,
+            EnableTrustDynamics = request.EnableTrustDynamics,
+            TrustGrowthRate = request.TrustGrowthRate,
+            TrustDecayRate = request.TrustDecayRate,
+            TrustSaturationStrength = request.TrustSaturationStrength,
+            TrustCapacity = request.TrustCapacity,
+            TrustCapacityPenalty = request.TrustCapacityPenalty,
+            DistrustPenalty = request.DistrustPenalty,
+            ConstructiveCriticismBonus = request.ConstructiveCriticismBonus,
             CurrentStep = 0,
             Status = SimulationStatus.Created,
             Phase = SimulationPhase.Forming,
@@ -146,6 +179,14 @@ public static class SimulationFactory
             KnowledgeRecombinationRate = request.KnowledgeRecombinationRate,
             SerendipityThreshold = request.SerendipityThreshold,
             EnableSerendipity = request.EnableSerendipity,
+            EnableTrustDynamics = request.EnableTrustDynamics,
+            TrustGrowthRate = request.TrustGrowthRate,
+            TrustDecayRate = request.TrustDecayRate,
+            TrustSaturationStrength = request.TrustSaturationStrength,
+            TrustCapacity = request.TrustCapacity,
+            TrustCapacityPenalty = request.TrustCapacityPenalty,
+            DistrustPenalty = request.DistrustPenalty,
+            ConstructiveCriticismBonus = request.ConstructiveCriticismBonus,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -203,6 +244,14 @@ public static class SimulationFactory
             KnowledgeRecombinationRate = scenario.KnowledgeRecombinationRate,
             SerendipityThreshold = scenario.SerendipityThreshold,
             EnableSerendipity = scenario.EnableSerendipity,
+            EnableTrustDynamics = scenario.EnableTrustDynamics,
+            TrustGrowthRate = scenario.TrustGrowthRate,
+            TrustDecayRate = scenario.TrustDecayRate,
+            TrustSaturationStrength = scenario.TrustSaturationStrength,
+            TrustCapacity = scenario.TrustCapacity,
+            TrustCapacityPenalty = scenario.TrustCapacityPenalty,
+            DistrustPenalty = scenario.DistrustPenalty,
+            ConstructiveCriticismBonus = scenario.ConstructiveCriticismBonus,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -251,6 +300,14 @@ public static class SimulationFactory
             KnowledgeRecombinationRate = request.KnowledgeRecombinationRate,
             SerendipityThreshold = request.SerendipityThreshold,
             EnableSerendipity = request.EnableSerendipity,
+            EnableTrustDynamics = request.EnableTrustDynamics,
+            TrustGrowthRate = request.TrustGrowthRate,
+            TrustDecayRate = request.TrustDecayRate,
+            TrustSaturationStrength = request.TrustSaturationStrength,
+            TrustCapacity = request.TrustCapacity,
+            TrustCapacityPenalty = request.TrustCapacityPenalty,
+            DistrustPenalty = request.DistrustPenalty,
+            ConstructiveCriticismBonus = request.ConstructiveCriticismBonus,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
@@ -297,7 +354,15 @@ public static class SimulationFactory
             SerendipitySensitivity = experiment.SerendipitySensitivity,
             KnowledgeRecombinationRate = experiment.KnowledgeRecombinationRate,
             SerendipityThreshold = experiment.SerendipityThreshold,
-            EnableSerendipity = experiment.EnableSerendipity
+            EnableSerendipity = experiment.EnableSerendipity,
+            EnableTrustDynamics = experiment.EnableTrustDynamics,
+            TrustGrowthRate = experiment.TrustGrowthRate,
+            TrustDecayRate = experiment.TrustDecayRate,
+            TrustSaturationStrength = experiment.TrustSaturationStrength,
+            TrustCapacity = experiment.TrustCapacity,
+            TrustCapacityPenalty = experiment.TrustCapacityPenalty,
+            DistrustPenalty = experiment.DistrustPenalty,
+            ConstructiveCriticismBonus = experiment.ConstructiveCriticismBonus
         });
 
         project.ExperimentId = experiment.Id;

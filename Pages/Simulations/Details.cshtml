@@ -145,12 +145,16 @@
                     <tr><th>AverageKnowledgeStock</th><td>@Model.Fingerprint.AverageKnowledgeStock.ToString("0.000")</td><th>AverageKnowledgeDiversity</th><td>@Model.Fingerprint.AverageKnowledgeDiversity.ToString("0.000")</td></tr>
                     <tr><th>AverageExplorationScore</th><td>@Model.Fingerprint.AverageExplorationScore.ToString("0.000")</td><th>AverageSerendipityScore</th><td>@Model.Fingerprint.AverageSerendipityScore.ToString("0.000")</td></tr>
                     <tr><th>AverageKnowledgeRecombinationScore</th><td>@Model.Fingerprint.AverageKnowledgeRecombinationScore.ToString("0.000")</td><th>AverageKnowledgeReconfigurationScore</th><td>@Model.Fingerprint.AverageKnowledgeReconfigurationScore.ToString("0.000")</td></tr>
+                    <tr><th>AverageTrustGrowthRateEffective</th><td>@Model.Fingerprint.AverageTrustGrowthRateEffective.ToString("0.000")</td><th>AverageTrustDecayApplied</th><td>@Model.Fingerprint.AverageTrustDecayApplied.ToString("0.000")</td></tr>
+                    <tr><th>AverageTrustCapacityPenalty</th><td>@Model.Fingerprint.AverageTrustCapacityPenalty.ToString("0.000")</td><th>StrongTrustConcentration</th><td>@Model.Fingerprint.StrongTrustConcentration.ToString("0.000")</td></tr>
+                    <tr><th>TrustCapacityExceededRate</th><td>@Model.Fingerprint.TrustCapacityExceededRate.ToString("0.000")</td><th>TrustNetworkType</th><td>@Model.Fingerprint.TrustNetworkType</td></tr>
                     <tr><th>SerendipityOccurredCount</th><td>@Model.Fingerprint.SerendipityOccurredCount</td><th>SerendipityRate</th><td>@Model.Fingerprint.SerendipityRate.ToString("0.000")</td></tr>
                     <tr><th>SerendipityToEmergenceLinkCount</th><td>@Model.Fingerprint.SerendipityToEmergenceLinkCount</td><th>SerendipityToEmergenceRate</th><td>@Model.Fingerprint.SerendipityToEmergenceRate.ToString("0.000")</td></tr>
                     <tr><th>MaxKnowledgeRewiringScore</th><td>@Model.Fingerprint.MaxKnowledgeRewiringScore.ToString("0.000")</td><th>FinalKnowledgeRewiringScore</th><td>@Model.Fingerprint.FinalKnowledgeRewiringScore.ToString("0.000")</td></tr>
                     <tr><th>ChallengeResolutionScore</th><td>@Model.Fingerprint.AverageChallengeResolutionScore.ToString("0.000")</td><th>ChallengeResolved</th><td>@(Model.Fingerprint.ChallengeResolved ? "Yes" : "No")</td></tr>
                     <tr><th>ShockOccurred</th><td>@(Model.Fingerprint.ShockOccurred ? "Yes" : "No")</td><th>ShockType</th><td>@Model.Fingerprint.ShockType</td></tr>
-                    <tr><th>KnowledgeDrivenType</th><td>@Model.Fingerprint.KnowledgeDrivenType</td><th>分類</th><td>@Model.Fingerprint.ClassificationLabel</td></tr>
+                    <tr><th>KnowledgeDrivenType</th><td>@Model.Fingerprint.KnowledgeDrivenType</td><th>TrustNetworkType</th><td>@Model.Fingerprint.TrustNetworkType</td></tr>
+                    <tr><th>分類</th><td>@Model.Fingerprint.ClassificationLabel</td><th></th><td></td></tr>
                     <tr><th>ChallengeResolvedStep</th><td>@(Model.Fingerprint.ChallengeResolvedStep?.ToString() ?? "-")</td><th></th><td></td></tr>
                     <tr><th>AdaptationDuration</th><td>@Model.Fingerprint.AdaptationDuration</td><th>AverageChallengeGap</th><td>@Model.Fingerprint.AverageChallengeGap.ToString("0.000")</td></tr>
                 </tbody>
@@ -512,6 +516,59 @@
             </table>
         </div>
         <canvas id="knowledgeTimelineChart" height="120"></canvas>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">信頼ダイナミクス</h2>
+            <p class="text-muted small mb-0">信頼飽和・自然減衰・信頼容量制約の影響を表示します。</p>
+        </div>
+    </div>
+    <div class="table-responsive mb-3">
+        <table class="table table-sm align-middle mb-0">
+            <tbody>
+                <tr><th>Trust Dynamics有効</th><td>@(Model.Project.EnableTrustDynamics ? "Yes" : "No")</td><th>信頼成長率</th><td>@Model.Project.TrustGrowthRate.ToString("0.00")</td></tr>
+                <tr><th>信頼自然減衰率</th><td>@Model.Project.TrustDecayRate.ToString("0.00")</td><th>信頼飽和強度</th><td>@Model.Project.TrustSaturationStrength.ToString("0.00")</td></tr>
+                <tr><th>信頼容量</th><td>@Model.Project.TrustCapacity</td><th>信頼容量ペナルティ</th><td>@Model.Project.TrustCapacityPenalty.ToString("0.00")</td></tr>
+                <tr><th>不信ペナルティ</th><td>@Model.Project.DistrustPenalty.ToString("0.00")</td><th>建設的批判ボーナス</th><td>@Model.Project.ConstructiveCriticismBonus.ToString("0.00")</td></tr>
+            </tbody>
+        </table>
+    </div>
+    @if (Model.KnowledgeTimeline.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ信頼ダイナミクスを表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>TrustCapacityPenaltyAppliedCount</th>
+                        <th>TrustCapacityPenaltyTotal</th>
+                        <th>AverageTrustDecayApplied</th>
+                        <th>AverageTrustSaturationEffect</th>
+                        <th>AverageTrustGrowthRateEffective</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.KnowledgeTimeline)
+                {
+                    <tr>
+                        <td>@point.StepNo</td>
+                        <td>@point.TrustCapacityPenaltyAppliedCount</td>
+                        <td>@point.TrustCapacityPenaltyTotal.ToString("0.000")</td>
+                        <td>@point.AverageTrustDecayApplied.ToString("0.000")</td>
+                        <td>@point.AverageTrustSaturationEffect.ToString("0.000")</td>
+                        <td>@point.AverageTrustGrowthRateEffective.ToString("0.000")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
     }
 </section>
 

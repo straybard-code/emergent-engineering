@@ -49,6 +49,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.KnowledgeRecombinationRate).HasDefaultValue(SerendipityDefaults.KnowledgeRecombinationRate);
             entity.Property(project => project.SerendipityThreshold).HasDefaultValue(SerendipityDefaults.SerendipityThreshold);
             entity.Property(project => project.EnableSerendipity).HasDefaultValue(SerendipityDefaults.EnableSerendipity);
+            entity.Property(project => project.EnableTrustDynamics).HasDefaultValue(TrustDynamicsDefaults.EnableTrustDynamics);
+            entity.Property(project => project.TrustGrowthRate).HasDefaultValue(TrustDynamicsDefaults.TrustGrowthRate);
+            entity.Property(project => project.TrustDecayRate).HasDefaultValue(TrustDynamicsDefaults.TrustDecayRate);
+            entity.Property(project => project.TrustSaturationStrength).HasDefaultValue(TrustDynamicsDefaults.TrustSaturationStrength);
+            entity.Property(project => project.TrustCapacity).HasDefaultValue(TrustDynamicsDefaults.TrustCapacity);
+            entity.Property(project => project.TrustCapacityPenalty).HasDefaultValue(TrustDynamicsDefaults.TrustCapacityPenalty);
+            entity.Property(project => project.DistrustPenalty).HasDefaultValue(TrustDynamicsDefaults.DistrustPenalty);
+            entity.Property(project => project.ConstructiveCriticismBonus).HasDefaultValue(TrustDynamicsDefaults.ConstructiveCriticismBonus);
             entity.HasOne(project => project.Experiment)
                 .WithMany(experiment => experiment.SimulationProjects)
                 .HasForeignKey(project => project.ExperimentId)
@@ -100,6 +108,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.KnowledgeRecombinationRate).HasDefaultValue(SerendipityDefaults.KnowledgeRecombinationRate);
             entity.Property(project => project.SerendipityThreshold).HasDefaultValue(SerendipityDefaults.SerendipityThreshold);
             entity.Property(project => project.EnableSerendipity).HasDefaultValue(SerendipityDefaults.EnableSerendipity);
+            entity.Property(project => project.EnableTrustDynamics).HasDefaultValue(TrustDynamicsDefaults.EnableTrustDynamics);
+            entity.Property(project => project.TrustGrowthRate).HasDefaultValue(TrustDynamicsDefaults.TrustGrowthRate);
+            entity.Property(project => project.TrustDecayRate).HasDefaultValue(TrustDynamicsDefaults.TrustDecayRate);
+            entity.Property(project => project.TrustSaturationStrength).HasDefaultValue(TrustDynamicsDefaults.TrustSaturationStrength);
+            entity.Property(project => project.TrustCapacity).HasDefaultValue(TrustDynamicsDefaults.TrustCapacity);
+            entity.Property(project => project.TrustCapacityPenalty).HasDefaultValue(TrustDynamicsDefaults.TrustCapacityPenalty);
+            entity.Property(project => project.DistrustPenalty).HasDefaultValue(TrustDynamicsDefaults.DistrustPenalty);
+            entity.Property(project => project.ConstructiveCriticismBonus).HasDefaultValue(TrustDynamicsDefaults.ConstructiveCriticismBonus);
             entity.HasOne(project => project.Scenario)
                 .WithMany(scenario => scenario.Experiments)
                 .HasForeignKey(project => project.ScenarioId)
@@ -134,6 +150,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(item => item.KnowledgeRecombinationRate).HasDefaultValue(SerendipityDefaults.KnowledgeRecombinationRate);
             entity.Property(item => item.SerendipityThreshold).HasDefaultValue(SerendipityDefaults.SerendipityThreshold);
             entity.Property(item => item.EnableSerendipity).HasDefaultValue(SerendipityDefaults.EnableSerendipity);
+            entity.Property(item => item.EnableTrustDynamics).HasDefaultValue(TrustDynamicsDefaults.EnableTrustDynamics);
+            entity.Property(item => item.TrustGrowthRate).HasDefaultValue(TrustDynamicsDefaults.TrustGrowthRate);
+            entity.Property(item => item.TrustDecayRate).HasDefaultValue(TrustDynamicsDefaults.TrustDecayRate);
+            entity.Property(item => item.TrustSaturationStrength).HasDefaultValue(TrustDynamicsDefaults.TrustSaturationStrength);
+            entity.Property(item => item.TrustCapacity).HasDefaultValue(TrustDynamicsDefaults.TrustCapacity);
+            entity.Property(item => item.TrustCapacityPenalty).HasDefaultValue(TrustDynamicsDefaults.TrustCapacityPenalty);
+            entity.Property(item => item.DistrustPenalty).HasDefaultValue(TrustDynamicsDefaults.DistrustPenalty);
+            entity.Property(item => item.ConstructiveCriticismBonus).HasDefaultValue(TrustDynamicsDefaults.ConstructiveCriticismBonus);
         });
 
         modelBuilder.Entity<ParameterSweep>(entity =>

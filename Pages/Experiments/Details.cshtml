@@ -171,6 +171,14 @@
                 <tr><th>知識再結合率</th><td>@Model.Experiment.KnowledgeRecombinationRate.ToString("0.00")</td></tr>
                 <tr><th>セレンディピティ閾値</th><td>@Model.Experiment.SerendipityThreshold.ToString("0.00")</td></tr>
                 <tr><th>セレンディピティを有効化</th><td>@(Model.Experiment.EnableSerendipity ? "Yes" : "No")</td></tr>
+                <tr><th>Trust Dynamics を有効化</th><td>@(Model.Experiment.EnableTrustDynamics ? "Yes" : "No")</td></tr>
+                <tr><th>信頼成長率</th><td>@Model.Experiment.TrustGrowthRate.ToString("0.00")</td></tr>
+                <tr><th>信頼自然減衰率</th><td>@Model.Experiment.TrustDecayRate.ToString("0.00")</td></tr>
+                <tr><th>信頼飽和強度</th><td>@Model.Experiment.TrustSaturationStrength.ToString("0.00")</td></tr>
+                <tr><th>信頼容量</th><td>@Model.Experiment.TrustCapacity</td></tr>
+                <tr><th>信頼容量ペナルティ</th><td>@Model.Experiment.TrustCapacityPenalty.ToString("0.00")</td></tr>
+                <tr><th>不信ペナルティ</th><td>@Model.Experiment.DistrustPenalty.ToString("0.00")</td></tr>
+                <tr><th>建設的批判ボーナス</th><td>@Model.Experiment.ConstructiveCriticismBonus.ToString("0.00")</td></tr>
             </tbody>
         </table>
     </div>
@@ -424,6 +432,92 @@
                         <td>@item.SerendipityOccurredCount</td>
                         <td>@item.AverageKnowledgeRecombinationScore.ToString("0.000")</td>
                         <td>@item.SerendipityToEmergenceLinkCount</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">信頼ダイナミクス分析</h2>
+            <p class="text-muted small mb-0">Run ごとの信頼飽和・減衰・容量制約を比較します。</p>
+        </div>
+    </div>
+    @if (Model.RunFingerprints.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ信頼ダイナミクスを集計できる Run はありません。</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均信頼成長率</div>
+                    <div class="fs-5">@Model.AverageTrustGrowthRateEffectiveMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均自然減衰率</div>
+                    <div class="fs-5">@Model.AverageTrustDecayAppliedMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均容量ペナルティ</div>
+                    <div class="fs-5">@Model.AverageTrustCapacityPenaltyMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均強信頼集中度</div>
+                    <div class="fs-5">@Model.AverageStrongTrustConcentrationMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">容量超過Run数</div>
+                    <div class="fs-5">@Model.TrustCapacityExceededRunCount</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">過信完全ネットワーク型 / 選択的信頼ネットワーク型 / 脆弱信頼ネットワーク型</div>
+                    <div class="fs-5">@Model.OvertrustedCompleteNetworkRunCount / @Model.SelectiveTrustNetworkRunCount / @Model.FragileTrustNetworkRunCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Run</th>
+                        <th>FinalPhase</th>
+                        <th>AverageTrustGrowthRateEffective</th>
+                        <th>AverageTrustDecayApplied</th>
+                        <th>AverageTrustCapacityPenalty</th>
+                        <th>StrongTrustConcentration</th>
+                        <th>TrustCapacityExceeded</th>
+                        <th>TrustNetworkType</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.RunFingerprints.OrderBy(fingerprint => fingerprint.RunNo ?? int.MaxValue).ThenBy(fingerprint => fingerprint.SimulationProjectId))
+                {
+                    <tr>
+                        <td>@(item.RunNo?.ToString() ?? "-")</td>
+                        <td><span class="phase-pill">@FormatPhase(item.FinalPhase)</span></td>
+                        <td>@item.AverageTrustGrowthRateEffective.ToString("0.000")</td>
+                        <td>@item.AverageTrustDecayApplied.ToString("0.000")</td>
+                        <td>@item.AverageTrustCapacityPenalty.ToString("0.000")</td>
+                        <td>@item.StrongTrustConcentration.ToString("0.000")</td>
+                        <td>@(item.TrustCapacityExceededRate > 0 ? "Yes" : "No")</td>
+                        <td>@item.TrustNetworkType</td>
                     </tr>
                 }
                 </tbody>

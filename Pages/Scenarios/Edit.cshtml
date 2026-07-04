@@ -14,6 +14,7 @@
     <partial name="_ScenarioFormFields" model="Model.Input" />
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary">保存</button>
+        <a asp-page="/Scenarios/Create" asp-route-sourceScenarioId="@Model.Input.Id" class="btn btn-outline-success">コピー</a>
         <a asp-page="/Scenarios/Details" asp-route-id="@Model.Input.Id" class="btn btn-outline-secondary">キャンセル</a>
     </div>
 </form>

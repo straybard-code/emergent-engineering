@@ -63,7 +63,8 @@ public static class SerendipityAnalysisService
         double serendipityScore,
         ActionDistributionSummary actions,
         double psychologicalSafetyLevel,
-        double knowledgeRecombinationRate)
+        double knowledgeRecombinationRate,
+        double constructiveCriticismBonus = 0)
     {
         var constructiveCriticizeRate = psychologicalSafetyLevel >= 0.5
             ? actions.CriticizeRate
@@ -74,7 +75,8 @@ public static class SerendipityAnalysisService
             + (actions.ProposeIdeaRate * 0.20)
             + (constructiveCriticizeRate * 0.15)
             + (actions.SupportOtherRate * 0.15)
-            + (Math.Clamp(knowledgeRecombinationRate, 0, 1) * 0.15);
+            + (Math.Clamp(knowledgeRecombinationRate, 0, 1) * 0.15)
+            + (psychologicalSafetyLevel >= 0.7 ? actions.CriticizeRate * Math.Clamp(constructiveCriticismBonus, 0, 1) : 0);
 
         return Clamp01(Math.Round(score, 4));
     }

@@ -48,7 +48,15 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         SerendipitySensitivity = SerendipityDefaults.SerendipitySensitivity,
         KnowledgeRecombinationRate = SerendipityDefaults.KnowledgeRecombinationRate,
         SerendipityThreshold = SerendipityDefaults.SerendipityThreshold,
-        EnableSerendipity = SerendipityDefaults.EnableSerendipity
+        EnableSerendipity = SerendipityDefaults.EnableSerendipity,
+        EnableTrustDynamics = TrustDynamicsDefaults.EnableTrustDynamics,
+        TrustGrowthRate = TrustDynamicsDefaults.TrustGrowthRate,
+        TrustDecayRate = TrustDynamicsDefaults.TrustDecayRate,
+        TrustSaturationStrength = TrustDynamicsDefaults.TrustSaturationStrength,
+        TrustCapacity = TrustDynamicsDefaults.TrustCapacity,
+        TrustCapacityPenalty = TrustDynamicsDefaults.TrustCapacityPenalty,
+        DistrustPenalty = TrustDynamicsDefaults.DistrustPenalty,
+        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus
     };
 
     public async Task<IActionResult> OnPostAsync()

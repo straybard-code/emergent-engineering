@@ -1,19 +1,33 @@
 @page
 @model EmergentEngineering.Pages.Scenarios.CreateModel
 @{
-    ViewData["Title"] = "新規シナリオ";
+    ViewData["Title"] = Model.IsCopyMode ? "シナリオをコピー" : "新規シナリオ";
+    ViewData["ShowResearchPreset"] = true;
+    ViewData["PresetFieldPrefix"] = "";
 }
 
 <div class="page-heading">
-    <h1 class="h2">新規シナリオ</h1>
+    <h1 class="h2">@(Model.IsCopyMode ? "シナリオをコピー" : "新規シナリオ")</h1>
     <p class="text-muted">再利用可能な実験条件テンプレートを作成します。</p>
 </div>
 
+@if (Model.IsCopyMode)
+{
+    <div class="alert alert-info">
+        既存シナリオからコピーを作成しています。必要な項目を調整して保存してください。
+        @if (!string.IsNullOrWhiteSpace(Model.SourceScenarioName))
+        {
+            <span class="ms-1">元: <strong>@Model.SourceScenarioName</strong></span>
+        }
+    </div>
+}
+
 <form method="post" class="simulation-form">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="SourceScenarioId" />
     <partial name="_ScenarioFormFields" model="Model.Input" />
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">作成</button>
+        <button type="submit" class="btn btn-primary">@(Model.IsCopyMode ? "コピーを保存" : "作成")</button>
         <a asp-page="/Scenarios/Index" class="btn btn-outline-secondary">キャンセル</a>
     </div>
 </form>

@@ -99,6 +99,18 @@ public static class SerendipityDefaults
     public const bool EnableSerendipity = true;
 }
 
+public static class TrustDynamicsDefaults
+{
+    public const bool EnableTrustDynamics = true;
+    public const double TrustGrowthRate = 1.0;
+    public const double TrustDecayRate = 0.002;
+    public const double TrustSaturationStrength = 0.7;
+    public const int TrustCapacity = 5;
+    public const double TrustCapacityPenalty = 0.03;
+    public const double DistrustPenalty = 0.05;
+    public const double ConstructiveCriticismBonus = 0.01;
+}
+
 public static class ShockTypes
 {
     public const string None = "None";

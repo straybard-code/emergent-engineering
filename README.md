@@ -134,6 +134,26 @@ It is meant for reusing the same condition design across multiple experiments.
 
 When an experiment is created from a scenario, the condition values are copied into the experiment so later scenario edits do not rewrite past experiment conditions.
 
+Scenario pages also support copying an existing scenario into a new draft:
+
+- Scenario list and details pages expose a `コピー` action
+- `/Scenarios/Create?sourceScenarioId={id}` opens Create with the source values prefilled
+- the copied scenario gets a name suffix such as ` - コピー`
+- duplicate copy names are auto-numbered as ` - コピー 2`, ` - コピー 3`, and so on
+- the copy is saved as a brand-new `Scenario`; IDs, timestamps, experiments, simulations, and run history are not copied
+
+Create pages for `Scenario`, `Experiment`, and `Simulation` also expose a research preset picker. It applies standardized condition sets in the browser and can be combined with scenario-copy mode.
+
+Available presets:
+
+- 標準市場学習型
+- 低信頼・学習型
+- 選択的信頼・創発型
+- 高信頼・仲良し停滞型
+- 独裁・サイロ型
+- OSS・レビュー型
+- 危機対応・適応型
+
 ### SimulationProject
 
 A `SimulationProject` is one concrete run of an organization simulation. Standalone simulations still work without any experiment linkage.
@@ -1582,6 +1602,55 @@ Future extensions:
 - calibration of trigger weights for exploration and recombination
 
 This implementation is still rule-based. It does not use an LLM to explain or solve the challenge.
+
+## Trust dynamics
+
+The trust model now treats trust as a finite resource instead of a value that can grow forever.
+
+Stored configuration fields on `Scenario`, `Experiment`, and `SimulationProject`:
+
+- `EnableTrustDynamics`
+- `TrustGrowthRate`
+- `TrustDecayRate`
+- `TrustSaturationStrength`
+- `TrustCapacity`
+- `TrustCapacityPenalty`
+- `DistrustPenalty`
+- `ConstructiveCriticismBonus`
+
+Migration:
+
+- `20260703084000_AddTrustDynamicsParameters`
+
+Meaning:
+
+- `TrustSaturation`: positive trust increases become harder as current trust rises
+- `TrustDecay`: trust slowly returns toward zero when relationships are not reinforced
+- `TrustCapacity`: each agent can only maintain a limited number of deep trusted ties
+- `ConstructiveCriticism`: criticism can become trust-building when psychological safety is high
+
+Behavior:
+
+- `AgentAction.TrustBefore / TrustDelta / TrustAfter` store the effective action-level trust change
+- `TrustSnapshots` store the post-dynamics step-end trust network
+- `AverageTrustDecayApplied`, `TrustCapacityPenaltyTotal`, and related fields are stored in step state JSON
+- `StrongTrustConcentration` summarizes how concentrated each agent's strong ties are
+- `TrustNetworkType` classifies runs as overtrusted complete, selective trust, or fragile trust networks
+
+Research hypothesis:
+
+> Trust is not an infinite resource.  
+> Emergence is more likely in a selective trust network that can rewire, not in a fully connected network that saturates into uniform trust.
+
+Future analysis directions:
+
+- compare overtrusted complete networks with selective trust networks
+- detect fragile trust networks and trust-capacity overload
+- compare trust dynamics across scenarios and parameter sweeps
+
+If you are using an existing database, apply the new migration so these columns appear in SQL Server:
+
+- `dotnet ef database update`
 
 ## Notes
 

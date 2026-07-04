@@ -2,6 +2,7 @@
 @model EmergentEngineering.Pages.Experiments.CreateModel
 @{
     ViewData["Title"] = "新規 Experiment";
+    ViewData["PresetFieldPrefix"] = "Input";
 }
 
 <div class="page-heading">
@@ -39,6 +40,8 @@
         <input asp-for="Input.Name" class="form-control" />
         <span asp-validation-for="Input.Name" class="text-danger"></span>
     </div>
+
+    <partial name="_ResearchPresetPanel" />
 
     <div class="mb-3">
         <label asp-for="Input.Description" class="form-label">説明</label>
@@ -249,6 +252,46 @@
             <div class="col-md-4 mb-3">
                 <label asp-for="Input.KnowledgeRecombinationRate" class="form-label">知識再結合率</label>
                 <input asp-for="Input.KnowledgeRecombinationRate" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+        </div>
+    </section>
+
+    <section class="log-section mb-4">
+        <h2 class="h5 mb-3">信頼ダイナミクス</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="form-check mt-4">
+                    <input asp-for="Input.EnableTrustDynamics" class="form-check-input" type="checkbox" />
+                    <label asp-for="Input.EnableTrustDynamics" class="form-check-label">Trust Dynamics を有効化</label>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.TrustGrowthRate" class="form-label">信頼成長率</label>
+                <input asp-for="Input.TrustGrowthRate" class="form-control" type="number" min="0" max="2" step="0.01" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.TrustDecayRate" class="form-label">信頼自然減衰率</label>
+                <input asp-for="Input.TrustDecayRate" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.TrustSaturationStrength" class="form-label">信頼飽和強度</label>
+                <input asp-for="Input.TrustSaturationStrength" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.TrustCapacity" class="form-label">信頼容量</label>
+                <input asp-for="Input.TrustCapacity" class="form-control" type="number" min="1" max="20" step="1" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.TrustCapacityPenalty" class="form-label">信頼容量ペナルティ</label>
+                <input asp-for="Input.TrustCapacityPenalty" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.DistrustPenalty" class="form-label">不信ペナルティ</label>
+                <input asp-for="Input.DistrustPenalty" class="form-control" type="number" min="0" max="1" step="0.01" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.ConstructiveCriticismBonus" class="form-label">建設的批判ボーナス</label>
+                <input asp-for="Input.ConstructiveCriticismBonus" class="form-control" type="number" min="0" max="1" step="0.01" />
             </div>
         </div>
     </section>

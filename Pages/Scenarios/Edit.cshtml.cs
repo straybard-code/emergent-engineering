@@ -76,6 +76,14 @@ public sealed class EditModel(AppDbContext db) : PageModel
         scenario.KnowledgeRecombinationRate = Input.KnowledgeRecombinationRate;
         scenario.SerendipityThreshold = Input.SerendipityThreshold;
         scenario.EnableSerendipity = Input.EnableSerendipity;
+        scenario.EnableTrustDynamics = Input.EnableTrustDynamics;
+        scenario.TrustGrowthRate = Input.TrustGrowthRate;
+        scenario.TrustDecayRate = Input.TrustDecayRate;
+        scenario.TrustSaturationStrength = Input.TrustSaturationStrength;
+        scenario.TrustCapacity = Input.TrustCapacity;
+        scenario.TrustCapacityPenalty = Input.TrustCapacityPenalty;
+        scenario.DistrustPenalty = Input.DistrustPenalty;
+        scenario.ConstructiveCriticismBonus = Input.ConstructiveCriticismBonus;
         scenario.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();

@@ -59,7 +59,8 @@ public static class KnowledgeAnalysisService
         ActionDistributionSummary actions,
         double psychologicalSafetyLevel,
         bool challengeActive,
-        double knowledgeRecombinationScore)
+        double knowledgeRecombinationScore,
+        double constructiveCriticismBonus = 0)
     {
         var rawScore =
             (knowledgeRewiringScore * 0.35)
@@ -68,7 +69,8 @@ public static class KnowledgeAnalysisService
             + (actions.ProposeIdeaRate * 0.15)
             + (actions.ShareInfoRate * 0.10)
             + (actions.SupportOtherRate * 0.10)
-            + (challengeActive ? actions.CriticizeRate * psychologicalSafetyLevel * 0.05 : 0);
+            + (challengeActive ? actions.CriticizeRate * psychologicalSafetyLevel * 0.05 : 0)
+            + (psychologicalSafetyLevel >= 0.7 ? actions.CriticizeRate * Math.Clamp(constructiveCriticismBonus, 0, 1) : 0);
 
         return Clamp01(Math.Round(rawScore, 4));
     }
@@ -113,7 +115,8 @@ public static class KnowledgeAnalysisService
         bool challengeActive,
         bool challengeResolved,
         double challengeGap,
-        double workAloneRate)
+        double workAloneRate,
+        double constructiveCriticismBonus = 0)
     {
         if (challengeResolved)
         {
@@ -199,6 +202,11 @@ public static class KnowledgeAnalysisService
                 SerendipityOccurred = GetBool(root, "serendipityOccurred"),
                 KnowledgeRecombinationScore = GetDouble(root, "knowledgeRecombinationScore", 0),
                 KnowledgeReconfigurationScore = GetDouble(root, "knowledgeReconfigurationScore", 0),
+                AverageTrustGrowthRateEffective = GetDouble(root, "averageTrustGrowthRateEffective", 0),
+                AverageTrustDecayApplied = GetDouble(root, "averageTrustDecayApplied", 0),
+                TrustCapacityPenaltyAppliedCount = GetInt(root, "trustCapacityPenaltyAppliedCount", 0),
+                TrustCapacityPenaltyTotal = GetDouble(root, "trustCapacityPenaltyTotal", 0),
+                AverageTrustSaturationEffect = GetDouble(root, "averageTrustSaturationEffect", 0),
                 SerendipityDrivenReconfiguration = GetBool(root, "serendipityDrivenReconfiguration"),
                 SerendipityToEmergenceLink = GetBool(root, "serendipityToEmergenceLink"),
                 ShockOccurred = GetBool(root, "shockOccurred"),
@@ -228,6 +236,11 @@ public static class KnowledgeAnalysisService
                 SerendipityOccurred = false,
                 KnowledgeRecombinationScore = 0,
                 KnowledgeReconfigurationScore = 0,
+                AverageTrustGrowthRateEffective = 0,
+                AverageTrustDecayApplied = 0,
+                TrustCapacityPenaltyAppliedCount = 0,
+                TrustCapacityPenaltyTotal = 0,
+                AverageTrustSaturationEffect = 0,
                 SerendipityDrivenReconfiguration = false,
                 SerendipityToEmergenceLink = false,
                 ShockOccurred = false,
@@ -253,6 +266,21 @@ public static class KnowledgeAnalysisService
         return property.ValueKind == JsonValueKind.Number && property.TryGetDouble(out var value)
             ? Math.Clamp(value, min, max)
             : fallback;
+    }
+
+    private static int GetInt(JsonElement root, string propertyName, int fallback, int min = int.MinValue, int max = int.MaxValue)
+    {
+        if (!root.TryGetProperty(propertyName, out var property))
+        {
+            return fallback;
+        }
+
+        if (property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out var value))
+        {
+            return Math.Clamp(value, min, max);
+        }
+
+        return fallback;
     }
 
     private static bool GetBool(JsonElement root, string propertyName)
@@ -289,6 +317,11 @@ public sealed class KnowledgeTimelinePoint
     public bool SerendipityOccurred { get; set; }
     public double KnowledgeRecombinationScore { get; set; }
     public double KnowledgeReconfigurationScore { get; set; }
+    public double AverageTrustGrowthRateEffective { get; set; }
+    public double AverageTrustDecayApplied { get; set; }
+    public int TrustCapacityPenaltyAppliedCount { get; set; }
+    public double TrustCapacityPenaltyTotal { get; set; }
+    public double AverageTrustSaturationEffect { get; set; }
     public bool SerendipityDrivenReconfiguration { get; set; }
     public bool SerendipityToEmergenceLink { get; set; }
     public bool ShockOccurred { get; set; }

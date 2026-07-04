@@ -1,0 +1,401 @@
+@using System.Collections.Generic
+@using System.Text.Json
+@{
+    var fieldPrefix = (string?)ViewData["PresetFieldPrefix"] ?? "";
+    var idPrefix = string.IsNullOrWhiteSpace(fieldPrefix) ? "" : $"{fieldPrefix}_";
+    var namePrefix = string.IsNullOrWhiteSpace(fieldPrefix) ? "" : $"{fieldPrefix}.";
+    var presets = new Dictionary<string, object?>
+    {
+        ["standardMarketLearning"] = new
+        {
+            informationSharingLevel = 0.80,
+            cooperationLevel = 0.70,
+            competitionLevel = 0.20,
+            psychologicalSafetyLevel = 0.80,
+            learningOrientationLevel = 0.90,
+            customerOrientationLevel = 0.90,
+            shortTermResultPressureLevel = 0.20,
+            effectiveTrustThreshold = 0.30,
+            knowledgeStock = 1.00,
+            knowledgeDiversity = 0.60,
+            externalShockLevel = 0.00,
+            crossDomainExposure = 0.20,
+            rewiringSensitivity = 0.50,
+            enableExternalShock = false,
+            shockStep = 0,
+            shockType = "None",
+            shockDescription = "",
+            enableChallengeEvent = false,
+            challengeType = "None",
+            challengeStep = 0,
+            challengeLevel = 0.00,
+            challengeDescription = "",
+            requiredKnowledgeDiversity = 0.50,
+            requiredCrossDomainExposure = 0.50,
+            requiredRewiringScore = 0.30,
+            enableSerendipity = true,
+            explorationTendency = 0.50,
+            serendipitySensitivity = 0.40,
+            knowledgeRecombinationRate = 0.30,
+            serendipityThreshold = 0.50,
+            enableTrustDynamics = true,
+            trustGrowthRate = 0.55,
+            trustDecayRate = 0.006,
+            trustSaturationStrength = 0.80,
+            trustCapacity = 7,
+            trustCapacityPenalty = 0.04,
+            distrustPenalty = 0.04,
+            constructiveCriticismBonus = 0.02,
+            agentCount = 20,
+            totalSteps = 100,
+            runCount = 20
+        },
+        ["lowTrustLearning"] = new
+        {
+            informationSharingLevel = 0.70,
+            cooperationLevel = 0.60,
+            competitionLevel = 0.50,
+            psychologicalSafetyLevel = 0.70,
+            learningOrientationLevel = 0.90,
+            customerOrientationLevel = 0.90,
+            shortTermResultPressureLevel = 0.40,
+            effectiveTrustThreshold = 0.25,
+            knowledgeStock = 1.00,
+            knowledgeDiversity = 0.60,
+            externalShockLevel = 0.00,
+            crossDomainExposure = 0.20,
+            rewiringSensitivity = 0.50,
+            enableExternalShock = false,
+            shockStep = 0,
+            shockType = "None",
+            shockDescription = "",
+            enableChallengeEvent = false,
+            challengeType = "None",
+            challengeStep = 0,
+            challengeLevel = 0.00,
+            challengeDescription = "",
+            requiredKnowledgeDiversity = 0.50,
+            requiredCrossDomainExposure = 0.50,
+            requiredRewiringScore = 0.30,
+            enableSerendipity = true,
+            explorationTendency = 0.50,
+            serendipitySensitivity = 0.40,
+            knowledgeRecombinationRate = 0.30,
+            serendipityThreshold = 0.50,
+            enableTrustDynamics = true,
+            trustGrowthRate = 0.50,
+            trustDecayRate = 0.006,
+            trustSaturationStrength = 0.85,
+            trustCapacity = 5,
+            trustCapacityPenalty = 0.05,
+            distrustPenalty = 0.05,
+            constructiveCriticismBonus = 0.02,
+            agentCount = 20,
+            totalSteps = 100,
+            runCount = 20
+        },
+        ["selectiveEmergence"] = new
+        {
+            informationSharingLevel = 0.65,
+            cooperationLevel = 0.55,
+            competitionLevel = 0.45,
+            psychologicalSafetyLevel = 0.75,
+            learningOrientationLevel = 0.95,
+            customerOrientationLevel = 0.85,
+            shortTermResultPressureLevel = 0.35,
+            effectiveTrustThreshold = 0.25,
+            knowledgeStock = 1.00,
+            knowledgeDiversity = 0.75,
+            externalShockLevel = 0.20,
+            crossDomainExposure = 0.50,
+            rewiringSensitivity = 0.75,
+            enableExternalShock = false,
+            shockStep = 0,
+            shockType = "None",
+            shockDescription = "",
+            enableChallengeEvent = false,
+            challengeType = "None",
+            challengeStep = 0,
+            challengeLevel = 0.00,
+            challengeDescription = "",
+            requiredKnowledgeDiversity = 0.50,
+            requiredCrossDomainExposure = 0.50,
+            requiredRewiringScore = 0.30,
+            enableSerendipity = true,
+            explorationTendency = 0.70,
+            serendipitySensitivity = 0.65,
+            knowledgeRecombinationRate = 0.65,
+            serendipityThreshold = 0.40,
+            enableTrustDynamics = true,
+            trustGrowthRate = 0.55,
+            trustDecayRate = 0.005,
+            trustSaturationStrength = 0.85,
+            trustCapacity = 5,
+            trustCapacityPenalty = 0.04,
+            distrustPenalty = 0.05,
+            constructiveCriticismBonus = 0.03,
+            agentCount = 20,
+            totalSteps = 100,
+            runCount = 20
+        },
+        ["highTrustStall"] = new
+        {
+            informationSharingLevel = 0.90,
+            cooperationLevel = 0.95,
+            competitionLevel = 0.05,
+            psychologicalSafetyLevel = 0.95,
+            learningOrientationLevel = 0.70,
+            customerOrientationLevel = 0.60,
+            shortTermResultPressureLevel = 0.10,
+            effectiveTrustThreshold = 0.30,
+            knowledgeStock = 1.00,
+            knowledgeDiversity = 0.40,
+            externalShockLevel = 0.00,
+            crossDomainExposure = 0.10,
+            rewiringSensitivity = 0.20,
+            enableExternalShock = false,
+            shockStep = 0,
+            shockType = "None",
+            shockDescription = "",
+            enableChallengeEvent = false,
+            challengeType = "None",
+            challengeStep = 0,
+            challengeLevel = 0.00,
+            challengeDescription = "",
+            requiredKnowledgeDiversity = 0.50,
+            requiredCrossDomainExposure = 0.50,
+            requiredRewiringScore = 0.30,
+            enableSerendipity = true,
+            explorationTendency = 0.25,
+            serendipitySensitivity = 0.25,
+            knowledgeRecombinationRate = 0.20,
+            serendipityThreshold = 0.60,
+            enableTrustDynamics = true,
+            trustGrowthRate = 0.80,
+            trustDecayRate = 0.002,
+            trustSaturationStrength = 0.60,
+            trustCapacity = 10,
+            trustCapacityPenalty = 0.01,
+            distrustPenalty = 0.02,
+            constructiveCriticismBonus = 0.00,
+            agentCount = 20,
+            totalSteps = 100,
+            runCount = 20
+        },
+        ["dictatorSilo"] = new
+        {
+            informationSharingLevel = 0.20,
+            cooperationLevel = 0.20,
+            competitionLevel = 0.80,
+            psychologicalSafetyLevel = 0.20,
+            learningOrientationLevel = 0.30,
+            customerOrientationLevel = 0.30,
+            shortTermResultPressureLevel = 0.95,
+            effectiveTrustThreshold = 0.30,
+            knowledgeStock = 0.50,
+            knowledgeDiversity = 0.30,
+            externalShockLevel = 0.00,
+            crossDomainExposure = 0.05,
+            rewiringSensitivity = 0.20,
+            enableExternalShock = false,
+            shockStep = 0,
+            shockType = "None",
+            shockDescription = "",
+            enableChallengeEvent = false,
+            challengeType = "None",
+            challengeStep = 0,
+            challengeLevel = 0.00,
+            challengeDescription = "",
+            requiredKnowledgeDiversity = 0.50,
+            requiredCrossDomainExposure = 0.50,
+            requiredRewiringScore = 0.30,
+            enableSerendipity = true,
+            explorationTendency = 0.10,
+            serendipitySensitivity = 0.10,
+            knowledgeRecombinationRate = 0.10,
+            serendipityThreshold = 0.70,
+            enableTrustDynamics = true,
+            trustGrowthRate = 0.30,
+            trustDecayRate = 0.010,
+            trustSaturationStrength = 0.90,
+            trustCapacity = 3,
+            trustCapacityPenalty = 0.08,
+            distrustPenalty = 0.10,
+            constructiveCriticismBonus = 0.00,
+            agentCount = 20,
+            totalSteps = 100,
+            runCount = 20
+        },
+        ["ossReview"] = new
+        {
+            informationSharingLevel = 0.85,
+            cooperationLevel = 0.65,
+            competitionLevel = 0.35,
+            psychologicalSafetyLevel = 0.85,
+            learningOrientationLevel = 0.95,
+            customerOrientationLevel = 0.70,
+            shortTermResultPressureLevel = 0.25,
+            effectiveTrustThreshold = 0.25,
+            knowledgeStock = 1.00,
+            knowledgeDiversity = 0.80,
+            externalShockLevel = 0.10,
+            crossDomainExposure = 0.70,
+            rewiringSensitivity = 0.80,
+            enableExternalShock = false,
+            shockStep = 0,
+            shockType = "None",
+            shockDescription = "",
+            enableChallengeEvent = false,
+            challengeType = "None",
+            challengeStep = 0,
+            challengeLevel = 0.00,
+            challengeDescription = "",
+            requiredKnowledgeDiversity = 0.50,
+            requiredCrossDomainExposure = 0.50,
+            requiredRewiringScore = 0.30,
+            enableSerendipity = true,
+            explorationTendency = 0.75,
+            serendipitySensitivity = 0.70,
+            knowledgeRecombinationRate = 0.75,
+            serendipityThreshold = 0.40,
+            enableTrustDynamics = true,
+            trustGrowthRate = 0.60,
+            trustDecayRate = 0.004,
+            trustSaturationStrength = 0.80,
+            trustCapacity = 7,
+            trustCapacityPenalty = 0.03,
+            distrustPenalty = 0.04,
+            constructiveCriticismBonus = 0.04,
+            agentCount = 20,
+            totalSteps = 100,
+            runCount = 20
+        },
+        ["crisisAdaptation"] = new
+        {
+            informationSharingLevel = 0.70,
+            cooperationLevel = 0.60,
+            competitionLevel = 0.55,
+            psychologicalSafetyLevel = 0.60,
+            learningOrientationLevel = 0.85,
+            customerOrientationLevel = 0.85,
+            shortTermResultPressureLevel = 0.75,
+            effectiveTrustThreshold = 0.25,
+            knowledgeStock = 0.80,
+            knowledgeDiversity = 0.70,
+            externalShockLevel = 0.70,
+            crossDomainExposure = 0.50,
+            rewiringSensitivity = 0.80,
+            enableExternalShock = true,
+            shockStep = 30,
+            shockType = "CustomerDemandShift",
+            shockDescription = "市場環境の急変",
+            enableChallengeEvent = true,
+            challengeType = "NewMarketRequirement",
+            challengeStep = 30,
+            challengeLevel = 0.70,
+            challengeDescription = "市場要求の急激な変化への対応",
+            requiredKnowledgeDiversity = 0.65,
+            requiredCrossDomainExposure = 0.50,
+            requiredRewiringScore = 0.50,
+            enableSerendipity = true,
+            explorationTendency = 0.70,
+            serendipitySensitivity = 0.65,
+            knowledgeRecombinationRate = 0.65,
+            serendipityThreshold = 0.40,
+            enableTrustDynamics = true,
+            trustGrowthRate = 0.55,
+            trustDecayRate = 0.006,
+            trustSaturationStrength = 0.85,
+            trustCapacity = 5,
+            trustCapacityPenalty = 0.05,
+            distrustPenalty = 0.06,
+            constructiveCriticismBonus = 0.03,
+            agentCount = 20,
+            totalSteps = 100,
+            runCount = 20
+        }
+    };
+    var presetsJson = JsonSerializer.Serialize(presets, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+}
+
+<section class="log-section mb-4" id="researchPresetPanel" data-field-prefix="@fieldPrefix" data-id-prefix="@idPrefix" data-name-prefix="@namePrefix">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <h2 class="h5 mb-1">研究用プリセット</h2>
+            <p class="text-muted small mb-0">研究目的に応じた初期パラメータを適用します。適用後も各項目は手動で調整できます。</p>
+        </div>
+    </div>
+    <div class="row g-2 align-items-end">
+        <div class="col-md-8">
+            <label class="form-label" for="researchPresetSelect">プリセット</label>
+            <select class="form-select" id="researchPresetSelect">
+                <option value="">選択してください</option>
+                <option value="standardMarketLearning">標準市場学習型</option>
+                <option value="lowTrustLearning">低信頼・学習型</option>
+                <option value="selectiveEmergence">選択的信頼・創発型</option>
+                <option value="highTrustStall">高信頼・仲良し停滞型</option>
+                <option value="dictatorSilo">独裁・サイロ型</option>
+                <option value="ossReview">OSS・レビュー型</option>
+                <option value="crisisAdaptation">危機対応・適応型</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button type="button" class="btn btn-outline-primary w-100" id="researchPresetApply">プリセット適用</button>
+        </div>
+    </div>
+    <script>
+        (() => {
+            const panel = document.getElementById('researchPresetPanel');
+            if (!panel) {
+                return;
+            }
+
+            const presets = @Html.Raw(presetsJson);
+            const presetSelect = panel.querySelector('#researchPresetSelect');
+            const applyButton = panel.querySelector('#researchPresetApply');
+            const idPrefix = panel.dataset.idPrefix || '';
+            const namePrefix = panel.dataset.namePrefix || '';
+
+            function resolveControl(fieldName) {
+                return document.getElementById(idPrefix + fieldName)
+                    || document.querySelector(`[name="${namePrefix}${fieldName}"]`);
+            }
+
+            function toFieldName(key) {
+                if (!key || typeof key !== 'string') {
+                    return key;
+                }
+
+                return key.charAt(0).toUpperCase() + key.slice(1);
+            }
+
+            function setValue(fieldName, value) {
+                const control = resolveControl(fieldName);
+                if (!control) {
+                    return;
+                }
+
+                if (control.type === 'checkbox') {
+                    control.checked = Boolean(value);
+                } else {
+                    control.value = value;
+                }
+
+                control.dispatchEvent(new Event('input', { bubbles: true }));
+                control.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            function applyPreset() {
+                const presetKey = presetSelect?.value;
+                if (!presetKey || !presets[presetKey]) {
+                    return;
+                }
+
+                const preset = presets[presetKey];
+                Object.entries(preset).forEach(([key, value]) => setValue(toFieldName(key), value));
+            }
+
+            applyButton?.addEventListener('click', applyPreset);
+        })();
+    </script>
+</section>

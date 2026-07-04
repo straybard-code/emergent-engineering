@@ -45,6 +45,14 @@ public sealed class SimulationProject
     public double KnowledgeRecombinationRate { get; set; } = SerendipityDefaults.KnowledgeRecombinationRate;
     public double SerendipityThreshold { get; set; } = SerendipityDefaults.SerendipityThreshold;
     public bool EnableSerendipity { get; set; } = SerendipityDefaults.EnableSerendipity;
+    public bool EnableTrustDynamics { get; set; } = TrustDynamicsDefaults.EnableTrustDynamics;
+    public double TrustGrowthRate { get; set; } = TrustDynamicsDefaults.TrustGrowthRate;
+    public double TrustDecayRate { get; set; } = TrustDynamicsDefaults.TrustDecayRate;
+    public double TrustSaturationStrength { get; set; } = TrustDynamicsDefaults.TrustSaturationStrength;
+    public int TrustCapacity { get; set; } = TrustDynamicsDefaults.TrustCapacity;
+    public double TrustCapacityPenalty { get; set; } = TrustDynamicsDefaults.TrustCapacityPenalty;
+    public double DistrustPenalty { get; set; } = TrustDynamicsDefaults.DistrustPenalty;
+    public double ConstructiveCriticismBonus { get; set; } = TrustDynamicsDefaults.ConstructiveCriticismBonus;
     public string Status { get; set; } = SimulationStatus.Created;
     public string Phase { get; set; } = SimulationPhase.Forming;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

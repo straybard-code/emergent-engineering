@@ -54,7 +54,15 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         SerendipitySensitivity = SerendipityDefaults.SerendipitySensitivity,
         KnowledgeRecombinationRate = SerendipityDefaults.KnowledgeRecombinationRate,
         SerendipityThreshold = SerendipityDefaults.SerendipityThreshold,
-        EnableSerendipity = SerendipityDefaults.EnableSerendipity
+        EnableSerendipity = SerendipityDefaults.EnableSerendipity,
+        EnableTrustDynamics = TrustDynamicsDefaults.EnableTrustDynamics,
+        TrustGrowthRate = TrustDynamicsDefaults.TrustGrowthRate,
+        TrustDecayRate = TrustDynamicsDefaults.TrustDecayRate,
+        TrustSaturationStrength = TrustDynamicsDefaults.TrustSaturationStrength,
+        TrustCapacity = TrustDynamicsDefaults.TrustCapacity,
+        TrustCapacityPenalty = TrustDynamicsDefaults.TrustCapacityPenalty,
+        DistrustPenalty = TrustDynamicsDefaults.DistrustPenalty,
+        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus
     };
 
     public List<ScenarioOption> Scenarios { get; private set; } = [];
@@ -145,7 +153,15 @@ public sealed class CreateModel(AppDbContext db) : PageModel
             SerendipitySensitivity = scenario.SerendipitySensitivity,
             KnowledgeRecombinationRate = scenario.KnowledgeRecombinationRate,
             SerendipityThreshold = scenario.SerendipityThreshold,
-            EnableSerendipity = scenario.EnableSerendipity
+            EnableSerendipity = scenario.EnableSerendipity,
+            EnableTrustDynamics = scenario.EnableTrustDynamics,
+            TrustGrowthRate = scenario.TrustGrowthRate,
+            TrustDecayRate = scenario.TrustDecayRate,
+            TrustSaturationStrength = scenario.TrustSaturationStrength,
+            TrustCapacity = scenario.TrustCapacity,
+            TrustCapacityPenalty = scenario.TrustCapacityPenalty,
+            DistrustPenalty = scenario.DistrustPenalty,
+            ConstructiveCriticismBonus = scenario.ConstructiveCriticismBonus
         };
     }
 

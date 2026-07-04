@@ -3,11 +3,15 @@ using EmergentEngineering.Models;
 using EmergentEngineering.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmergentEngineering.Pages.Scenarios;
 
 public sealed class CreateModel(AppDbContext db) : PageModel
 {
+    [BindProperty(SupportsGet = true)]
+    public int? SourceScenarioId { get; set; }
+
     [BindProperty]
     public Scenario Input { get; set; } = new()
     {
@@ -50,11 +54,31 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         SerendipitySensitivity = SerendipityDefaults.SerendipitySensitivity,
         KnowledgeRecombinationRate = SerendipityDefaults.KnowledgeRecombinationRate,
         SerendipityThreshold = SerendipityDefaults.SerendipityThreshold,
-        EnableSerendipity = SerendipityDefaults.EnableSerendipity
+        EnableSerendipity = SerendipityDefaults.EnableSerendipity,
+        EnableTrustDynamics = TrustDynamicsDefaults.EnableTrustDynamics,
+        TrustGrowthRate = TrustDynamicsDefaults.TrustGrowthRate,
+        TrustDecayRate = TrustDynamicsDefaults.TrustDecayRate,
+        TrustSaturationStrength = TrustDynamicsDefaults.TrustSaturationStrength,
+        TrustCapacity = TrustDynamicsDefaults.TrustCapacity,
+        TrustCapacityPenalty = TrustDynamicsDefaults.TrustCapacityPenalty,
+        DistrustPenalty = TrustDynamicsDefaults.DistrustPenalty,
+        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus
     };
+
+    public string? SourceScenarioName { get; private set; }
+
+    public bool IsCopyMode => SourceScenarioId.HasValue;
+
+    public async Task<IActionResult> OnGetAsync()
+    {
+        await ApplySourceScenarioAsync(copyIntoInput: true);
+        return Page();
+    }
 
     public async Task<IActionResult> OnPostAsync()
     {
+        await ApplySourceScenarioAsync(copyIntoInput: false);
+
         if (!ModelState.IsValid)
         {
             return Page();
@@ -65,5 +89,38 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         await db.SaveChangesAsync();
 
         return RedirectToPage("/Scenarios/Details", new { id = scenario.Id });
+    }
+
+    private async Task ApplySourceScenarioAsync(bool copyIntoInput)
+    {
+        if (!SourceScenarioId.HasValue)
+        {
+            SourceScenarioName = null;
+            return;
+        }
+
+        var sourceScenario = await db.Scenarios
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.Id == SourceScenarioId.Value);
+
+        if (sourceScenario is null)
+        {
+            SourceScenarioId = null;
+            SourceScenarioName = null;
+            return;
+        }
+
+        SourceScenarioName = sourceScenario.Name;
+        if (!copyIntoInput)
+        {
+            return;
+        }
+
+        Input = SimulationFactory.CloneScenario(sourceScenario);
+        var existingNames = await db.Scenarios
+            .AsNoTracking()
+            .Select(item => item.Name)
+            .ToListAsync();
+        Input.Name = SimulationFactory.BuildScenarioCopyName(sourceScenario.Name, existingNames);
     }
 }

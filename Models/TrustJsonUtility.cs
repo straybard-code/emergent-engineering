@@ -45,7 +45,7 @@ public static class TrustJsonUtility
 
     public static double Clamp(double value)
     {
-        return Math.Clamp(Math.Round(value, 2), -1.0, 1.0);
+        return Math.Clamp(Math.Round(value, 3), -1.0, 1.0);
     }
 
     public static bool TryReadTrustValue(JsonElement element, out double value)

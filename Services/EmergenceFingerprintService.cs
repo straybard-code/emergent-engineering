@@ -36,6 +36,19 @@ public static class EmergenceFingerprintService
         var averageExplorationScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ExplorationScore), 4);
         var averageSerendipityScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.SerendipityScore), 4);
         var averageKnowledgeRecombinationScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeRecombinationScore), 4);
+        var averageTrustGrowthRateEffective = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.AverageTrustGrowthRateEffective), 4);
+        var averageTrustDecayApplied = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.AverageTrustDecayApplied), 4);
+        var averageTrustCapacityPenalty = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.TrustCapacityPenaltyTotal), 4);
+        var trustCapacityExceededRate = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Count(item => item.TrustCapacityPenaltyAppliedCount > 0) / (double)knowledgeTimeline.Count, 4);
+        var strongTrustConcentration = CalculateStrongTrustConcentration(project);
         var serendipityOccurredCount = knowledgeTimeline.Count(item => item.SerendipityOccurred);
         var serendipityRate = knowledgeTimeline.Count == 0
             ? 0
@@ -100,6 +113,11 @@ public static class EmergenceFingerprintService
             AverageExplorationScore = averageExplorationScore,
             AverageSerendipityScore = averageSerendipityScore,
             AverageKnowledgeRecombinationScore = averageKnowledgeRecombinationScore,
+            AverageTrustGrowthRateEffective = averageTrustGrowthRateEffective,
+            AverageTrustDecayApplied = averageTrustDecayApplied,
+            AverageTrustCapacityPenalty = averageTrustCapacityPenalty,
+            TrustCapacityExceededRate = trustCapacityExceededRate,
+            StrongTrustConcentration = strongTrustConcentration,
             SerendipityOccurredCount = serendipityOccurredCount,
             SerendipityRate = serendipityRate,
             SerendipityToEmergenceLinkCount = serendipityToEmergenceLinkCount,
@@ -120,6 +138,7 @@ public static class EmergenceFingerprintService
 
         fingerprint.ClassificationLabel = Classify(fingerprint);
         fingerprint.KnowledgeDrivenType = ClassifyKnowledgeDrivenType(fingerprint);
+        fingerprint.TrustNetworkType = ClassifyTrustNetworkType(fingerprint);
         return fingerprint;
     }
 
@@ -242,6 +261,79 @@ public static class EmergenceFingerprintService
 
         return "\u672A\u5206\u985E";
     }
+
+    public static string ClassifyTrustNetworkType(EmergenceFingerprint fingerprint)
+    {
+        if (fingerprint.AverageTrust > 0.95
+            && fingerprint.EffectiveDensity > 0.95
+            && fingerprint.ThresholdFragilityScore < 0.05)
+        {
+            return "過信完全ネットワーク型";
+        }
+
+        if (fingerprint.AverageTrust >= 0.5
+            && fingerprint.AverageTrust <= 0.9
+            && fingerprint.EffectiveDensity >= 0.4
+            && fingerprint.EffectiveDensity <= 0.9
+            && fingerprint.StrongTrustConcentration >= 0.6)
+        {
+            return "選択的信頼ネットワーク型";
+        }
+
+        if (fingerprint.AverageTrust < 0.4
+            && (fingerprint.ComponentCount > 1 || fingerprint.IsolatedCount > 0))
+        {
+            return "脆弱信頼ネットワーク型";
+        }
+
+        return "未分類";
+    }
+
+    private static double CalculateStrongTrustConcentration(SimulationProject project)
+    {
+        if (project.Agents.Count == 0 || project.TrustCapacity <= 0)
+        {
+            return 0;
+        }
+
+        var trustMaps = project.Agents.ToDictionary(
+            agent => agent.Id,
+            agent => TrustJsonUtility.Deserialize(agent.TrustJson));
+
+        var values = project.Agents
+            .Select(sourceAgent =>
+            {
+                var outboundPositiveTrusts = project.Agents
+                    .Where(targetAgent => targetAgent.Id != sourceAgent.Id)
+                    .Select(targetAgent =>
+                    {
+                        var trustMap = trustMaps[sourceAgent.Id];
+                        var trustValue = trustMap.TryGetValue(targetAgent.Name, out var value) ? value : 0;
+                        return Math.Max(0, trustValue);
+                    })
+                    .Where(value => value > 0)
+                    .OrderByDescending(value => value)
+                    .ToList();
+
+                if (outboundPositiveTrusts.Count == 0)
+                {
+                    return 0.0;
+                }
+
+                var totalPositive = outboundPositiveTrusts.Sum();
+                if (totalPositive <= 0)
+                {
+                    return 0.0;
+                }
+
+                var topCount = Math.Max(1, Math.Min(project.TrustCapacity, outboundPositiveTrusts.Count));
+                var topSum = outboundPositiveTrusts.Take(topCount).Sum();
+                return Math.Clamp(topSum / totalPositive, 0, 1);
+            })
+            .ToList();
+
+        return values.Count == 0 ? 0 : Math.Round(values.Average(), 4);
+    }
 }
 
 public sealed class EmergenceFingerprint
@@ -285,6 +377,11 @@ public sealed class EmergenceFingerprint
     public double AverageKnowledgeReconfigurationScore { get; init; }
     public double MaxKnowledgeRewiringScore { get; init; }
     public double FinalKnowledgeRewiringScore { get; init; }
+    public double AverageTrustGrowthRateEffective { get; init; }
+    public double AverageTrustDecayApplied { get; init; }
+    public double AverageTrustCapacityPenalty { get; init; }
+    public double TrustCapacityExceededRate { get; init; }
+    public double StrongTrustConcentration { get; init; }
     public bool ShockOccurred { get; init; }
     public string ShockType { get; init; } = ShockTypes.None;
     public double CrossDomainExposure { get; init; }
@@ -296,4 +393,5 @@ public sealed class EmergenceFingerprint
     public double AverageChallengeResolutionScore { get; init; }
     public string ClassificationLabel { get; set; } = "";
     public string KnowledgeDrivenType { get; set; } = "";
+    public string TrustNetworkType { get; set; } = "";
 }

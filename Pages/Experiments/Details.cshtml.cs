@@ -37,6 +37,10 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
     public double FingerprintShareInfoRateMean { get; private set; }
     public double FingerprintWorkAloneRateMean { get; private set; }
     public double FingerprintThresholdFragilityScoreMean { get; private set; }
+    public double AverageTrustGrowthRateEffectiveMean { get; private set; }
+    public double AverageTrustDecayAppliedMean { get; private set; }
+    public double AverageTrustCapacityPenaltyMean { get; private set; }
+    public double AverageStrongTrustConcentrationMean { get; private set; }
     public double AverageKnowledgeStockMean { get; private set; }
     public double AverageKnowledgeDiversityMean { get; private set; }
     public double AverageKnowledgeRewiringScoreMean { get; private set; }
@@ -53,6 +57,10 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
     public double AverageAdaptationDurationMean { get; private set; }
     public int ShockOccurredRunCount { get; private set; }
     public int EmergentReachedRunCount { get; private set; }
+    public int TrustCapacityExceededRunCount { get; private set; }
+    public int OvertrustedCompleteNetworkRunCount { get; private set; }
+    public int SelectiveTrustNetworkRunCount { get; private set; }
+    public int FragileTrustNetworkRunCount { get; private set; }
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
@@ -92,6 +100,14 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         FingerprintShareInfoRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ShareInfoRate), 3);
         FingerprintWorkAloneRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.WorkAloneRate), 3);
         FingerprintThresholdFragilityScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThresholdFragilityScore), 3);
+        AverageTrustGrowthRateEffectiveMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageTrustGrowthRateEffective), 3);
+        AverageTrustDecayAppliedMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageTrustDecayApplied), 3);
+        AverageTrustCapacityPenaltyMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageTrustCapacityPenalty), 3);
+        AverageStrongTrustConcentrationMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.StrongTrustConcentration), 3);
+        TrustCapacityExceededRunCount = RunFingerprints.Count(item => item.TrustCapacityExceededRate > 0);
+        OvertrustedCompleteNetworkRunCount = RunFingerprints.Count(item => string.Equals(item.TrustNetworkType, "過信完全ネットワーク型", StringComparison.OrdinalIgnoreCase));
+        SelectiveTrustNetworkRunCount = RunFingerprints.Count(item => string.Equals(item.TrustNetworkType, "選択的信頼ネットワーク型", StringComparison.OrdinalIgnoreCase));
+        FragileTrustNetworkRunCount = RunFingerprints.Count(item => string.Equals(item.TrustNetworkType, "脆弱信頼ネットワーク型", StringComparison.OrdinalIgnoreCase));
         AverageKnowledgeStockMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeStock), 3);
         AverageKnowledgeDiversityMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeDiversity), 3);
         AverageKnowledgeRewiringScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageKnowledgeRewiringScore), 3);

@@ -50,6 +50,7 @@ else
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2 flex-wrap">
                             <a class="btn btn-sm btn-outline-primary" asp-page="/Scenarios/Details" asp-route-id="@scenario.Id">詳細</a>
+                            <a class="btn btn-sm btn-outline-success" asp-page="/Scenarios/Create" asp-route-sourceScenarioId="@scenario.Id">コピー</a>
                             <a class="btn btn-sm btn-outline-secondary" asp-page="/Scenarios/Edit" asp-route-id="@scenario.Id">編集</a>
                             <a class="btn btn-sm btn-outline-danger" asp-page="/Scenarios/Delete" asp-route-id="@scenario.Id">削除</a>
                         </div>
