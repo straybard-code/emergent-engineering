@@ -18,6 +18,8 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
     public List<ParameterSweepRun> Runs { get; private set; } = [];
     public List<ParameterSweepPhaseRow> PhaseComparison { get; private set; } = [];
     public List<ParameterSweepAnalysisPoint> AnalysisPoints { get; private set; } = [];
+    public List<ImpactPathNode> ImpactPathNodes { get; private set; } = [];
+    public List<SensitivityRankingRow> SensitivityRanking { get; private set; } = [];
     public Dictionary<int, string> ExperimentNames { get; private set; } = [];
     public string MaxAverageTrustSummary { get; private set; } = "--";
     public string MaxEffectiveDensitySummary { get; private set; } = "--";
@@ -25,6 +27,10 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
     public string MaxSerendipityRateSummary { get; private set; } = "--";
     public string MaxTrustJumpSummary { get; private set; } = "--";
     public string MaxEmergenceJumpSummary { get; private set; } = "--";
+    public string ImpactPathInterpretation { get; private set; } = "--";
+    public string ImpactPathBottleneck { get; private set; } = "--";
+    public string SensitivityConclusion { get; private set; } = "--";
+    public string TargetParameterLabel { get; private set; } = "-";
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
@@ -83,6 +89,8 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
 
         AnalysisPoints = await BuildAnalysisPointsAsync();
         BuildSweepSummaries();
+        BuildImpactPathAnalysis();
+        BuildSensitivityRanking();
 
         return Page();
     }
@@ -535,6 +543,329 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         MaxEmergenceJumpSummary = BuildMaxDeltaSummary(AnalysisPoints, item => item.DeltaEmergentRate);
     }
 
+    private void BuildImpactPathAnalysis()
+    {
+        TargetParameterLabel = Sweep is null
+            ? "-"
+            : EmergentEngineering.Models.BoundaryParameterNames.GetLabel(Sweep.TargetParameter);
+
+        if (AnalysisPoints.Count == 0)
+        {
+            ImpactPathNodes = [];
+            ImpactPathInterpretation = "--";
+            ImpactPathBottleneck = "--";
+            return;
+        }
+
+        var ordered = AnalysisPoints
+            .OrderBy(item => item.ParameterValue)
+            .ToList();
+        var minPoint = ordered.First();
+        var maxPoint = ordered.Last();
+
+        var deltaAverageTrust = Math.Round(maxPoint.AverageTrust - minPoint.AverageTrust, 3);
+        var deltaEffectiveDensity = Math.Round(maxPoint.EffectiveDensity - minPoint.EffectiveDensity, 3);
+        var deltaStrongLinks = Math.Round(maxPoint.StrongLinks - minPoint.StrongLinks, 3);
+        var deltaKnowledgeDiversity = Math.Round(maxPoint.AverageKnowledgeDiversity - minPoint.AverageKnowledgeDiversity, 3);
+        var deltaKnowledgeRecombination = Math.Round(maxPoint.AverageKnowledgeRecombinationScore - minPoint.AverageKnowledgeRecombinationScore, 3);
+        var deltaKnowledgeReconfiguration = Math.Round(maxPoint.AverageKnowledgeReconfigurationScore - minPoint.AverageKnowledgeReconfigurationScore, 3);
+        var deltaSerendipityRate = Math.Round(maxPoint.SerendipityRate - minPoint.SerendipityRate, 3);
+        var deltaSerendipityToEmergenceRate = Math.Round(maxPoint.SerendipityToEmergenceRate - minPoint.SerendipityToEmergenceRate, 3);
+        var deltaEmergentScore = Math.Round(maxPoint.AverageEmergentScore - minPoint.AverageEmergentScore, 3);
+        var deltaEmergentRate = Math.Round(maxPoint.EmergentRate - minPoint.EmergentRate, 3);
+
+        ImpactPathNodes =
+        [
+            new ImpactPathNode
+            {
+                Title = "対象パラメータ",
+                ValueLine = TargetParameterLabel,
+                NoteLine = $"{minPoint.ParameterValue:0.000} → {maxPoint.ParameterValue:0.000}",
+                CssClass = "impact-node-parameter"
+            },
+            BuildImpactNode("平均信頼度", deltaAverageTrust, false),
+            BuildImpactNode("実効密度", deltaEffectiveDensity, false),
+            BuildImpactNode("Strong Links", deltaStrongLinks, true),
+            BuildImpactNode("知識多様性", deltaKnowledgeDiversity, false),
+            BuildImpactNode("知識再結合", deltaKnowledgeRecombination, false),
+            BuildImpactNode("知識再構成", deltaKnowledgeReconfiguration, false),
+            BuildImpactNode("セレンディピティ率", deltaSerendipityRate, false),
+            BuildImpactNode("セレンディピティ→創発率", deltaSerendipityToEmergenceRate, false),
+            BuildImpactNode("EmergentScore", deltaEmergentScore, false),
+            BuildImpactNode("EmergentRate", deltaEmergentRate, false)
+        ];
+
+        ImpactPathBottleneck = BuildImpactBottleneck(
+            deltaAverageTrust,
+            deltaEffectiveDensity,
+            deltaKnowledgeRecombination,
+            deltaSerendipityRate,
+            deltaEmergentScore,
+            deltaEmergentRate);
+        ImpactPathInterpretation = BuildImpactInterpretation(
+            deltaAverageTrust,
+            deltaEffectiveDensity,
+            deltaStrongLinks,
+            deltaKnowledgeDiversity,
+            deltaKnowledgeRecombination,
+            deltaKnowledgeReconfiguration,
+            deltaSerendipityRate,
+            deltaSerendipityToEmergenceRate,
+            deltaEmergentScore,
+            deltaEmergentRate,
+            ImpactPathBottleneck);
+    }
+
+    private void BuildSensitivityRanking()
+    {
+        if (AnalysisPoints.Count == 0)
+        {
+            SensitivityRanking = [];
+            SensitivityConclusion = "--";
+            return;
+        }
+
+        var ordered = AnalysisPoints
+            .OrderBy(item => item.ParameterValue)
+            .ToList();
+        var minPoint = ordered.First();
+        var maxPoint = ordered.Last();
+
+        var rows = new List<SensitivityRankingRow>
+        {
+            BuildSensitivityRow("平均信頼度", maxPoint.AverageTrust - minPoint.AverageTrust, false),
+            BuildSensitivityRow("実効密度", maxPoint.EffectiveDensity - minPoint.EffectiveDensity, false),
+            BuildSensitivityRow("Strong Links", maxPoint.StrongLinks - minPoint.StrongLinks, true),
+            BuildSensitivityRow("知識多様性", maxPoint.AverageKnowledgeDiversity - minPoint.AverageKnowledgeDiversity, false),
+            BuildSensitivityRow("知識再結合", maxPoint.AverageKnowledgeRecombinationScore - minPoint.AverageKnowledgeRecombinationScore, false),
+            BuildSensitivityRow("知識再構成", maxPoint.AverageKnowledgeReconfigurationScore - minPoint.AverageKnowledgeReconfigurationScore, false),
+            BuildSensitivityRow("セレンディピティ率", maxPoint.SerendipityRate - minPoint.SerendipityRate, false),
+            BuildSensitivityRow("セレンディピティ→創発率", maxPoint.SerendipityToEmergenceRate - minPoint.SerendipityToEmergenceRate, false),
+            BuildSensitivityRow("EmergentScore", maxPoint.AverageEmergentScore - minPoint.AverageEmergentScore, false),
+            BuildSensitivityRow("EmergentRate", maxPoint.EmergentRate - minPoint.EmergentRate, false)
+        };
+
+        SensitivityRanking = rows
+            .OrderByDescending(item => item.AbsoluteDelta)
+            .ThenBy(item => item.Metric)
+            .Select((item, index) => item with { Rank = index + 1 })
+            .ToList();
+
+        SensitivityConclusion = BuildSensitivityConclusion(SensitivityRanking);
+    }
+
+    private static ImpactPathNode BuildImpactNode(string title, double delta, bool strongLink)
+    {
+        return new ImpactPathNode
+        {
+            Title = title,
+            ValueLine = FormatSignedDelta(delta, strongLink),
+            NoteLine = GetImpactStrengthLabel(delta, strongLink),
+            CssClass = GetImpactCssClass(delta, strongLink)
+        };
+    }
+
+    private static SensitivityRankingRow BuildSensitivityRow(string metric, double delta, bool strongLink)
+    {
+        return new SensitivityRankingRow
+        {
+            Metric = metric,
+            Delta = Math.Round(delta, 3),
+            AbsoluteDelta = Math.Abs(Math.Round(delta, 3)),
+            ImpactLabel = GetImpactStrengthLabel(delta, strongLink),
+            CssClass = GetImpactCssClass(delta, strongLink)
+        };
+    }
+
+    private static string GetImpactCssClass(double delta, bool strongLink)
+    {
+        var magnitude = Math.Abs(delta);
+        if (magnitude >= (strongLink ? 50 : 0.20))
+        {
+            return "impact-node-strong";
+        }
+
+        if (magnitude >= (strongLink ? 10 : 0.05))
+        {
+            return "impact-node-medium";
+        }
+
+        return "impact-node-weak";
+    }
+
+    private static string GetImpactStrengthLabel(double delta, bool strongLink)
+    {
+        var magnitude = Math.Abs(delta);
+        if (magnitude >= (strongLink ? 50 : 0.20))
+        {
+            return "強い影響";
+        }
+
+        if (magnitude >= (strongLink ? 10 : 0.05))
+        {
+            return "中程度の影響";
+        }
+
+        return "弱い影響";
+    }
+
+    private static string FormatSignedDelta(double value, bool integerLike = false)
+    {
+        if (integerLike)
+        {
+            return value >= 0 ? $"+{value:0}" : value.ToString("0");
+        }
+
+        return value >= 0 ? $"+{value:0.000}" : value.ToString("0.000");
+    }
+
+    public string FormatImpactDelta(double value, bool integerLike = false)
+    {
+        return FormatSignedDelta(value, integerLike);
+    }
+
+    private static string BuildImpactBottleneck(
+        double deltaAverageTrust,
+        double deltaEffectiveDensity,
+        double deltaKnowledgeRecombination,
+        double deltaSerendipityRate,
+        double deltaEmergentScore,
+        double deltaEmergentRate)
+    {
+        if (deltaAverageTrust >= 0.10 && deltaEffectiveDensity < 0.05)
+        {
+            return "ボトルネック: 信頼からネットワークへの変換不足";
+        }
+
+        if (deltaEffectiveDensity >= 0.10 && deltaKnowledgeRecombination < 0.05)
+        {
+            return "ボトルネック: ネットワークから知識再結合への変換不足";
+        }
+
+        if (deltaKnowledgeRecombination >= 0.10 && deltaSerendipityRate < 0.05)
+        {
+            return "ボトルネック: 知識再結合からセレンディピティへの変換不足";
+        }
+
+        if (deltaSerendipityRate >= 0.10 && deltaEmergentScore < 0.05)
+        {
+            return "ボトルネック: セレンディピティから創発スコアへの変換不足";
+        }
+
+        if (deltaEmergentScore >= 0.10 && deltaEmergentRate < 0.05)
+        {
+            return "ボトルネック: 創発スコアから創発相判定への変換不足";
+        }
+
+        return "明確な停止点は見つかりませんでした。";
+    }
+
+    private static string BuildImpactInterpretation(
+        double deltaAverageTrust,
+        double deltaEffectiveDensity,
+        double deltaStrongLinks,
+        double deltaKnowledgeDiversity,
+        double deltaKnowledgeRecombination,
+        double deltaKnowledgeReconfiguration,
+        double deltaSerendipityRate,
+        double deltaSerendipityToEmergenceRate,
+        double deltaEmergentScore,
+        double deltaEmergentRate,
+        string bottleneck)
+    {
+        if (bottleneck.Contains("信頼からネットワーク", StringComparison.Ordinal))
+        {
+            return "対象パラメータは平均信頼度を大きく変化させましたが、実効密度への伝播は弱く、創発相には届きませんでした。";
+        }
+
+        if (bottleneck.Contains("ネットワークから知識再結合", StringComparison.Ordinal))
+        {
+            return "信頼ネットワークは変化しましたが、知識再結合への伝播が弱く、後続の変化が止まっています。";
+        }
+
+        if (bottleneck.Contains("知識再結合からセレンディピティ", StringComparison.Ordinal))
+        {
+            return "知識再結合は増えていますが、偶然有用な結合としてのセレンディピティに十分つながっていません。";
+        }
+
+        if (bottleneck.Contains("セレンディピティから創発スコア", StringComparison.Ordinal))
+        {
+            return "セレンディピティは立ち上がっていますが、創発スコアへの接続が弱い状態です。";
+        }
+
+        if (bottleneck.Contains("創発スコアから創発相判定", StringComparison.Ordinal))
+        {
+            return "EmergentScore は上昇していますが、創発相判定の閾値または優先順位がボトルネックの可能性があります。";
+        }
+
+        if (deltaAverageTrust > 0 && deltaEffectiveDensity > 0 && deltaKnowledgeRecombination <= 0 && deltaSerendipityRate <= 0)
+        {
+            return "信頼とネットワークは変化しましたが、知識再結合やセレンディピティには十分伝わっていません。";
+        }
+
+        if (deltaKnowledgeRecombination > 0 && deltaSerendipityRate <= 0)
+        {
+            return "知識再結合は増加しましたが、SerendipityRate が増えていないため、偶然有用な結合として検出されていません。";
+        }
+
+        if (deltaEmergentScore > 0 && deltaEmergentRate <= 0)
+        {
+            return "EmergentScore は上昇していますが、EmergentRate が変化していないため、相判定または優先順位がボトルネックの可能性があります。";
+        }
+
+        if (deltaStrongLinks > 0 && deltaKnowledgeDiversity <= 0 && deltaKnowledgeReconfiguration <= 0)
+        {
+            return "ネットワークは強くなっていますが、知識側の変化にはつながっていません。";
+        }
+
+        return "対象パラメータの影響は複数指標に分散しており、明確な単一路線は見えていません。";
+    }
+
+    private static string BuildSensitivityConclusion(IReadOnlyList<SensitivityRankingRow> ranking)
+    {
+        if (ranking.Count == 0)
+        {
+            return "--";
+        }
+
+        var top = ranking.First();
+        var emergentRateRow = ranking.FirstOrDefault(item => item.Metric == "EmergentRate");
+        if (emergentRateRow is not null
+            && (top.Metric == "EmergentRate" || emergentRateRow.AbsoluteDelta >= 0.20))
+        {
+            return "このパラメータは創発相への直接レバーである可能性があります。";
+        }
+
+        var emergentScore = ranking.FirstOrDefault(item => item.Metric == "EmergentScore");
+        if (emergentScore is not null && emergentScore.Delta > 0)
+        {
+            var emergentRate = ranking.FirstOrDefault(item => item.Metric == "EmergentRate");
+            if (emergentRate is null || emergentRate.Delta <= 0)
+            {
+                return "このパラメータは創発準備状態を高めますが、相判定または他条件がボトルネックです。";
+            }
+        }
+
+        var trustDelta = ranking.Any(item => (item.Metric == "平均信頼度" || item.Metric == "実効密度") && item.Delta > 0);
+        var knowledgeDelta = ranking.Any(item => (item.Metric == "知識多様性" || item.Metric == "知識再結合" || item.Metric == "知識再構成" || item.Metric == "セレンディピティ率" || item.Metric == "セレンディピティ→創発率") && item.Delta > 0);
+        if (trustDelta && !knowledgeDelta)
+        {
+            return "このパラメータは信頼ネットワーク形成には効きますが、知識再結合には届いていません。";
+        }
+
+        if (!trustDelta && knowledgeDelta)
+        {
+            return "知識側の変化はありますが、創発スコアへの接続が弱い可能性があります。";
+        }
+
+        if (ranking.All(item => item.AbsoluteDelta < 0.05))
+        {
+            return "この条件範囲では対象パラメータの感度は低いです。";
+        }
+
+        return "対象パラメータは複数の中間指標に反応しています。";
+    }
+
     private static string BuildMaxMetricSummary(
         IEnumerable<ParameterSweepAnalysisPoint> points,
         Func<ParameterSweepAnalysisPoint, double> selector,
@@ -565,12 +896,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             return "--";
         }
 
-        return $"{point.PreviousParameterValue.Value:0.000} → {point.ParameterValue:0.000}（{FormatSignedDelta(selector(point)!.Value)}）";
-    }
-
-    private static string FormatSignedDelta(double value)
-    {
-        return value >= 0 ? $"+{value:0.000}" : value.ToString("0.000");
+        return $"{point.PreviousParameterValue.Value:0.000} → {point.ParameterValue:0.000}（{FormatSignedDelta(selector(point)!.Value, false)}）";
     }
 
     private static double RoundAverage(IEnumerable<double> values)
@@ -765,4 +1091,22 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
 
         return defaults;
     }
+}
+
+public sealed record class ImpactPathNode
+{
+    public string Title { get; init; } = "";
+    public string ValueLine { get; init; } = "";
+    public string NoteLine { get; init; } = "";
+    public string CssClass { get; init; } = "";
+}
+
+public sealed record class SensitivityRankingRow
+{
+    public int Rank { get; init; }
+    public string Metric { get; init; } = "";
+    public double Delta { get; init; }
+    public double AbsoluteDelta { get; init; }
+    public string ImpactLabel { get; init; } = "";
+    public string CssClass { get; init; } = "";
 }

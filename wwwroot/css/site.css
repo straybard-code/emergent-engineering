@@ -171,6 +171,133 @@ code {
   background: #fef0f0 !important;
 }
 
+.impact-path {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+  max-width: 560px;
+}
+
+.impact-node {
+  background: #ffffff;
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  text-align: center;
+}
+
+.impact-node-title {
+  color: #5c6470;
+  font-size: 0.82rem;
+  margin-bottom: 0.2rem;
+}
+
+.impact-node-value {
+  color: #1f2937;
+  font-size: 1.02rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.impact-node-note {
+  color: #6b7280;
+  font-size: 0.82rem;
+  margin-top: 0.15rem;
+}
+
+.impact-node-parameter {
+  background: #f8fafc;
+}
+
+.impact-node-strong {
+  border-color: #8fb5ea;
+  background: #eef5ff;
+}
+
+.impact-node-medium {
+  border-color: #c9ddfb;
+  background: #f7fbff;
+}
+
+.impact-node-weak {
+  opacity: 0.78;
+  background: #fafbfc;
+}
+
+.impact-arrow {
+  text-align: center;
+  color: #8b93a1;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.impact-path-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.impact-path-meta-item {
+  background: #f8fafc;
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+}
+
+.impact-path-meta-item strong {
+  display: block;
+  color: #1f2937;
+}
+
+.impact-node-strong > *,
+.impact-node-medium > *,
+.impact-node-weak > * {
+  color: inherit;
+}
+
+.impact-node-strong,
+.impact-node-medium,
+.impact-node-weak {
+  font-variant-numeric: tabular-nums;
+}
+
+.impact-node-strong > .impact-node-value,
+.impact-node-medium > .impact-node-value,
+.impact-node-weak > .impact-node-value {
+  font-weight: 700;
+}
+
+.impact-node-strong td,
+.impact-node-medium td,
+.impact-node-weak td {
+  font-variant-numeric: tabular-nums;
+}
+
+tr.impact-node-strong > * {
+  background: #eef5ff !important;
+}
+
+tr.impact-node-medium > * {
+  background: #f7fbff !important;
+}
+
+tr.impact-node-weak > * {
+  background: #fafbfc !important;
+}
+
+.impact-node-strong > * {
+  color: #164c84;
+}
+
+.impact-node-medium > * {
+  color: #385a86;
+}
+
+.impact-node-weak > * {
+  color: #667085;
+}
+
 .phase-change-row > * {
   background: #fff9e8 !important;
 }

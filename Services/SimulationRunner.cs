@@ -392,7 +392,7 @@ public sealed class SimulationRunner(
                 CollapseScore = 0,
                 AdaptationScore = 0,
                 EmergentCriteria = new Dictionary<string, EmergentCriterionState>(StringComparer.OrdinalIgnoreCase),
-                PhaseDecisionReason = "蛻晄悄繧ｹ繝・ャ繝励・縺溘ａ Forming 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
+                PhaseDecisionReason = "初期ステップのため Forming と判定しました。"
             };
         }
 
@@ -416,7 +416,7 @@ public sealed class SimulationRunner(
                 CollapseScore = 0,
                 AdaptationScore = 0,
                 EmergentCriteria = new Dictionary<string, EmergentCriterionState>(StringComparer.OrdinalIgnoreCase),
-                PhaseDecisionReason = "逶ｴ霑代・陦悟虚縺後↑縺・◆繧・Forming 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
+                PhaseDecisionReason = "行動データが不足しているため Forming と判定しました。"
             };
         }
 
@@ -447,78 +447,23 @@ public sealed class SimulationRunner(
         var diversityComponent = Clamp01((knowledgePoint.KnowledgeDiversity - 0.40) / 0.30);
         var recombinationComponent = Clamp01((knowledgePoint.KnowledgeRecombinationScore - 0.20) / 0.30);
         var reconfigurationComponent = Clamp01((knowledgePoint.KnowledgeReconfigurationScore - 0.20) / 0.30);
-        var serendipityComponent = knowledgePoint.SerendipityOccurred
-            ? 1.0
-            : Clamp01(knowledgePoint.SerendipityScore / 0.35);
+        var serendipityComponent = knowledgePoint.SerendipityOccurred ? 1.0 : Clamp01(knowledgePoint.SerendipityScore / 0.35);
         var proposeComponent = Clamp01((ideaRatio - 0.07) / 0.10);
         var shareComponent = Clamp01((shareRatio - 0.20) / 0.15);
         var constructiveCriticismComponent = project.PsychologicalSafetyLevel >= 0.60 && criticismRatio >= 0.08
             ? Clamp01((criticismRatio - 0.08) / 0.12)
             : 0;
 
-        var collapseScore = Clamp01(
-            (waitRatio * 0.45)
-            + ((1 - ideaRatio) * 0.20)
-            + ((1 - shareRatio) * 0.20)
-            + ((1 - collaborationRatio) * 0.15));
+        var collapseScore = Clamp01((waitRatio * 0.45) + ((1 - ideaRatio) * 0.20) + ((1 - shareRatio) * 0.20) + ((1 - collaborationRatio) * 0.15));
+        var chaosScore = Clamp01((criticismRatio * 0.30) + ((1 - supportRatio) * 0.20) + ((1 - networkMetrics.EffectiveNetworkDensity) * 0.10) + ((project.PsychologicalSafetyLevel < 0.60 ? 1.0 : 0.0) * 0.10) + ((1 - knowledgePoint.KnowledgeRewiringScore) * 0.30));
+        var siloScore = Clamp01((soloRatio * 0.35) + ((1 - shareRatio) * 0.15) + ((1 - supportRatio) * 0.15) + ((1 - networkMetrics.EffectiveNetworkDensity) * 0.20) + ((1 - knowledgePoint.KnowledgeRewiringScore) * 0.10) + (Math.Max(knowledgePoint.ChallengeGap, 0) * 0.05));
+        var adaptationScore = Clamp01((knowledgePoint.ExplorationScore * 0.25) + (knowledgePoint.KnowledgeRecombinationScore * 0.25) + (knowledgePoint.KnowledgeReconfigurationScore * 0.25) + ((shareRatio + supportRatio + proposeComponent) / 3.0 * 0.25));
+        var emergentScore = Clamp01((trustComponent * 0.15) + (densityComponent * 0.15) + (strongLinkComponent * 0.10) + (diversityComponent * 0.15) + (recombinationComponent * 0.15) + (reconfigurationComponent * 0.10) + (serendipityComponent * 0.10) + (proposeComponent * 0.07) + (shareComponent * 0.05) + (constructiveCriticismComponent * 0.03));
+        var stableScore = Clamp01((trustComponent * 0.30) + (densityComponent * 0.30) + ((1 - actionConcentration) * 0.20) + (phaseStabilityLocal * 0.20));
+        var learningScore = Clamp01((collaborationRatio * 0.35) + (knowledgePoint.KnowledgeStock * 0.25) + (shareRatio * 0.20) + (knowledgePoint.KnowledgeDiversity * 0.10) + ((1 - knowledgePoint.KnowledgeRecombinationScore) * 0.05) + ((1 - knowledgePoint.SerendipityScore) * 0.05));
 
-        var chaosScore = Clamp01(
-            (criticismRatio * 0.30)
-            + ((1 - supportRatio) * 0.20)
-            + ((1 - networkMetrics.EffectiveNetworkDensity) * 0.10)
-            + ((project.PsychologicalSafetyLevel < 0.60 ? 1.0 : 0.0) * 0.10)
-            + ((1 - knowledgePoint.KnowledgeRewiringScore) * 0.30));
-
-        var siloScore = Clamp01(
-            (soloRatio * 0.35)
-            + ((1 - shareRatio) * 0.15)
-            + ((1 - supportRatio) * 0.15)
-            + ((1 - networkMetrics.EffectiveNetworkDensity) * 0.20)
-            + ((1 - knowledgePoint.KnowledgeRewiringScore) * 0.10)
-            + (Math.Max(knowledgePoint.ChallengeGap, 0) * 0.05));
-
-        var adaptationScore = Clamp01(
-            (knowledgePoint.ExplorationScore * 0.25)
-            + (knowledgePoint.KnowledgeRecombinationScore * 0.25)
-            + (knowledgePoint.KnowledgeReconfigurationScore * 0.25)
-            + ((shareRatio + supportRatio + proposeComponent) / 3.0 * 0.25));
-
-        var emergentScore = Clamp01(
-            (trustComponent * 0.15)
-            + (densityComponent * 0.15)
-            + (strongLinkComponent * 0.10)
-            + (diversityComponent * 0.15)
-            + (recombinationComponent * 0.15)
-            + (reconfigurationComponent * 0.10)
-            + (serendipityComponent * 0.10)
-            + (proposeComponent * 0.07)
-            + (shareComponent * 0.05)
-            + (constructiveCriticismComponent * 0.03));
-
-        var stableScore = Clamp01(
-            (trustComponent * 0.30)
-            + (densityComponent * 0.30)
-            + ((1 - actionConcentration) * 0.20)
-            + (phaseStabilityLocal * 0.20));
-
-        var learningScore = Clamp01(
-            (collaborationRatio * 0.35)
-            + (knowledgePoint.KnowledgeStock * 0.25)
-            + (shareRatio * 0.20)
-            + (knowledgePoint.KnowledgeDiversity * 0.10)
-            + ((1 - knowledgePoint.KnowledgeRecombinationScore) * 0.05)
-            + ((1 - knowledgePoint.SerendipityScore) * 0.05));
-
-        var emergentCriteria = BuildEmergentCriteria(
-            project,
-            knowledgePoint,
-            networkMetrics,
-            ideaRatio,
-            shareRatio,
-            criticismRatio);
-        var emergentCriteriaJson = JsonSerializer.Serialize(emergentCriteria, JsonOptions);
+        var emergentCriteria = BuildEmergentCriteria(project, knowledgePoint, networkMetrics, ideaRatio, shareRatio, criticismRatio);
         var emergentCriteriaMetCount = emergentCriteria.Count(item => item.Value.Passed);
-        var emergentReason = $"Emergent譚｡莉ｶ繧・{emergentCriteriaMetCount}/{emergentCriteria.Count} 貅縺溘＠縲∽ｿ｡鬆ｼ繝ｻ蟇・ｺｦ繝ｻ蜀咲ｵ仙粋繝ｻ謗｢邏｢縺梧純縺｣縺ｦ縺・ｋ縺溘ａ蜑ｵ逋ｺ譛溘→蛻､螳壹＠縺ｾ縺励◆縲・;
 
         if (collapseScore >= 0.60)
         {
@@ -534,7 +479,7 @@ public sealed class SimulationRunner(
                 CollapseScore = collapseScore,
                 AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "蠕・ｩ溘→諠・ｱ荳崎ｶｳ縺梧髪驟咲噪縺ｪ縺溘ａ Collapse 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
+                PhaseDecisionReason = "Collapse判定: 待機と情報不足が支配的なため崩壊相と判定しました。"
             };
         }
 
@@ -552,15 +497,12 @@ public sealed class SimulationRunner(
                 CollapseScore = collapseScore,
                 AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "謇ｹ蛻､蜆ｪ蜍｢縺ｨ繝阪ャ繝医Ρ繝ｼ繧ｯ荳榊ｮ牙ｮ壼喧縺悟ｼｷ縺・◆繧・Chaos 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
+                PhaseDecisionReason = "Chaos判定: 批判優勢とネットワーク不安定化が強いため混乱相と判定しました。"
             };
         }
 
         if (siloScore >= 0.60
-            || (knowledgePoint.ChallengeActive
-                && knowledgePoint.ChallengeGap > 0.15
-                && soloRatio >= 0.30
-                && supportRatio <= 0.10)
+            || (knowledgePoint.ChallengeActive && knowledgePoint.ChallengeGap > 0.15 && soloRatio >= 0.30 && supportRatio <= 0.10)
             || (soloRatio >= 0.35 && shareRatio <= 0.15 && knowledgePoint.KnowledgeRewiringScore < 0.35))
         {
             return new PhaseDecisionResult
@@ -575,7 +517,7 @@ public sealed class SimulationRunner(
                 CollapseScore = collapseScore,
                 AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "蜊倡峡菴懈･ｭ縺ｨ蜈ｱ譛我ｸ崎ｶｳ縺梧髪驟咲噪縺ｪ縺溘ａ Silo 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
+                PhaseDecisionReason = "Silo判定: 単独作業と共有不足が支配的なためサイロ相と判定しました。"
             };
         }
 
@@ -599,7 +541,7 @@ public sealed class SimulationRunner(
                 CollapseScore = collapseScore,
                 AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "Challenge蠕後↓謗｢邏｢縺ｨ蜀肴ｧ区・縺碁ｲ繧薙〒縺・ｋ縺溘ａ Adaptation 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
+                PhaseDecisionReason = "Adaptation判定: Challenge後に探索と再構成が進んでいるため適応相と判定しました。"
             };
         }
 
@@ -620,7 +562,7 @@ public sealed class SimulationRunner(
                 CollapseScore = collapseScore,
                 AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = emergentReason
+                PhaseDecisionReason = $"Emergent判定: EmergentScoreが {emergentScore:0.000} のため創発相と判定しました。"
             };
         }
 
@@ -641,7 +583,7 @@ public sealed class SimulationRunner(
                 CollapseScore = collapseScore,
                 AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "菫｡鬆ｼ縺ｨ蟇・ｺｦ縺ｯ鬮倥＞縺後∫衍隴伜・邨仙粋縺ｨ謗｢邏｢縺悟ｼｱ縺・◆繧・Stable 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
+                PhaseDecisionReason = "Stable判定: 信頼と密度は高いが、知識再結合と探索が弱いため安定相と判定しました。"
             };
         }
 
@@ -659,7 +601,7 @@ public sealed class SimulationRunner(
                 CollapseScore = collapseScore,
                 AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "遏･隴伜・譛峨→蟄ｦ鄙偵・騾ｲ繧薙〒縺・∪縺吶′縲∵ｧ矩螟牙喧縺ｫ縺ｯ螻翫＞縺ｦ縺・↑縺・◆繧・Learning 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
+                PhaseDecisionReason = "Learning判定: 知識共有と学習は進んでいますが、構造変化には届いていないため学習相と判定しました。"
             };
         }
 
@@ -673,11 +615,11 @@ public sealed class SimulationRunner(
             SiloScore = siloScore,
             ChaosScore = chaosScore,
             CollapseScore = collapseScore,
+            AdaptationScore = adaptationScore,
             EmergentCriteria = emergentCriteria,
-            PhaseDecisionReason = "蛻晄悄蠖｢謌先ｮｵ髫弱↓霑代＞縺溘ａ Forming 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
+            PhaseDecisionReason = "Forming判定: 初期形成段階に近いため形成相と判定しました。"
         };
     }
-
     private TrustChangeMetrics ApplyTrustUpdate(
         SimulationProject project,
         Agent actor,

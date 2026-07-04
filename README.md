@@ -915,6 +915,41 @@ This supports observation of:
 - robustness of strong trust links
 - differences between open-source-like, hierarchical, and market-learning scenarios
 
+## Impact Path and Sensitivity Ranking
+
+Parameter Sweep details now include an `Impact Path` view and a `Sensitivity Ranking` table.
+
+`Impact Path` shows how the selected sweep parameter propagates through:
+
+- `AverageTrust`
+- `EffectiveDensity`
+- `StrongLinks`
+- `AverageKnowledgeDiversity`
+- `AverageKnowledgeRecombinationScore`
+- `AverageKnowledgeReconfigurationScore`
+- `SerendipityRate`
+- `SerendipityToEmergenceRate`
+- `AverageEmergentScore`
+- `EmergentRate`
+
+The page also highlights bottlenecks such as:
+
+- trust-to-network conversion
+- network-to-recombination conversion
+- recombination-to-serendipity conversion
+- serendipity-to-emergence-score conversion
+- emergence-score-to-phase conversion
+
+`Sensitivity Ranking` sorts the metrics by absolute change between the minimum and maximum parameter values. It helps answer:
+
+- which metric reacted most strongly
+- whether the parameter acts as a direct emergence lever
+- whether the effect stops before knowledge recombination or serendipity
+
+This is useful when a sweep changes trust and density but still does not move `EmergentRate`.
+
+Research hypothesis: the parameters that matter for emergence are not the ones that move a single metric, but the ones that chain together trust, network structure, knowledge recombination, and serendipity.
+
 #### ShareInfoRate
 
 `ShareInfoCount / TotalAgentActions`

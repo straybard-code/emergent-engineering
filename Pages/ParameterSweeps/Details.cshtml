@@ -67,6 +67,80 @@
     <div><h2 class="h6">最大創発ジャンプ</h2><p>@Model.MaxEmergenceJumpSummary</p></div>
 </section>
 
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">Impact Path（影響経路）</h2>
+    <p class="text-muted">対象パラメータの変化が、信頼・ネットワーク・知識・セレンディピティ・創発へどのように伝わったかを差分で表示します。</p>
+    @if (Model.ImpactPathNodes.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ影響経路を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="impact-path">
+            @for (var index = 0; index < Model.ImpactPathNodes.Count; index++)
+            {
+                var node = Model.ImpactPathNodes[index];
+                <div class="impact-node @node.CssClass">
+                    <div class="impact-node-title">@node.Title</div>
+                    <div class="impact-node-value">@node.ValueLine</div>
+                    <div class="impact-node-note">@node.NoteLine</div>
+                </div>
+                @if (index < Model.ImpactPathNodes.Count - 1)
+                {
+                    <div class="impact-arrow">↓</div>
+                }
+            }
+        </div>
+        <div class="impact-path-meta mt-3">
+            <div class="impact-path-meta-item">
+                <span class="text-muted">対象パラメータ</span>
+                <strong>@Model.TargetParameterLabel</strong>
+            </div>
+            <div class="impact-path-meta-item">
+                <span class="text-muted">影響停止点</span>
+                <strong>@Model.ImpactPathBottleneck</strong>
+            </div>
+        </div>
+        <div class="alert alert-info mt-3 mb-0">@Model.ImpactPathInterpretation</div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">感度ランキング</h2>
+    <p class="text-muted">対象パラメータの変化に対して、どの指標が大きく変化したかをランキング表示します。</p>
+    @if (Model.SensitivityRanking.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ感度ランキングを表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>指標</th>
+                        <th>差分</th>
+                        <th>影響度</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.SensitivityRanking)
+                {
+                    <tr class="@row.CssClass">
+                        <td>@row.Rank</td>
+                        <td>@row.Metric</td>
+                        <td>@Model.FormatImpactDelta(row.Delta, row.Metric == "Strong Links")</td>
+                        <td>@row.ImpactLabel</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <div class="alert alert-secondary mb-0">@Model.SensitivityConclusion</div>
+    }
+</section>
+
 <section class="chart-panel mb-4">
     <h2 class="h5 mb-2">相転移分析グラフ</h2>
     <p class="text-muted mb-4">対象パラメータの変化に対して、信頼ネットワーク・セレンディピティ・創発相がどのように変化するかを比較します。</p>
