@@ -202,6 +202,7 @@ public static class KnowledgeAnalysisService
                 SerendipityOccurred = GetBool(root, "serendipityOccurred"),
                 KnowledgeRecombinationScore = GetDouble(root, "knowledgeRecombinationScore", 0),
                 KnowledgeReconfigurationScore = GetDouble(root, "knowledgeReconfigurationScore", 0),
+                AdaptationScore = GetDouble(root, "adaptationScore", 0),
                 PhaseDecisionScore = GetDouble(root, "phaseDecisionScore", 0),
                 EmergentScore = GetDouble(root, "emergentScore", 0),
                 StableScore = GetDouble(root, "stableScore", 0),
@@ -209,6 +210,7 @@ public static class KnowledgeAnalysisService
                 SiloScore = GetDouble(root, "siloScore", 0),
                 ChaosScore = GetDouble(root, "chaosScore", 0),
                 CollapseScore = GetDouble(root, "collapseScore", 0),
+                SelectedPhase = GetString(root, "selectedPhase", GetString(root, "Phase", "")),
                 EmergentCriteriaJson = GetString(root, "emergentCriteriaJson", ""),
                 PhaseDecisionReason = GetString(root, "phaseDecisionReason", ""),
                 AverageTrustGrowthRateEffective = GetDouble(root, "averageTrustGrowthRateEffective", 0),
@@ -245,6 +247,7 @@ public static class KnowledgeAnalysisService
                 SerendipityOccurred = false,
                 KnowledgeRecombinationScore = 0,
                 KnowledgeReconfigurationScore = 0,
+                AdaptationScore = 0,
                 PhaseDecisionScore = 0,
                 EmergentScore = 0,
                 StableScore = 0,
@@ -252,6 +255,7 @@ public static class KnowledgeAnalysisService
                 SiloScore = 0,
                 ChaosScore = 0,
                 CollapseScore = 0,
+                SelectedPhase = "",
                 EmergentCriteriaJson = "",
                 PhaseDecisionReason = "",
                 AverageTrustGrowthRateEffective = 0,
@@ -335,6 +339,7 @@ public sealed class KnowledgeTimelinePoint
     public bool SerendipityOccurred { get; set; }
     public double KnowledgeRecombinationScore { get; set; }
     public double KnowledgeReconfigurationScore { get; set; }
+    public double AdaptationScore { get; set; }
     public double PhaseDecisionScore { get; set; }
     public double EmergentScore { get; set; }
     public double StableScore { get; set; }
@@ -342,6 +347,7 @@ public sealed class KnowledgeTimelinePoint
     public double SiloScore { get; set; }
     public double ChaosScore { get; set; }
     public double CollapseScore { get; set; }
+    public string SelectedPhase { get; set; } = "";
     public string EmergentCriteriaJson { get; set; } = "";
     public string PhaseDecisionReason { get; set; } = "";
     public double AverageTrustGrowthRateEffective { get; set; }

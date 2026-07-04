@@ -100,6 +100,12 @@
                 <canvas id="sweepKnowledgeChart" height="180"></canvas>
             </div>
         </div>
+        <div class="row g-4 mt-4">
+            <div class="col-12">
+                <h3 class="h6 mb-2">Phase Score 比較</h3>
+                <canvas id="sweepPhaseScoreChart" height="180"></canvas>
+            </div>
+        </div>
     }
 </section>
 
@@ -192,6 +198,12 @@
                         <th>ΔKnowledgeRecombination</th>
                         <th>AverageKnowledgeReconfigurationScore</th>
                         <th>ΔKnowledgeReconfiguration</th>
+                        <th>AverageEmergentScore</th>
+                        <th>ΔEmergentScore</th>
+                        <th>AverageStableScore</th>
+                        <th>ΔStableScore</th>
+                        <th>AverageLearningScore</th>
+                        <th>ΔLearningScore</th>
                         <th>EmergentRate</th>
                         <th>ΔEmergentRate</th>
                         <th>SerendipityRate</th>
@@ -218,6 +230,12 @@
                         <td>@Model.FormatDelta(point.DeltaKnowledgeRecombinationScore)</td>
                         <td>@point.AverageKnowledgeReconfigurationScore.ToString("0.000")</td>
                         <td>@Model.FormatDelta(point.DeltaKnowledgeReconfigurationScore)</td>
+                        <td>@point.AverageEmergentScore.ToString("0.000")</td>
+                        <td>@Model.FormatDelta(point.DeltaEmergentScore)</td>
+                        <td>@point.AverageStableScore.ToString("0.000")</td>
+                        <td>@Model.FormatDelta(point.DeltaStableScore)</td>
+                        <td>@point.AverageLearningScore.ToString("0.000")</td>
+                        <td>@Model.FormatDelta(point.DeltaLearningScore)</td>
                         <td>@point.EmergentRate.ToString("0.000")</td>
                         <td>@Model.FormatDelta(point.DeltaEmergentRate)</td>
                         <td>@point.SerendipityRate.ToString("0.000")</td>
@@ -236,8 +254,8 @@
 </section>
 
 <section class="log-section mb-4">
-    <h2 class="h5 mb-3">Emergent未達理由</h2>
-    <p class="text-muted">1つ前のパラメータ値と比較して、どの条件が不足していたかを確認します。</p>
+    <h2 class="h5 mb-3">Emergent未達理由ランキング</h2>
+    <p class="text-muted">Final Phase が Emergent ではない Run について、どの条件が不足していたかを集計します。</p>
     @if (Model.AnalysisPoints.Count == 0)
     {
         <p class="text-muted mb-0">まだ未達理由の分析データはありません。</p>
@@ -252,9 +270,13 @@
                         <th>主な未達理由</th>
                         <th>信頼不足Run数</th>
                         <th>実効密度不足Run数</th>
+                        <th>StrongLink不足Run数</th>
+                        <th>知識多様性不足Run数</th>
                         <th>知識再結合不足Run数</th>
+                        <th>知識再構成不足Run数</th>
                         <th>セレンディピティ不足Run数</th>
                         <th>アイデア提案不足Run数</th>
+                        <th>情報共有不足Run数</th>
                         <th>建設的批判不足Run数</th>
                     </tr>
                 </thead>
@@ -266,9 +288,13 @@
                         <td>@(string.IsNullOrWhiteSpace(point.MainEmergentFailureReason) ? "-" : point.MainEmergentFailureReason)</td>
                         <td>@point.TrustInsufficientRunCount</td>
                         <td>@point.EffectiveDensityInsufficientRunCount</td>
+                        <td>@point.StrongLinkInsufficientRunCount</td>
+                        <td>@point.KnowledgeDiversityInsufficientRunCount</td>
                         <td>@point.KnowledgeRecombinationInsufficientRunCount</td>
+                        <td>@point.KnowledgeReconfigurationInsufficientRunCount</td>
                         <td>@point.SerendipityInsufficientRunCount</td>
                         <td>@point.IdeaProposalInsufficientRunCount</td>
+                        <td>@point.ShareInfoInsufficientRunCount</td>
                         <td>@point.ConstructiveCriticismInsufficientRunCount</td>
                     </tr>
                 }
@@ -361,6 +387,7 @@
             const phaseRatePoints = @Html.Raw(Model.GetPhaseRateChartJson());
             const serendipityPoints = @Html.Raw(Model.GetSerendipityChartJson());
             const knowledgePoints = @Html.Raw(Model.GetKnowledgeChartJson());
+            const phaseScorePoints = @Html.Raw(Model.GetPhaseScoreChartJson());
 
             renderLineChart('averageAbsTrustChart', trustPoints, 'averageAbsTrust', '平均絶対信頼度', '#1c4b8f');
             renderLineChart('emergentCountChart', emergentPoints, 'emergentCount', '創発相到達数', '#2d7d46');
@@ -386,6 +413,13 @@
                 { key: 'averageKnowledgeDiversity', label: 'Average Knowledge Diversity', color: '#6f42c1' },
                 { key: 'averageKnowledgeRecombinationScore', label: 'Average Knowledge Recombination', color: '#198754' },
                 { key: 'averageKnowledgeReconfigurationScore', label: 'Average Knowledge Reconfiguration', color: '#0d6efd' }
+            ]);
+            renderDualLineChart('sweepPhaseScoreChart', phaseScorePoints, [
+                { key: 'averageEmergentScore', label: 'Emergent Score', color: '#198754' },
+                { key: 'averageStableScore', label: 'Stable Score', color: '#0d6efd' },
+                { key: 'averageLearningScore', label: 'Learning Score', color: '#6f42c1' },
+                { key: 'averageSiloScore', label: 'Silo Score', color: '#dc3545' },
+                { key: 'averageAdaptationScore', label: 'Adaptation Score', color: '#fd7e14' }
             ]);
 
             function renderLineChart(canvasId, points, valueKey, label, color) {

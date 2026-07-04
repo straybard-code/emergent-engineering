@@ -89,6 +89,7 @@ public sealed class SimulationRunner(
             cancellationToken);
         project.Phase = phaseDecision.Phase;
         knowledgePoint.Phase = project.Phase;
+        knowledgePoint.SelectedPhase = project.Phase;
         knowledgePoint.PhaseDecisionScore = phaseDecision.PhaseDecisionScore;
         knowledgePoint.EmergentScore = phaseDecision.EmergentScore;
         knowledgePoint.StableScore = phaseDecision.StableScore;
@@ -96,8 +97,9 @@ public sealed class SimulationRunner(
         knowledgePoint.SiloScore = phaseDecision.SiloScore;
         knowledgePoint.ChaosScore = phaseDecision.ChaosScore;
         knowledgePoint.CollapseScore = phaseDecision.CollapseScore;
+        knowledgePoint.AdaptationScore = phaseDecision.AdaptationScore;
         knowledgePoint.EmergentCriteriaJson = phaseDecision.EmergentCriteriaJson;
-        knowledgePoint.PhaseDecisionReason = phaseDecision.PhaseDecisionReason;
+        knowledgePoint.PhaseDecisionReason = BuildPhaseDecisionReason(project.Phase, phaseDecision);
         knowledgePoint.SerendipityDrivenReconfiguration = DetermineSerendipityDrivenReconfiguration(previousKnowledgePoint, previousKnowledgeTimeline, knowledgePoint);
         knowledgePoint.SerendipityToEmergenceLink = DetermineSerendipityToEmergenceLink(previousKnowledgeTimeline, knowledgePoint, project.Phase);
         project.CurrentStep = stepNo;
@@ -112,6 +114,7 @@ public sealed class SimulationRunner(
             project.Name,
             StepNo = stepNo,
             project.Phase,
+            selectedPhase = project.Phase,
             project.Purpose,
             project.BoundaryConditions,
             project.KpiDefinition,
@@ -183,6 +186,7 @@ public sealed class SimulationRunner(
             siloScore = knowledgePoint.SiloScore,
             chaosScore = knowledgePoint.ChaosScore,
             collapseScore = knowledgePoint.CollapseScore,
+            adaptationScore = knowledgePoint.AdaptationScore,
             emergentCriteriaJson = knowledgePoint.EmergentCriteriaJson,
             phaseDecisionReason = knowledgePoint.PhaseDecisionReason,
             Agents = project.Agents.Select(agent => new
@@ -386,8 +390,9 @@ public sealed class SimulationRunner(
                 SiloScore = 0,
                 ChaosScore = 0,
                 CollapseScore = 0,
-                EmergentCriteria = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
-                PhaseDecisionReason = "初期ステップのため Forming と判定しました。"
+                AdaptationScore = 0,
+                EmergentCriteria = new Dictionary<string, EmergentCriterionState>(StringComparer.OrdinalIgnoreCase),
+                PhaseDecisionReason = "蛻晄悄繧ｹ繝・ャ繝励・縺溘ａ Forming 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
             };
         }
 
@@ -409,8 +414,9 @@ public sealed class SimulationRunner(
                 SiloScore = 0,
                 ChaosScore = 0,
                 CollapseScore = 0,
-                EmergentCriteria = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
-                PhaseDecisionReason = "直近の行動がないため Forming と判定しました。"
+                AdaptationScore = 0,
+                EmergentCriteria = new Dictionary<string, EmergentCriterionState>(StringComparer.OrdinalIgnoreCase),
+                PhaseDecisionReason = "逶ｴ霑代・陦悟虚縺後↑縺・◆繧・Forming 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
             };
         }
 
@@ -511,8 +517,8 @@ public sealed class SimulationRunner(
             shareRatio,
             criticismRatio);
         var emergentCriteriaJson = JsonSerializer.Serialize(emergentCriteria, JsonOptions);
-        var emergentCriteriaMetCount = emergentCriteria.Count(item => item.Value);
-        var emergentReason = $"Emergent 条件 {emergentCriteriaMetCount}/{emergentCriteria.Count} を満たし、知識再結合と再配線が進んでいるため創発期と判定しました。";
+        var emergentCriteriaMetCount = emergentCriteria.Count(item => item.Value.Passed);
+        var emergentReason = $"Emergent譚｡莉ｶ繧・{emergentCriteriaMetCount}/{emergentCriteria.Count} 貅縺溘＠縲∽ｿ｡鬆ｼ繝ｻ蟇・ｺｦ繝ｻ蜀咲ｵ仙粋繝ｻ謗｢邏｢縺梧純縺｣縺ｦ縺・ｋ縺溘ａ蜑ｵ逋ｺ譛溘→蛻､螳壹＠縺ｾ縺励◆縲・;
 
         if (collapseScore >= 0.60)
         {
@@ -526,8 +532,9 @@ public sealed class SimulationRunner(
                 SiloScore = siloScore,
                 ChaosScore = chaosScore,
                 CollapseScore = collapseScore,
+                AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "待機と情報不足が支配的なため Collapse と判定しました。"
+                PhaseDecisionReason = "蠕・ｩ溘→諠・ｱ荳崎ｶｳ縺梧髪驟咲噪縺ｪ縺溘ａ Collapse 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
             };
         }
 
@@ -543,8 +550,9 @@ public sealed class SimulationRunner(
                 SiloScore = siloScore,
                 ChaosScore = chaosScore,
                 CollapseScore = collapseScore,
+                AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "批判優勢とネットワーク不安定化が強いため Chaos と判定しました。"
+                PhaseDecisionReason = "謇ｹ蛻､蜆ｪ蜍｢縺ｨ繝阪ャ繝医Ρ繝ｼ繧ｯ荳榊ｮ牙ｮ壼喧縺悟ｼｷ縺・◆繧・Chaos 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
             };
         }
 
@@ -565,8 +573,9 @@ public sealed class SimulationRunner(
                 SiloScore = siloScore,
                 ChaosScore = chaosScore,
                 CollapseScore = collapseScore,
+                AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "単独作業と共有不足が支配的なため Silo と判定しました。"
+                PhaseDecisionReason = "蜊倡峡菴懈･ｭ縺ｨ蜈ｱ譛我ｸ崎ｶｳ縺梧髪驟咲噪縺ｪ縺溘ａ Silo 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
             };
         }
 
@@ -588,8 +597,9 @@ public sealed class SimulationRunner(
                 SiloScore = siloScore,
                 ChaosScore = chaosScore,
                 CollapseScore = collapseScore,
+                AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "Challenge 後に探索と再構成が進んでいるため Adaptation と判定しました。"
+                PhaseDecisionReason = "Challenge蠕後↓謗｢邏｢縺ｨ蜀肴ｧ区・縺碁ｲ繧薙〒縺・ｋ縺溘ａ Adaptation 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
             };
         }
 
@@ -608,6 +618,7 @@ public sealed class SimulationRunner(
                 SiloScore = siloScore,
                 ChaosScore = chaosScore,
                 CollapseScore = collapseScore,
+                AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
                 PhaseDecisionReason = emergentReason
             };
@@ -628,8 +639,9 @@ public sealed class SimulationRunner(
                 SiloScore = siloScore,
                 ChaosScore = chaosScore,
                 CollapseScore = collapseScore,
+                AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "信頼と密度は高いが、知識再結合と探索が弱いため Stable と判定しました。"
+                PhaseDecisionReason = "菫｡鬆ｼ縺ｨ蟇・ｺｦ縺ｯ鬮倥＞縺後∫衍隴伜・邨仙粋縺ｨ謗｢邏｢縺悟ｼｱ縺・◆繧・Stable 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
             };
         }
 
@@ -645,8 +657,9 @@ public sealed class SimulationRunner(
                 SiloScore = siloScore,
                 ChaosScore = chaosScore,
                 CollapseScore = collapseScore,
+                AdaptationScore = adaptationScore,
                 EmergentCriteria = emergentCriteria,
-                PhaseDecisionReason = "知識共有と学習は進んでいますが、構造変化には届いていないため Learning と判定しました。"
+                PhaseDecisionReason = "遏･隴伜・譛峨→蟄ｦ鄙偵・騾ｲ繧薙〒縺・∪縺吶′縲∵ｧ矩螟牙喧縺ｫ縺ｯ螻翫＞縺ｦ縺・↑縺・◆繧・Learning 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
             };
         }
 
@@ -661,7 +674,7 @@ public sealed class SimulationRunner(
             ChaosScore = chaosScore,
             CollapseScore = collapseScore,
             EmergentCriteria = emergentCriteria,
-            PhaseDecisionReason = "初期形成段階に近いため Forming と判定しました。"
+            PhaseDecisionReason = "蛻晄悄蠖｢謌先ｮｵ髫弱↓霑代＞縺溘ａ Forming 縺ｨ蛻､螳壹＠縺ｾ縺励◆縲・
         };
     }
 
@@ -1291,7 +1304,7 @@ public sealed class SimulationRunner(
         return changes == 0 ? 1.0 : 0.5;
     }
 
-    private static Dictionary<string, bool> BuildEmergentCriteria(
+    private static Dictionary<string, EmergentCriterionState> BuildEmergentCriteria(
         SimulationProject project,
         KnowledgeTimelinePoint knowledgePoint,
         NetworkMetricsResult networkMetrics,
@@ -1300,18 +1313,36 @@ public sealed class SimulationRunner(
         double criticismRatio)
     {
         var strongLinkThreshold = Math.Max(project.Agents.Count * 2, 1);
-        return new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+        return new Dictionary<string, EmergentCriterionState>(StringComparer.OrdinalIgnoreCase)
         {
-            ["AverageTrust"] = networkMetrics.AverageTrust >= 0.30,
-            ["EffectiveDensity"] = networkMetrics.EffectiveNetworkDensity >= 0.30,
-            ["StrongLinks"] = networkMetrics.StrongLinkCount >= strongLinkThreshold,
-            ["KnowledgeDiversity"] = knowledgePoint.KnowledgeDiversity >= 0.60,
-            ["KnowledgeRecombination"] = knowledgePoint.KnowledgeRecombinationScore >= 0.25,
-            ["KnowledgeReconfiguration"] = knowledgePoint.KnowledgeReconfigurationScore >= 0.25,
-            ["Serendipity"] = knowledgePoint.SerendipityOccurred || knowledgePoint.SerendipityScore >= 0.30,
-            ["ProposeIdea"] = ideaRatio >= 0.07,
-            ["ShareInfo"] = shareRatio >= 0.30,
-            ["ConstructiveCriticism"] = criticismRatio >= 0.08 && project.PsychologicalSafetyLevel >= 0.60
+            ["AverageTrust"] = new EmergentCriterionState { Value = networkMetrics.AverageTrust, Threshold = 0.30, Passed = networkMetrics.AverageTrust >= 0.30 },
+            ["EffectiveDensity"] = new EmergentCriterionState { Value = networkMetrics.EffectiveNetworkDensity, Threshold = 0.30, Passed = networkMetrics.EffectiveNetworkDensity >= 0.30 },
+            ["StrongLinks"] = new EmergentCriterionState { Value = networkMetrics.StrongLinkCount, Threshold = strongLinkThreshold, Passed = networkMetrics.StrongLinkCount >= strongLinkThreshold },
+            ["KnowledgeDiversity"] = new EmergentCriterionState { Value = knowledgePoint.KnowledgeDiversity, Threshold = 0.60, Passed = knowledgePoint.KnowledgeDiversity >= 0.60 },
+            ["KnowledgeRecombination"] = new EmergentCriterionState { Value = knowledgePoint.KnowledgeRecombinationScore, Threshold = 0.25, Passed = knowledgePoint.KnowledgeRecombinationScore >= 0.25 },
+            ["KnowledgeReconfiguration"] = new EmergentCriterionState { Value = knowledgePoint.KnowledgeReconfigurationScore, Threshold = 0.25, Passed = knowledgePoint.KnowledgeReconfigurationScore >= 0.25 },
+            ["Serendipity"] = new EmergentCriterionState { Value = knowledgePoint.SerendipityOccurred ? 1 : knowledgePoint.SerendipityScore, Threshold = 0.30, Passed = knowledgePoint.SerendipityOccurred || knowledgePoint.SerendipityScore >= 0.30 },
+            ["ProposeIdea"] = new EmergentCriterionState { Value = ideaRatio, Threshold = 0.07, Passed = ideaRatio >= 0.07 },
+            ["ShareInfo"] = new EmergentCriterionState { Value = shareRatio, Threshold = 0.30, Passed = shareRatio >= 0.30 },
+            ["ConstructiveCriticism"] = new EmergentCriterionState { Value = criticismRatio, Threshold = 0.08, Passed = criticismRatio >= 0.08 && project.PsychologicalSafetyLevel >= 0.60 }
+        };
+    }
+
+    private static string BuildPhaseDecisionReason(
+        string phase,
+        PhaseDecisionResult phaseDecision)
+    {
+        return phase switch
+        {
+            SimulationPhase.Collapse => "Collapse判定: 待機と情報不足が支配的なため崩壊相と判定しました。",
+            SimulationPhase.Chaos => "Chaos判定: 批判優勢とネットワーク不安定化が強いため混乱相と判定しました。",
+            SimulationPhase.Silo => "Silo判定: 単独作業と共有不足が支配的なためサイロ相と判定しました。",
+            SimulationPhase.Adaptation => "Adaptation判定: Challenge後に探索と再構成が進んでいるため適応相と判定しました。",
+            SimulationPhase.Emergent => $"Emergent判定: EmergentScoreが {phaseDecision.EmergentScore:0.000} のため創発相と判定しました。",
+            SimulationPhase.Stable => "Stable判定: 信頼と密度は高いが、知識再結合と探索が弱いため安定相と判定しました。",
+            SimulationPhase.Learning => "Learning判定: 知識共有と学習は進んでいますが、構造変化には届いていないため学習相と判定しました。",
+            SimulationPhase.Forming => "Forming判定: 初期形成段階に近いため形成相と判定しました。",
+            _ => string.IsNullOrWhiteSpace(phase) ? "-" : $"{phase} と判定しました。"
         };
     }
 
@@ -1457,6 +1488,13 @@ public sealed class SimulationRunner(
         public int TrustCapacityExceededAgentCount { get; init; }
     }
 
+    private sealed class EmergentCriterionState
+    {
+        public double Value { get; init; }
+        public double Threshold { get; init; }
+        public bool Passed { get; init; }
+    }
+
     private sealed record TrustPairChange(double? Before, double? After);
     private sealed record TrustChangeMetrics(double? Before, double? Delta, double? After);
 
@@ -1470,7 +1508,8 @@ public sealed class SimulationRunner(
         public double SiloScore { get; init; }
         public double ChaosScore { get; init; }
         public double CollapseScore { get; init; }
-        public Dictionary<string, bool> EmergentCriteria { get; init; } = [];
+        public double AdaptationScore { get; init; }
+        public Dictionary<string, EmergentCriterionState> EmergentCriteria { get; init; } = [];
         public string PhaseDecisionReason { get; init; } = "";
         public string EmergentCriteriaJson => JsonSerializer.Serialize(EmergentCriteria, JsonOptions);
     }

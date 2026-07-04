@@ -30,6 +30,9 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
     public List<PhaseTransitionInsight> PhaseTransitionInsights { get; private set; } = [];
     public List<PrecursorPoint> PrecursorPoints { get; private set; } = [];
     public List<KnowledgeTimelinePoint> KnowledgeTimeline { get; private set; } = [];
+    public KnowledgeTimelinePoint? FinalKnowledgePoint { get; private set; }
+    public List<EmergentCriterionEntry> FinalEmergentCriteria { get; private set; } = [];
+    public string FinalPhaseDecisionReasonDisplay { get; private set; } = "-";
     public EmergenceFingerprint? Fingerprint { get; private set; }
     public string MostCommonPhaseTransitionPattern { get; private set; } = "-";
     public int? SelectedAgentId { get; private set; }
@@ -97,6 +100,9 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
             .ToList();
 
         KnowledgeTimeline = KnowledgeAnalysisService.BuildTimeline(simulationSteps);
+        FinalKnowledgePoint = KnowledgeTimeline.OrderBy(point => point.StepNo).LastOrDefault();
+        FinalEmergentCriteria = EmergentCriteriaParser.Parse(FinalKnowledgePoint?.EmergentCriteriaJson);
+        FinalPhaseDecisionReasonDisplay = DescribePhaseDecisionReason(FinalKnowledgePoint);
 
         var phaseByStep = PhaseHistory.ToDictionary(point => point.StepNo, point => point.Phase);
         var trustSnapshots = await db.TrustSnapshots
@@ -243,6 +249,24 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
         return JsonSerializer.Serialize(KnowledgeTimeline, JsonOptions);
     }
 
+    public string GetPhaseScoreTimelineJson()
+    {
+        var points = KnowledgeTimeline.Select(point => new
+        {
+            stepNo = point.StepNo,
+            emergentScore = point.EmergentScore,
+            stableScore = point.StableScore,
+            learningScore = point.LearningScore,
+            siloScore = point.SiloScore,
+            adaptationScore = point.AdaptationScore,
+            chaosScore = point.ChaosScore,
+            collapseScore = point.CollapseScore,
+            selectedPhase = string.IsNullOrWhiteSpace(point.SelectedPhase) ? point.Phase : point.SelectedPhase
+        });
+
+        return JsonSerializer.Serialize(points, JsonOptions);
+    }
+
     public string FormatSignedDelta(double value, string format = "0.00")
     {
         return value.ToString($"+{format};-{format};0.00");
@@ -278,6 +302,26 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
         return "trust-neutral";
     }
 
+    public string GetCriterionValueText(double? value)
+    {
+        return value.HasValue ? value.Value.ToString("0.000") : "--";
+    }
+
+    public string GetCriterionThresholdText(double? value)
+    {
+        return value.HasValue ? value.Value.ToString("0.000") : "--";
+    }
+
+    public string GetCriterionRowClass(EmergentCriterionEntry row)
+    {
+        return row.Passed ? string.Empty : "table-danger";
+    }
+
+    public string GetPhaseDecisionReason(KnowledgeTimelinePoint point)
+    {
+        return DescribePhaseDecisionReason(point);
+    }
+
     private static int MapPhase(string phase)
     {
         return phase switch
@@ -291,6 +335,28 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
             SimulationPhase.Learning => 1,
             SimulationPhase.Forming => 0,
             _ => 0
+        };
+    }
+
+    private static string DescribePhaseDecisionReason(KnowledgeTimelinePoint? point)
+    {
+        if (point is null)
+        {
+            return "-";
+        }
+
+        var phase = string.IsNullOrWhiteSpace(point.SelectedPhase) ? point.Phase : point.SelectedPhase;
+        return phase switch
+        {
+            SimulationPhase.Collapse => "待機と情報不足が支配的なため Collapse と判定しました。",
+            SimulationPhase.Chaos => "批判優勢とネットワーク不安定化が強いため Chaos と判定しました。",
+            SimulationPhase.Silo => "単独作業と共有不足が支配的なため Silo と判定しました。",
+            SimulationPhase.Adaptation => "Challenge 後に探索と再構成が進んでいるため Adaptation と判定しました。",
+            SimulationPhase.Emergent => $"EmergentScoreが {point.EmergentScore:0.000} のため創発期と判定しました。",
+            SimulationPhase.Stable => "信頼と密度は高いが、知識再結合と探索が弱いため Stable と判定しました。",
+            SimulationPhase.Learning => "知識共有と学習は進んでいますが、構造変化には届いていないため Learning と判定しました。",
+            SimulationPhase.Forming => "初期形成段階に近いため Forming と判定しました。",
+            _ => string.IsNullOrWhiteSpace(point.PhaseDecisionReason) ? "-" : point.PhaseDecisionReason
         };
     }
 

@@ -216,6 +216,21 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         return JsonSerializer.Serialize(points);
     }
 
+    public string GetPhaseScoreChartJson()
+    {
+        var points = AnalysisPoints.Select(item => new
+        {
+            parameterValue = item.ParameterValue.ToString("0.000"),
+            averageEmergentScore = item.AverageEmergentScore,
+            averageStableScore = item.AverageStableScore,
+            averageLearningScore = item.AverageLearningScore,
+            averageSiloScore = item.AverageSiloScore,
+            averageAdaptationScore = item.AverageAdaptationScore
+        });
+
+        return JsonSerializer.Serialize(points);
+    }
+
     public string FormatDelta(double? value)
     {
         if (!value.HasValue)
@@ -320,10 +335,13 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         var siloRunCount = runs.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Silo, StringComparison.OrdinalIgnoreCase));
         var trustInsufficientRunCount = 0;
         var effectiveDensityInsufficientRunCount = 0;
+        var strongLinkInsufficientRunCount = 0;
         var knowledgeDiversityInsufficientRunCount = 0;
         var knowledgeRecombinationInsufficientRunCount = 0;
+        var knowledgeReconfigurationInsufficientRunCount = 0;
         var serendipityInsufficientRunCount = 0;
         var ideaProposalInsufficientRunCount = 0;
+        var shareInfoInsufficientRunCount = 0;
         var constructiveCriticismInsufficientRunCount = 0;
         List<string> failureReasons = [];
 
@@ -333,10 +351,13 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
                 analysis,
                 out var trustInsufficient,
                 out var densityInsufficient,
+                out var strongLinkInsufficient,
                 out var knowledgeDiversityInsufficient,
                 out var knowledgeRecombinationInsufficient,
+                out var knowledgeReconfigurationInsufficient,
                 out var serendipityInsufficient,
                 out var ideaProposalInsufficient,
+                out var shareInfoInsufficient,
                 out var constructiveCriticismInsufficient);
 
             if (!string.IsNullOrWhiteSpace(reason))
@@ -346,10 +367,13 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
 
             trustInsufficientRunCount += trustInsufficient ? 1 : 0;
             effectiveDensityInsufficientRunCount += densityInsufficient ? 1 : 0;
+            strongLinkInsufficientRunCount += strongLinkInsufficient ? 1 : 0;
             knowledgeDiversityInsufficientRunCount += knowledgeDiversityInsufficient ? 1 : 0;
             knowledgeRecombinationInsufficientRunCount += knowledgeRecombinationInsufficient ? 1 : 0;
+            knowledgeReconfigurationInsufficientRunCount += knowledgeReconfigurationInsufficient ? 1 : 0;
             serendipityInsufficientRunCount += serendipityInsufficient ? 1 : 0;
             ideaProposalInsufficientRunCount += ideaProposalInsufficient ? 1 : 0;
+            shareInfoInsufficientRunCount += shareInfoInsufficient ? 1 : 0;
             constructiveCriticismInsufficientRunCount += constructiveCriticismInsufficient ? 1 : 0;
         }
 
@@ -376,6 +400,11 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             AverageKnowledgeDiversity = RoundAverage(analyses.Select(item => item.AverageKnowledgeDiversity)),
             AverageKnowledgeRecombinationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeRecombinationScore)),
             AverageKnowledgeReconfigurationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeReconfigurationScore)),
+            AverageEmergentScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.EmergentScore ?? 0)),
+            AverageStableScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.StableScore ?? 0)),
+            AverageLearningScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.LearningScore ?? 0)),
+            AverageSiloScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.SiloScore ?? 0)),
+            AverageAdaptationScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.AdaptationScore ?? 0)),
             EmergentRunCount = emergentRunCount,
             StableRunCount = stableRunCount,
             LearningRunCount = learningRunCount,
@@ -392,10 +421,13 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             SerendipityToEmergenceRate = totalRunCount == 0 ? 0 : Math.Round(analyses.Count(item => item.SerendipityToEmergenceLink) / (double)totalRunCount, 3),
             TrustInsufficientRunCount = trustInsufficientRunCount,
             EffectiveDensityInsufficientRunCount = effectiveDensityInsufficientRunCount,
+            StrongLinkInsufficientRunCount = strongLinkInsufficientRunCount,
             KnowledgeDiversityInsufficientRunCount = knowledgeDiversityInsufficientRunCount,
             KnowledgeRecombinationInsufficientRunCount = knowledgeRecombinationInsufficientRunCount,
+            KnowledgeReconfigurationInsufficientRunCount = knowledgeReconfigurationInsufficientRunCount,
             SerendipityInsufficientRunCount = serendipityInsufficientRunCount,
             IdeaProposalInsufficientRunCount = ideaProposalInsufficientRunCount,
+            ShareInfoInsufficientRunCount = shareInfoInsufficientRunCount,
             ConstructiveCriticismInsufficientRunCount = constructiveCriticismInsufficientRunCount,
             MainEmergentFailureReason = mainFailureReason
         };
@@ -452,6 +484,9 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
                 current.DeltaKnowledgeDiversity = null;
                 current.DeltaKnowledgeRecombinationScore = null;
                 current.DeltaKnowledgeReconfigurationScore = null;
+                current.DeltaEmergentScore = null;
+                current.DeltaStableScore = null;
+                current.DeltaLearningScore = null;
                 current.PreviousParameterValue = null;
                 current.TransitionCandidates = "";
                 continue;
@@ -466,6 +501,9 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             current.DeltaKnowledgeDiversity = Math.Round(current.AverageKnowledgeDiversity - previous.AverageKnowledgeDiversity, 3);
             current.DeltaKnowledgeRecombinationScore = Math.Round(current.AverageKnowledgeRecombinationScore - previous.AverageKnowledgeRecombinationScore, 3);
             current.DeltaKnowledgeReconfigurationScore = Math.Round(current.AverageKnowledgeReconfigurationScore - previous.AverageKnowledgeReconfigurationScore, 3);
+            current.DeltaEmergentScore = Math.Round(current.AverageEmergentScore - previous.AverageEmergentScore, 3);
+            current.DeltaStableScore = Math.Round(current.AverageStableScore - previous.AverageStableScore, 3);
+            current.DeltaLearningScore = Math.Round(current.AverageLearningScore - previous.AverageLearningScore, 3);
 
             List<string> candidates = [];
             if (current.DeltaAverageTrust >= 0.15)
@@ -545,18 +583,24 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         ProjectAnalysisResult analysis,
         out bool trustInsufficient,
         out bool effectiveDensityInsufficient,
+        out bool strongLinkInsufficient,
         out bool knowledgeDiversityInsufficient,
         out bool knowledgeRecombinationInsufficient,
+        out bool knowledgeReconfigurationInsufficient,
         out bool serendipityInsufficient,
         out bool ideaProposalInsufficient,
+        out bool shareInfoInsufficient,
         out bool constructiveCriticismInsufficient)
     {
         trustInsufficient = false;
         effectiveDensityInsufficient = false;
+        strongLinkInsufficient = false;
         knowledgeDiversityInsufficient = false;
         knowledgeRecombinationInsufficient = false;
+        knowledgeReconfigurationInsufficient = false;
         serendipityInsufficient = false;
         ideaProposalInsufficient = false;
+        shareInfoInsufficient = false;
         constructiveCriticismInsufficient = false;
 
         if (analysis.FinalKnowledgePoint is not null
@@ -568,10 +612,13 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         var criteria = BuildEmergentCriteria(analysis);
         trustInsufficient = !criteria["AverageTrust"];
         effectiveDensityInsufficient = !criteria["EffectiveDensity"];
+        strongLinkInsufficient = !criteria["StrongLinks"];
         knowledgeDiversityInsufficient = !criteria["KnowledgeDiversity"];
         knowledgeRecombinationInsufficient = !criteria["KnowledgeRecombination"];
+        knowledgeReconfigurationInsufficient = !criteria["KnowledgeReconfiguration"];
         serendipityInsufficient = !criteria["Serendipity"];
         ideaProposalInsufficient = !criteria["ProposeIdea"];
+        shareInfoInsufficient = !criteria["ShareInfo"];
         constructiveCriticismInsufficient = !criteria["ConstructiveCriticism"];
 
         if (analysis.FinalKnowledgePoint is null)
@@ -589,6 +636,11 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             return "実効密度不足";
         }
 
+        if (strongLinkInsufficient)
+        {
+            return "StrongLink不足";
+        }
+
         if (knowledgeDiversityInsufficient)
         {
             return "知識多様性不足";
@@ -599,6 +651,11 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             return "知識再結合不足";
         }
 
+        if (knowledgeReconfigurationInsufficient)
+        {
+            return "知識再構成不足";
+        }
+
         if (serendipityInsufficient)
         {
             return "セレンディピティ不足";
@@ -607,6 +664,11 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         if (ideaProposalInsufficient)
         {
             return "アイデア提案不足";
+        }
+
+        if (shareInfoInsufficient)
+        {
+            return "情報共有不足";
         }
 
         if (constructiveCriticismInsufficient)

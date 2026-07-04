@@ -293,6 +293,14 @@ The parameter sweep details page now shows:
 
 This makes it easier to inspect trust-emergence curves, especially when sweeping `TrustGrowthRate`.
 
+The parameter sweep details page now also shows:
+
+- Phase score comparison for the final step
+- `Emergent` unmet reason ranking
+- differences in `EmergentScore`, `StableScore`, and `LearningScore`
+
+This lets you see not only where trust and density rise, but also why a run still remains in `Learning` instead of moving to `Emergent`.
+
 ## Execution Scale Presets
 
 The create screens for Scenario, Experiment, Simulation, and Parameter Sweep include an execution scale preset panel. It only adjusts `AgentCount`, `TotalSteps`, and run-count style fields such as `RunCount` or `RunCountPerValue`. It does not touch organizational parameters, trust dynamics, or other research condition settings.
@@ -312,6 +320,16 @@ Research hypothesis:
 > It may appear when trust-network density, serendipity, and knowledge recombination enter a particular region together.
 
 Phase judgement is ordered so that `Collapse`, `Chaos`, `Silo`, and `Adaptation` are checked before `Emergent`, `Stable`, `Learning`, and `Forming`. `Learning` means sharing and learning are progressing, but the run has not yet reached a structural change. `Stable` means trust and density are high, but recombination and serendipity are still weak. `Emergent` requires both network conditions and knowledge-rewiring signals to be present.
+
+The simulation details page also shows:
+
+- `Phase Score` timeline
+- `Emergent` criteria breakdown for the final step
+- a Japanese phase-decision reason derived from the current state
+
+Research hypothesis:
+
+> When a run does not become `Emergent`, the reason can usually be decomposed into missing trust, missing effective density, missing knowledge recombination, missing serendipity, or weak constructive criticism rather than a single "trust shortage" alone.
 
 ### SimulationMetrics
 

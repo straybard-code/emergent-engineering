@@ -752,6 +752,23 @@
     }
 </section>
 
+<section class="chart-panel mb-4" id="phaseScoreSection">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Phase Score タイムライン</h2>
+            <p class="text-muted small mb-0">各Stepにおける Emergent / Stable / Learning などの判定スコアを比較します。</p>
+        </div>
+    </div>
+    @if (Model.KnowledgeTimeline.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ phase score を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <canvas id="phaseScoreChart" height="120"></canvas>
+    }
+</section>
+
 <section class="log-section mb-4" id="phaseDecisionSection">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
@@ -795,14 +812,7 @@
                         <td>@point.ChaosScore.ToString("0.000")</td>
                         <td>@point.CollapseScore.ToString("0.000")</td>
                         <td>
-                            <div>@(string.IsNullOrWhiteSpace(point.PhaseDecisionReason) ? "-" : point.PhaseDecisionReason)</div>
-                            @if (!string.IsNullOrWhiteSpace(point.EmergentCriteriaJson))
-                            {
-                                <details class="mt-1">
-                                    <summary class="small text-primary">EmergentCriteria</summary>
-                                    <pre class="small mb-0">@point.EmergentCriteriaJson</pre>
-                                </details>
-                            }
+                            @Model.GetPhaseDecisionReason(point)
                         </td>
                     </tr>
                 }
@@ -810,6 +820,57 @@
             </table>
         </div>
     }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Emergent 判定内訳</h2>
+            <p class="text-muted small mb-0">最終Stepで、創発期に必要な条件を満たしているかを表示します。</p>
+        </div>
+    </div>
+    @if (Model.FinalEmergentCriteria.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ Emergent 判定内訳を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>条件</th>
+                        <th>値</th>
+                        <th>閾値</th>
+                        <th>判定</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.FinalEmergentCriteria)
+                {
+                    <tr class="@(row.Passed ? string.Empty : "table-danger")">
+                        <td>@row.Label</td>
+                        <td>@Model.GetCriterionValueText(row.Value)</td>
+                        <td>@Model.GetCriterionThresholdText(row.Threshold)</td>
+                        <td>@(row.Passed ? "OK" : "不足")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Phase 判定理由</h2>
+            <p class="text-muted small mb-0">最終Stepでどの相に判定されたか、その理由を表示します。</p>
+        </div>
+    </div>
+    <div class="alert alert-light border mb-0">
+        @Model.FinalPhaseDecisionReasonDisplay
+    </div>
 </section>
 
 <section class="log-section mb-4">
@@ -1163,11 +1224,13 @@
             const actionTimeline = @Html.Raw(Model.GetActionTimelineJson());
             const precursorPoints = @Html.Raw(Model.GetPrecursorPointsJson());
             const knowledgeTimeline = @Html.Raw(Model.GetKnowledgeTimelineJson());
+            const phaseScorePoints = @Html.Raw(Model.GetPhaseScoreTimelineJson());
 
             renderPhaseTimeline(phasePoints);
             arrangeAnalysisSections();
             renderPrecursorChart(precursorPoints);
             renderKnowledgeTimeline(knowledgeTimeline);
+            renderPhaseScoreTimeline(phaseScorePoints);
             renderSerendipityTimeline(knowledgeTimeline);
             renderActionTimeline(actionTimeline);
             renderThresholdSweep(thresholdSweep);
@@ -1363,6 +1426,50 @@
                             buildRateDataset('KnowledgeRewiringScore', points.map(point => point.knowledgeRewiringScore), '#b45309'),
                             buildRateDataset('KnowledgeReconfigurationScore', points.map(point => point.knowledgeReconfigurationScore), '#7c3aed'),
                             buildRateDataset('ExternalShockLevel', points.map(point => point.externalShockLevel), '#c2410c')
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Step'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                ticks: {
+                                    callback: value => Number(value).toFixed(2)
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderPhaseScoreTimeline(points) {
+                const canvas = document.getElementById('phaseScoreChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [
+                            buildRateDataset('EmergentScore', points.map(point => point.emergentScore), '#198754'),
+                            buildRateDataset('StableScore', points.map(point => point.stableScore), '#0d6efd'),
+                            buildRateDataset('LearningScore', points.map(point => point.learningScore), '#6f42c1'),
+                            buildRateDataset('SiloScore', points.map(point => point.siloScore), '#dc3545'),
+                            buildRateDataset('AdaptationScore', points.map(point => point.adaptationScore), '#fd7e14')
                         ]
                     },
                     options: {
