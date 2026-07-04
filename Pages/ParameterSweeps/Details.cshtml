@@ -1,4 +1,4 @@
-@page "{id:int}"
+﻿@page "{id:int}"
 @model EmergentEngineering.Pages.ParameterSweeps.DetailsModel
 @{
     ViewData["Title"] = Model.Sweep?.Name ?? "パラメータスイープ詳細";
@@ -58,6 +58,45 @@
     <div><h2 class="h6">状態</h2><p>@Model.FormatStatus(Model.Sweep.Status)</p></div>
 </section>
 
+<section class="summary-grid mb-4">
+    <div><h2 class="h6">最大信頼</h2><p>@Model.MaxAverageTrustSummary</p></div>
+    <div><h2 class="h6">最大実効密度</h2><p>@Model.MaxEffectiveDensitySummary</p></div>
+    <div><h2 class="h6">最大創発率</h2><p>@Model.MaxEmergentRateSummary</p></div>
+    <div><h2 class="h6">最大セレンディピティ率</h2><p>@Model.MaxSerendipityRateSummary</p></div>
+    <div><h2 class="h6">最大信頼ジャンプ</h2><p>@Model.MaxTrustJumpSummary</p></div>
+    <div><h2 class="h6">最大創発ジャンプ</h2><p>@Model.MaxEmergenceJumpSummary</p></div>
+</section>
+
+<section class="chart-panel mb-4">
+    <h2 class="h5 mb-2">相転移分析グラフ</h2>
+    <p class="text-muted mb-4">対象パラメータの変化に対して、信頼ネットワーク・セレンディピティ・創発相がどのように変化するかを比較します。</p>
+    @if (Model.AnalysisPoints.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ相転移分析用のデータはありません。</p>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <h3 class="h6 mb-2">信頼と実効密度</h3>
+                <canvas id="sweepTrustDensityChart" height="180"></canvas>
+            </div>
+            <div class="col-lg-6">
+                <h3 class="h6 mb-2">Strong / Weak Links</h3>
+                <canvas id="sweepLinkChart" height="180"></canvas>
+            </div>
+            <div class="col-lg-6">
+                <h3 class="h6 mb-2">相到達率</h3>
+                <canvas id="sweepPhaseRateChart" height="180"></canvas>
+            </div>
+            <div class="col-lg-6">
+                <h3 class="h6 mb-2">セレンディピティと創発リンク</h3>
+                <canvas id="sweepSerendipityChart" height="180"></canvas>
+            </div>
+        </div>
+    }
+</section>
+
 <section class="chart-panel mb-4">
     <div class="row g-4">
         <div class="col-lg-6">
@@ -115,6 +154,61 @@
                         <td>@run.AverageTrust.ToString("0.00")</td>
                         <td>@run.AverageAbsTrust.ToString("0.00")</td>
                         <td>@run.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">パラメータ差分分析</h2>
+    <p class="text-muted">1つ前のパラメータ値と比較して、信頼・実効密度・創発率がどれだけ変化したかを確認します。</p>
+    @if (Model.AnalysisPoints.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ差分分析用のデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>ParameterValue</th>
+                        <th>AverageTrust</th>
+                        <th>ΔTrust</th>
+                        <th>EffectiveDensity</th>
+                        <th>ΔEffectiveDensity</th>
+                        <th>EmergentRate</th>
+                        <th>ΔEmergentRate</th>
+                        <th>SerendipityRate</th>
+                        <th>ΔSerendipityRate</th>
+                        <th>StrongLinks</th>
+                        <th>WeakLinks</th>
+                        <th>ComponentCount</th>
+                        <th>IsolatedAgents</th>
+                        <th>相転移候補</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.AnalysisPoints)
+                {
+                    <tr class="@Model.GetTransitionRowClass(point)">
+                        <td>@point.ParameterValue.ToString("0.000")</td>
+                        <td>@point.AverageTrust.ToString("0.000")</td>
+                        <td>@Model.FormatDelta(point.DeltaAverageTrust)</td>
+                        <td>@point.EffectiveDensity.ToString("0.000")</td>
+                        <td>@Model.FormatDelta(point.DeltaEffectiveDensity)</td>
+                        <td>@point.EmergentRate.ToString("0.000")</td>
+                        <td>@Model.FormatDelta(point.DeltaEmergentRate)</td>
+                        <td>@point.SerendipityRate.ToString("0.000")</td>
+                        <td>@Model.FormatDelta(point.DeltaSerendipityRate)</td>
+                        <td>@point.StrongLinks.ToString("0.00")</td>
+                        <td>@point.WeakLinks.ToString("0.00")</td>
+                        <td>@point.ComponentCount.ToString("0.00")</td>
+                        <td>@point.IsolatedAgents.ToString("0.00")</td>
+                        <td>@(string.IsNullOrWhiteSpace(point.TransitionCandidates) ? "-" : point.TransitionCandidates)</td>
                     </tr>
                 }
                 </tbody>
@@ -201,9 +295,31 @@
 
             const trustPoints = @Html.Raw(Model.GetTrustChartJson());
             const emergentPoints = @Html.Raw(Model.GetEmergentChartJson());
+            const trustDensityPoints = @Html.Raw(Model.GetTrustDensityChartJson());
+            const linkPoints = @Html.Raw(Model.GetLinkChartJson());
+            const phaseRatePoints = @Html.Raw(Model.GetPhaseRateChartJson());
+            const serendipityPoints = @Html.Raw(Model.GetSerendipityChartJson());
 
             renderLineChart('averageAbsTrustChart', trustPoints, 'averageAbsTrust', '平均絶対信頼度', '#1c4b8f');
             renderLineChart('emergentCountChart', emergentPoints, 'emergentCount', '創発相到達数', '#2d7d46');
+            renderDualLineChart('sweepTrustDensityChart', trustDensityPoints, [
+                { key: 'averageTrust', label: 'Average Trust', color: '#1c4b8f' },
+                { key: 'effectiveDensity', label: 'Effective Density', color: '#2d7d46' }
+            ]);
+            renderDualLineChart('sweepLinkChart', linkPoints, [
+                { key: 'strongLinks', label: 'Strong Links', color: '#0d6efd' },
+                { key: 'weakLinks', label: 'Weak Links', color: '#adb5bd' }
+            ]);
+            renderDualLineChart('sweepPhaseRateChart', phaseRatePoints, [
+                { key: 'emergentRate', label: 'Emergent Rate', color: '#198754' },
+                { key: 'stableRate', label: 'Stable Rate', color: '#0d6efd' },
+                { key: 'learningRate', label: 'Learning Rate', color: '#6f42c1' },
+                { key: 'siloRate', label: 'Silo Rate', color: '#dc3545' }
+            ]);
+            renderDualLineChart('sweepSerendipityChart', serendipityPoints, [
+                { key: 'serendipityRate', label: 'Serendipity Rate', color: '#fd7e14' },
+                { key: 'serendipityToEmergenceRate', label: 'Serendipity → Emergence', color: '#20c997' }
+            ]);
 
             function renderLineChart(canvasId, points, valueKey, label, color) {
                 const canvas = document.getElementById(canvasId);
@@ -229,6 +345,38 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: true
+                    }
+                });
+            }
+
+            function renderDualLineChart(canvasId, points, series) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas || !points || points.length === 0) {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.parameterValue),
+                        datasets: series.map(item => ({
+                            label: item.label,
+                            data: points.map(point => point[item.key] ?? null),
+                            borderColor: item.color,
+                            backgroundColor: `${item.color}22`,
+                            fill: false,
+                            tension: 0.2,
+                            pointRadius: 3,
+                            pointHoverRadius: 4
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        }
                     }
                 });
             }

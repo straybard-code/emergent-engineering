@@ -279,6 +279,21 @@ Use `TrustGrowthRate` when you want to inspect the trust-to-emergence curve dire
 
 The sweep UI accepts `0.001` increments for start, end, and step values so you can test fine-grained trust-dynamics settings such as `TrustDecayRate = 0.005`.
 
+The parameter sweep details page now shows:
+
+- average trust and effective density
+- strong / weak link counts
+- emergent / stable / learning / silo rates
+- serendipity rate and serendipity-to-emergence link rate
+- signed deltas between neighboring parameter values
+
+This makes it easier to inspect trust-emergence curves, especially when sweeping `TrustGrowthRate`.
+
+Research hypothesis:
+
+> Emergence may not rise as a simple monotonic increase in average trust.  
+> It may appear when trust-network density, serendipity, and knowledge recombination enter a particular region together.
+
 ### SimulationMetrics
 
 `SimulationMetrics` stores the final aggregate metrics for one `SimulationProject`.

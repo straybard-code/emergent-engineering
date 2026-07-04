@@ -1,0 +1,33 @@
+namespace EmergentEngineering.Pages.ParameterSweeps;
+
+public sealed class ParameterSweepAnalysisPoint
+{
+    public double ParameterValue { get; set; }
+    public double? PreviousParameterValue { get; set; }
+    public double AverageTrust { get; set; }
+    public double AverageAbsTrust { get; set; }
+    public double EffectiveDensity { get; set; }
+    public double StrongLinks { get; set; }
+    public double WeakLinks { get; set; }
+    public double ComponentCount { get; set; }
+    public double IsolatedAgents { get; set; }
+    public int EmergentRunCount { get; set; }
+    public int StableRunCount { get; set; }
+    public int LearningRunCount { get; set; }
+    public int SiloRunCount { get; set; }
+    public int TotalRunCount { get; set; }
+    public double EmergentRate { get; set; }
+    public double StableRate { get; set; }
+    public double LearningRate { get; set; }
+    public double SiloRate { get; set; }
+    public double AverageSerendipityScore { get; set; }
+    public int SerendipityOccurredRunCount { get; set; }
+    public double SerendipityRate { get; set; }
+    public int SerendipityToEmergenceLinkCount { get; set; }
+    public double SerendipityToEmergenceRate { get; set; }
+    public double? DeltaAverageTrust { get; set; }
+    public double? DeltaEffectiveDensity { get; set; }
+    public double? DeltaEmergentRate { get; set; }
+    public double? DeltaSerendipityRate { get; set; }
+    public string TransitionCandidates { get; set; } = "";
+}
