@@ -29,10 +29,12 @@ public static class PrecursorAnalysisService
             var phaseStabilityLocal = CalculatePhaseStabilityLocal(ordered, index);
             var averageTrustNormalized = Math.Clamp((state.AverageTrust + 1.0) / 2.0, 0, 1);
             var componentPenalty = Math.Min(Math.Max(state.ComponentCount - 1, 0), 5) / 5.0;
+            var constructiveCriticismRate = KnowledgeAnalysisService.CalculateConstructiveCriticismRate(state.CriticizeRate, psychologicalSafetyLevel);
+            var destructiveCriticismRate = KnowledgeAnalysisService.CalculateDestructiveCriticismRate(state.CriticizeRate, psychologicalSafetyLevel);
 
             var siloRiskScore = Clamp01(
                 (state.WorkAloneRate * 0.35)
-                + (state.CriticizeRate * 0.20)
+                + (destructiveCriticismRate * 0.20)
                 + ((1 - state.ShareInfoRate) * 0.15)
                 + ((1 - state.SupportOtherRate) * 0.10)
                 + ((1 - state.EffectiveNetworkDensity) * 0.10)
@@ -49,13 +51,14 @@ public static class PrecursorAnalysisService
                 (state.ShareInfoRate * 0.20)
                 + (state.SupportOtherRate * 0.20)
                 + (state.ProposeIdeaRate * 0.20)
-                + (state.CriticizeRate * psychologicalSafetyLevel * 0.15)
+                + (constructiveCriticismRate * 0.15)
                 + (state.NewStrongLinkRate * 0.15)
                 + (state.EffectiveNetworkDensity * 0.10)
                 + (state.ChallengeResolutionScore * 0.10)
                 + (state.KnowledgeReconfigurationScore * 0.10)
                 + (state.SerendipityScore * 0.10)
-                + (state.KnowledgeRecombinationScore * 0.10));
+                + (state.KnowledgeRecombinationScore * 0.10)
+                + (psychologicalSafetyLevel * 0.05));
 
             var forecastPhase = DetermineForecastPhase(siloRiskScore, stableScore, emergentScore);
             var mainSignal = DetermineMainSignal(state, siloRiskScore, stableScore, emergentScore);

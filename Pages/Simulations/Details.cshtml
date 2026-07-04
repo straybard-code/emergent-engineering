@@ -621,6 +621,73 @@
 </section>
 
 <section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">創発パイプライン分析</h2>
+            <p class="text-muted small mb-0">SerendipityからKnowledge Recombination、Knowledge Reconfiguration、Learning、Adaptation、Emergenceへ至る流れを可視化し、どこで創発が止まっているかを確認します。</p>
+        </div>
+    </div>
+    @if (Model.KnowledgeTimeline.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ創発パイプライン分析を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="row g-4 mb-3">
+            <div class="col-lg-8">
+                <h3 class="h6 mb-2">創発パイプラインスコア</h3>
+                <canvas id="pipelineTimelineChart" height="140"></canvas>
+            </div>
+            <div class="col-lg-4">
+                <h3 class="h6 mb-2">創発パイプライン完了度</h3>
+                <canvas id="pipelineCompletionChart" height="140"></canvas>
+            </div>
+        </div>
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <tbody>
+                    <tr><th>最終Bottleneck</th><td>@Model.GetPipelineBottleneckDisplay(Model.FinalKnowledgePoint)</td><th>BottleneckScore</th><td>@((Model.FinalKnowledgePoint?.PipelineBottleneckScore ?? 0).ToString("0.000"))</td></tr>
+                    <tr><th>PipelineCompletionScore</th><td>@((Model.FinalKnowledgePoint?.PipelineCompletionScore ?? 0).ToString("0.000"))</td><th>簡易解釈</th><td>@Model.GetPipelineBottleneckInterpretation(Model.FinalKnowledgePoint)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Serendipity</th>
+                        <th>KnowledgeRecombination</th>
+                        <th>KnowledgeReconfiguration</th>
+                        <th>Learning</th>
+                        <th>Adaptation</th>
+                        <th>Emergence</th>
+                        <th>Bottleneck</th>
+                        <th>CompletionScore</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.KnowledgeTimeline)
+                {
+                    <tr>
+                        <td>@point.StepNo</td>
+                        <td>@point.SerendipityScore.ToString("0.000")</td>
+                        <td>@point.KnowledgeRecombinationScore.ToString("0.000")</td>
+                        <td>@point.KnowledgeReconfigurationScore.ToString("0.000")</td>
+                        <td>@point.LearningScore.ToString("0.000")</td>
+                        <td>@point.AdaptationScore.ToString("0.000")</td>
+                        <td>@point.EmergentScore.ToString("0.000")</td>
+                        <td>@Model.GetPipelineBottleneckDisplay(point)</td>
+                        <td>@point.PipelineCompletionScore.ToString("0.000")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
     <h2 class="h5 mb-3">境界条件パラメータ</h2>
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
@@ -1224,12 +1291,15 @@
             const actionTimeline = @Html.Raw(Model.GetActionTimelineJson());
             const precursorPoints = @Html.Raw(Model.GetPrecursorPointsJson());
             const knowledgeTimeline = @Html.Raw(Model.GetKnowledgeTimelineJson());
+            const pipelineTimeline = @Html.Raw(Model.GetPipelineTimelineJson());
             const phaseScorePoints = @Html.Raw(Model.GetPhaseScoreTimelineJson());
 
             renderPhaseTimeline(phasePoints);
             arrangeAnalysisSections();
             renderPrecursorChart(precursorPoints);
             renderKnowledgeTimeline(knowledgeTimeline);
+            renderPipelineTimeline(pipelineTimeline);
+            renderPipelineCompletionTimeline(pipelineTimeline);
             renderPhaseScoreTimeline(phaseScorePoints);
             renderSerendipityTimeline(knowledgeTimeline);
             renderActionTimeline(actionTimeline);
@@ -1491,6 +1561,101 @@
                                 max: 1,
                                 ticks: {
                                     callback: value => Number(value).toFixed(2)
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderPipelineTimeline(points) {
+                const canvas = document.getElementById('pipelineTimelineChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [
+                            buildRateDataset('Serendipity', points.map(point => point.serendipityScore), '#0f766e'),
+                            buildRateDataset('KnowledgeRecombination', points.map(point => point.knowledgeRecombinationScore), '#d97706'),
+                            buildRateDataset('KnowledgeReconfiguration', points.map(point => point.knowledgeReconfigurationScore), '#7c3aed'),
+                            buildRateDataset('Learning', points.map(point => point.learningScore), '#2563eb'),
+                            buildRateDataset('Adaptation', points.map(point => point.adaptationScore), '#fd7e14'),
+                            buildRateDataset('Emergence', points.map(point => point.emergentScore), '#198754')
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Step'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                ticks: {
+                                    callback: value => Number(value).toFixed(2)
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderPipelineCompletionTimeline(points) {
+                const canvas = document.getElementById('pipelineCompletionChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [
+                            buildRateDataset('PipelineCompletionScore', points.map(point => point.pipelineCompletionScore), '#1c4b8f')
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Step'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                ticks: {
+                                    callback: value => Number(value).toFixed(2)
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    afterTitle: items => {
+                                        const point = points[items[0].dataIndex];
+                                        return `Bottleneck: ${point.pipelineBottleneck || '--'}`;
+                                    }
                                 }
                             }
                         }

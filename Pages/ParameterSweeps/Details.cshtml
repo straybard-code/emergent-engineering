@@ -67,6 +67,65 @@
     <div><h2 class="h6">最大創発ジャンプ</h2><p>@Model.MaxEmergenceJumpSummary</p></div>
 </section>
 
+<section class="chart-panel mb-4">
+    <h2 class="h5 mb-2">創発パイプライン比較</h2>
+    <p class="text-muted mb-4">対象パラメータごとに、創発パイプラインのどの段階が強くなり、どこがボトルネックになっているかを比較します。</p>
+    @if (Model.AnalysisPoints.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ創発パイプライン比較を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <h3 class="h6 mb-2">創発パイプライン比較</h3>
+                <canvas id="sweepPipelineChart" height="180"></canvas>
+            </div>
+        </div>
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <h3 class="h6 mb-2">創発パイプライン完了度</h3>
+                <canvas id="sweepPipelineCompletionChart" height="180"></canvas>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ParameterValue</th>
+                        <th>Serendipity</th>
+                        <th>KnowledgeRecombination</th>
+                        <th>KnowledgeReconfiguration</th>
+                        <th>Learning</th>
+                        <th>Adaptation</th>
+                        <th>Emergence</th>
+                        <th>CompletionScore</th>
+                        <th>MostCommonBottleneck</th>
+                        <th>解釈</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.AnalysisPoints)
+                {
+                    <tr>
+                        <td>@point.ParameterValue.ToString("0.000")</td>
+                        <td>@point.AverageSerendipityScore.ToString("0.000")</td>
+                        <td>@point.AverageKnowledgeRecombinationScore.ToString("0.000")</td>
+                        <td>@point.AverageKnowledgeReconfigurationScore.ToString("0.000")</td>
+                        <td>@point.AverageLearningScore.ToString("0.000")</td>
+                        <td>@point.AverageAdaptationScore.ToString("0.000")</td>
+                        <td>@point.AverageEmergentScore.ToString("0.000")</td>
+                        <td>@point.AveragePipelineCompletionScore.ToString("0.000")</td>
+                        <td>@point.MostCommonPipelineBottleneck</td>
+                        <td>@point.PipelineBottleneckInterpretation</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
 <section class="log-section mb-4">
     <h2 class="h5 mb-3">Impact Path（影響経路）</h2>
     <p class="text-muted">対象パラメータの変化が、信頼・ネットワーク・知識・セレンディピティ・創発へどのように伝わったかを差分で表示します。</p>
@@ -278,6 +337,8 @@
                         <th>ΔStableScore</th>
                         <th>AverageLearningScore</th>
                         <th>ΔLearningScore</th>
+                        <th>AveragePipelineCompletionScore</th>
+                        <th>ΔPipelineCompletionScore</th>
                         <th>EmergentRate</th>
                         <th>ΔEmergentRate</th>
                         <th>SerendipityRate</th>
@@ -310,6 +371,8 @@
                         <td>@Model.FormatDelta(point.DeltaStableScore)</td>
                         <td>@point.AverageLearningScore.ToString("0.000")</td>
                         <td>@Model.FormatDelta(point.DeltaLearningScore)</td>
+                        <td>@point.AveragePipelineCompletionScore.ToString("0.000")</td>
+                        <td>@Model.FormatDelta(point.DeltaPipelineCompletionScore)</td>
                         <td>@point.EmergentRate.ToString("0.000")</td>
                         <td>@Model.FormatDelta(point.DeltaEmergentRate)</td>
                         <td>@point.SerendipityRate.ToString("0.000")</td>
@@ -351,6 +414,7 @@
                         <th>セレンディピティ不足Run数</th>
                         <th>アイデア提案不足Run数</th>
                         <th>情報共有不足Run数</th>
+                        <th>心理的安全性不足Run数</th>
                         <th>建設的批判不足Run数</th>
                     </tr>
                 </thead>
@@ -369,6 +433,7 @@
                         <td>@point.SerendipityInsufficientRunCount</td>
                         <td>@point.IdeaProposalInsufficientRunCount</td>
                         <td>@point.ShareInfoInsufficientRunCount</td>
+                        <td>@point.PsychologicalSafetyInsufficientRunCount</td>
                         <td>@point.ConstructiveCriticismInsufficientRunCount</td>
                     </tr>
                 }
@@ -462,6 +527,8 @@
             const serendipityPoints = @Html.Raw(Model.GetSerendipityChartJson());
             const knowledgePoints = @Html.Raw(Model.GetKnowledgeChartJson());
             const phaseScorePoints = @Html.Raw(Model.GetPhaseScoreChartJson());
+            const pipelinePoints = @Html.Raw(Model.GetPipelineChartJson());
+            const pipelineCompletionPoints = @Html.Raw(Model.GetPipelineCompletionChartJson());
 
             renderLineChart('averageAbsTrustChart', trustPoints, 'averageAbsTrust', '平均絶対信頼度', '#1c4b8f');
             renderLineChart('emergentCountChart', emergentPoints, 'emergentCount', '創発相到達数', '#2d7d46');
@@ -488,6 +555,15 @@
                 { key: 'averageKnowledgeRecombinationScore', label: 'Average Knowledge Recombination', color: '#198754' },
                 { key: 'averageKnowledgeReconfigurationScore', label: 'Average Knowledge Reconfiguration', color: '#0d6efd' }
             ]);
+            renderDualLineChart('sweepPipelineChart', pipelinePoints, [
+                { key: 'averageSerendipityScore', label: 'Serendipity', color: '#0f766e' },
+                { key: 'averageKnowledgeRecombinationScore', label: 'Knowledge Recombination', color: '#d97706' },
+                { key: 'averageKnowledgeReconfigurationScore', label: 'Knowledge Reconfiguration', color: '#7c3aed' },
+                { key: 'averageLearningScore', label: 'Learning', color: '#2563eb' },
+                { key: 'averageAdaptationScore', label: 'Adaptation', color: '#fd7e14' },
+                { key: 'averageEmergentScore', label: 'Emergence', color: '#198754' }
+            ]);
+            renderLineChart('sweepPipelineCompletionChart', pipelineCompletionPoints, 'averagePipelineCompletionScore', 'Pipeline Completion', '#1c4b8f');
             renderDualLineChart('sweepPhaseScoreChart', phaseScorePoints, [
                 { key: 'averageEmergentScore', label: 'Emergent Score', color: '#198754' },
                 { key: 'averageStableScore', label: 'Stable Score', color: '#0d6efd' },

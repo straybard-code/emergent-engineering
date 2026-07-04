@@ -234,8 +234,33 @@ public sealed class MockLlmService : ILlmService
         AdjustByLevel(weights, context.CooperationLevel, AgentActionType.AskHelp, 2);
         AdjustByLevel(weights, context.CompetitionLevel, AgentActionType.WorkAlone, 4);
         AdjustByLevel(weights, context.CompetitionLevel, AgentActionType.ProposeIdea, 2);
-        AdjustByLevel(weights, context.PsychologicalSafetyLevel, AgentActionType.Criticize, 2);
-        AdjustByLevel(weights, context.PsychologicalSafetyLevel, AgentActionType.ProposeIdea, 2);
+        if (context.PsychologicalSafetyLevel >= 0.7)
+        {
+            Adjust(weights,
+                AgentActionType.ShareInfo, 3,
+                AgentActionType.AskHelp, 3,
+                AgentActionType.ProposeIdea, 3,
+                AgentActionType.SupportOther, 2,
+                AgentActionType.Criticize, 1);
+        }
+        else if (context.PsychologicalSafetyLevel <= 0.3)
+        {
+            Adjust(weights,
+                AgentActionType.WorkAlone, 3,
+                AgentActionType.Wait, 2,
+                AgentActionType.ProposeIdea, -2,
+                AgentActionType.AskHelp, -2,
+                AgentActionType.SupportOther, -1,
+                AgentActionType.Criticize, 2);
+        }
+        else
+        {
+            AdjustByLevel(weights, context.PsychologicalSafetyLevel, AgentActionType.ShareInfo, 2);
+            AdjustByLevel(weights, context.PsychologicalSafetyLevel, AgentActionType.AskHelp, 2);
+            AdjustByLevel(weights, context.PsychologicalSafetyLevel, AgentActionType.ProposeIdea, 2);
+            AdjustByLevel(weights, context.PsychologicalSafetyLevel, AgentActionType.SupportOther, 1);
+            AdjustByLevel(weights, context.PsychologicalSafetyLevel, AgentActionType.Criticize, 1);
+        }
         AdjustByLevel(weights, context.LearningOrientationLevel, AgentActionType.ShareInfo, 2);
         AdjustByLevel(weights, context.LearningOrientationLevel, AgentActionType.Criticize, 2);
         AdjustByLevel(weights, context.LearningOrientationLevel, AgentActionType.ProposeIdea, 2);

@@ -5,6 +5,47 @@ namespace EmergentEngineering.Services;
 
 public static class KnowledgeAnalysisService
 {
+    public static double CalculateConstructiveCriticismRate(double criticizeRate, double psychologicalSafetyLevel)
+    {
+        if (psychologicalSafetyLevel >= 0.7)
+        {
+            return Clamp01(criticizeRate);
+        }
+
+        if (psychologicalSafetyLevel >= 0.4)
+        {
+            return Clamp01(criticizeRate * 0.5);
+        }
+
+        return 0;
+    }
+
+    public static double CalculateDestructiveCriticismRate(double criticizeRate, double psychologicalSafetyLevel)
+    {
+        if (psychologicalSafetyLevel >= 0.7)
+        {
+            return 0;
+        }
+
+        if (psychologicalSafetyLevel >= 0.4)
+        {
+            return Clamp01(criticizeRate * 0.5);
+        }
+
+        return Clamp01(criticizeRate);
+    }
+
+    public static double CalculatePsychologicalSafetyActionEffect(ActionDistributionSummary actions, double psychologicalSafetyLevel)
+    {
+        var constructiveCriticismRate = CalculateConstructiveCriticismRate(actions.CriticizeRate, psychologicalSafetyLevel);
+        var destructiveCriticismRate = CalculateDestructiveCriticismRate(actions.CriticizeRate, psychologicalSafetyLevel);
+
+        return Math.Round(
+            (actions.ShareInfoRate + actions.AskHelpRate + actions.ProposeIdeaRate + actions.SupportOtherRate + constructiveCriticismRate)
+            - (actions.WorkAloneRate + actions.WaitRate + destructiveCriticismRate),
+            4);
+    }
+
     public static double CalculateKnowledgeStockDelta(ActionDistributionSummary actions)
     {
         return Math.Round(
@@ -22,9 +63,10 @@ public static class KnowledgeAnalysisService
         double externalShockLevel,
         double rewiringSensitivity)
     {
+        var constructiveCriticizeRate = CalculateConstructiveCriticismRate(actions.CriticizeRate, psychologicalSafetyLevel);
         var rawDelta =
             (actions.ProposeIdeaRate * 0.03)
-            + (actions.CriticizeRate * psychologicalSafetyLevel * 0.02)
+            + (constructiveCriticizeRate * 0.02)
             + (crossDomainExposure * 0.01)
             + (externalShockLevel * 0.01);
 
@@ -41,13 +83,14 @@ public static class KnowledgeAnalysisService
         double psychologicalSafetyLevel,
         double rewiringSensitivity)
     {
+        var constructiveCriticizeRate = CalculateConstructiveCriticismRate(actions.CriticizeRate, psychologicalSafetyLevel);
         var rawScore =
             (knowledgeDiversity * 0.30)
             + (crossDomainExposure * 0.25)
             + (externalShockLevel * 0.20)
             + (challengeLevel * 0.15)
             + (actions.ProposeIdeaRate * 0.15)
-            + (actions.CriticizeRate * psychologicalSafetyLevel * 0.10);
+            + (constructiveCriticizeRate * 0.10);
 
         var sensitivityScale = 0.5 + (Math.Clamp(rewiringSensitivity, 0, 1) * 0.5);
         return Clamp01(Math.Round(rawScore * sensitivityScale, 4));
@@ -62,6 +105,8 @@ public static class KnowledgeAnalysisService
         double knowledgeRecombinationScore,
         double constructiveCriticismBonus = 0)
     {
+        var constructiveCriticizeRate = CalculateConstructiveCriticismRate(actions.CriticizeRate, psychologicalSafetyLevel);
+        var psychologicalSafetyReconfigurationBonus = psychologicalSafetyLevel * knowledgeRecombinationScore * 0.10;
         var rawScore =
             (knowledgeRewiringScore * 0.35)
             + (knowledgeRecombinationScore * 0.30)
@@ -69,8 +114,9 @@ public static class KnowledgeAnalysisService
             + (actions.ProposeIdeaRate * 0.15)
             + (actions.ShareInfoRate * 0.10)
             + (actions.SupportOtherRate * 0.10)
-            + (challengeActive ? actions.CriticizeRate * psychologicalSafetyLevel * 0.05 : 0)
-            + (psychologicalSafetyLevel >= 0.7 ? actions.CriticizeRate * Math.Clamp(constructiveCriticismBonus, 0, 1) : 0);
+            + (challengeActive ? constructiveCriticizeRate * 0.05 : 0)
+            + (psychologicalSafetyLevel >= 0.7 ? constructiveCriticizeRate * Math.Clamp(constructiveCriticismBonus, 0, 1) : 0)
+            + psychologicalSafetyReconfigurationBonus;
 
         return Clamp01(Math.Round(rawScore, 4));
     }
@@ -99,6 +145,83 @@ public static class KnowledgeAnalysisService
             Math.Clamp(requiredKnowledgeDiversity, 0, 1)
             + Math.Clamp(requiredCrossDomainExposure, 0, 1)
             + Math.Clamp(requiredRewiringScore, 0, 1)) / 3.0, 4);
+    }
+
+    public static double CalculatePipelineCompletionScore(
+        double serendipityScore,
+        double knowledgeRecombinationScore,
+        double knowledgeReconfigurationScore,
+        double learningScore,
+        double adaptationScore,
+        double emergentScore)
+    {
+        return Clamp01(Math.Round((
+            Clamp01(serendipityScore)
+            + Clamp01(knowledgeRecombinationScore)
+            + Clamp01(knowledgeReconfigurationScore)
+            + Clamp01(learningScore)
+            + Clamp01(adaptationScore)
+            + Clamp01(emergentScore)) / 6.0, 4));
+    }
+
+    public static string DeterminePipelineBottleneck(
+        double serendipityScore,
+        double knowledgeRecombinationScore,
+        double knowledgeReconfigurationScore,
+        double learningScore,
+        double adaptationScore,
+        double emergentScore)
+    {
+        var ordered = new[]
+        {
+            new KeyValuePair<string, double>("Serendipity", Clamp01(serendipityScore)),
+            new KeyValuePair<string, double>("KnowledgeRecombination", Clamp01(knowledgeRecombinationScore)),
+            new KeyValuePair<string, double>("KnowledgeReconfiguration", Clamp01(knowledgeReconfigurationScore)),
+            new KeyValuePair<string, double>("Learning", Clamp01(learningScore)),
+            new KeyValuePair<string, double>("Adaptation", Clamp01(adaptationScore)),
+            new KeyValuePair<string, double>("Emergence", Clamp01(emergentScore))
+        };
+
+        return ordered
+            .OrderBy(item => item.Value)
+            .ThenBy(item => item.Key, StringComparer.Ordinal)
+            .First()
+            .Key;
+    }
+
+    public static double GetPipelineBottleneckScore(
+        string bottleneck,
+        double serendipityScore,
+        double knowledgeRecombinationScore,
+        double knowledgeReconfigurationScore,
+        double learningScore,
+        double adaptationScore,
+        double emergentScore)
+    {
+        return bottleneck switch
+        {
+            "Serendipity" => Clamp01(serendipityScore),
+            "KnowledgeRecombination" => Clamp01(knowledgeRecombinationScore),
+            "KnowledgeReconfiguration" => Clamp01(knowledgeReconfigurationScore),
+            "Learning" => Clamp01(learningScore),
+            "Adaptation" => Clamp01(adaptationScore),
+            "Emergence" => Clamp01(emergentScore),
+            _ => 0
+        };
+    }
+
+    public static string BuildPipelineBottleneckInterpretation(string? bottleneck)
+    {
+        return bottleneck switch
+        {
+            "Serendipity" => "偶然の有用結合が不足しており、知識再結合の起点が弱い状態です。",
+            "KnowledgeRecombination" => "セレンディピティは発生していますが、知識の組み合わせ直しに十分つながっていません。",
+            "KnowledgeReconfiguration" => "知識再結合はありますが、組織全体の知識構造の再編に届いていません。",
+            "Learning" => "知識構造は変化していますが、継続的な学習相として安定していません。",
+            "Adaptation" => "学習は進んでいますが、環境変化への適応行動に変換されていません。",
+            "Emergence" => "前段階はそろっていますが、システム全体の相変化としてはまだ現れていません。",
+            _ => "-"
+        };
     }
 
     public static string BuildInterpretation(
@@ -213,6 +336,52 @@ public static class KnowledgeAnalysisService
                 SelectedPhase = GetString(root, "selectedPhase", GetString(root, "Phase", "")),
                 EmergentCriteriaJson = GetString(root, "emergentCriteriaJson", ""),
                 PhaseDecisionReason = GetString(root, "phaseDecisionReason", ""),
+                PipelineBottleneck = GetString(
+                    root,
+                    "pipelineBottleneck",
+                    DeterminePipelineBottleneck(
+                        GetDouble(root, "serendipityScore", 0),
+                        GetDouble(root, "knowledgeRecombinationScore", 0),
+                        GetDouble(root, "knowledgeReconfigurationScore", 0),
+                        GetDouble(root, "learningScore", 0),
+                        GetDouble(root, "adaptationScore", 0),
+                        GetDouble(root, "emergentScore", 0))),
+                PipelineBottleneckScore = GetDouble(
+                    root,
+                    "pipelineBottleneckScore",
+                    GetPipelineBottleneckScore(
+                        GetString(
+                            root,
+                            "pipelineBottleneck",
+                            DeterminePipelineBottleneck(
+                                GetDouble(root, "serendipityScore", 0),
+                                GetDouble(root, "knowledgeRecombinationScore", 0),
+                                GetDouble(root, "knowledgeReconfigurationScore", 0),
+                                GetDouble(root, "learningScore", 0),
+                                GetDouble(root, "adaptationScore", 0),
+                                GetDouble(root, "emergentScore", 0))),
+                        GetDouble(root, "serendipityScore", 0),
+                        GetDouble(root, "knowledgeRecombinationScore", 0),
+                        GetDouble(root, "knowledgeReconfigurationScore", 0),
+                        GetDouble(root, "learningScore", 0),
+                        GetDouble(root, "adaptationScore", 0),
+                        GetDouble(root, "emergentScore", 0))),
+                PipelineCompletionScore = GetDouble(
+                    root,
+                    "pipelineCompletionScore",
+                    CalculatePipelineCompletionScore(
+                        GetDouble(root, "serendipityScore", 0),
+                        GetDouble(root, "knowledgeRecombinationScore", 0),
+                        GetDouble(root, "knowledgeReconfigurationScore", 0),
+                        GetDouble(root, "learningScore", 0),
+                        GetDouble(root, "adaptationScore", 0),
+                        GetDouble(root, "emergentScore", 0))),
+                PsychologicalSafetyActionEffect = GetDouble(root, "psychologicalSafetyActionEffect", 0, -1, 1),
+                ConstructiveCriticismRate = GetDouble(root, "constructiveCriticismRate", 0),
+                DestructiveCriticismRate = GetDouble(root, "destructiveCriticismRate", 0),
+                PsychologicalSafetyRecombinationBonus = GetDouble(root, "psychologicalSafetyRecombinationBonus", 0),
+                PsychologicalSafetySerendipityBonus = GetDouble(root, "psychologicalSafetySerendipityBonus", 0),
+                PsychologicalSafetyEmergenceBonus = GetDouble(root, "psychologicalSafetyEmergenceBonus", 0),
                 AverageTrustGrowthRateEffective = GetDouble(root, "averageTrustGrowthRateEffective", 0),
                 AverageTrustDecayApplied = GetDouble(root, "averageTrustDecayApplied", 0),
                 TrustCapacityPenaltyAppliedCount = GetInt(root, "trustCapacityPenaltyAppliedCount", 0),
@@ -258,6 +427,15 @@ public static class KnowledgeAnalysisService
                 SelectedPhase = "",
                 EmergentCriteriaJson = "",
                 PhaseDecisionReason = "",
+                PipelineBottleneck = "--",
+                PipelineBottleneckScore = 0,
+                PipelineCompletionScore = 0,
+                PsychologicalSafetyActionEffect = 0,
+                ConstructiveCriticismRate = 0,
+                DestructiveCriticismRate = 0,
+                PsychologicalSafetyRecombinationBonus = 0,
+                PsychologicalSafetySerendipityBonus = 0,
+                PsychologicalSafetyEmergenceBonus = 0,
                 AverageTrustGrowthRateEffective = 0,
                 AverageTrustDecayApplied = 0,
                 TrustCapacityPenaltyAppliedCount = 0,
@@ -350,6 +528,15 @@ public sealed class KnowledgeTimelinePoint
     public string SelectedPhase { get; set; } = "";
     public string EmergentCriteriaJson { get; set; } = "";
     public string PhaseDecisionReason { get; set; } = "";
+    public string PipelineBottleneck { get; set; } = "--";
+    public double PipelineBottleneckScore { get; set; }
+    public double PipelineCompletionScore { get; set; }
+    public double PsychologicalSafetyActionEffect { get; set; }
+    public double ConstructiveCriticismRate { get; set; }
+    public double DestructiveCriticismRate { get; set; }
+    public double PsychologicalSafetyRecombinationBonus { get; set; }
+    public double PsychologicalSafetySerendipityBonus { get; set; }
+    public double PsychologicalSafetyEmergenceBonus { get; set; }
     public double AverageTrustGrowthRateEffective { get; set; }
     public double AverageTrustDecayApplied { get; set; }
     public int TrustCapacityPenaltyAppliedCount { get; set; }

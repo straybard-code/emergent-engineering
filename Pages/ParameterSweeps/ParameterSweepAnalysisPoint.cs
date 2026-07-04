@@ -19,6 +19,9 @@ public sealed class ParameterSweepAnalysisPoint
     public double AverageLearningScore { get; set; }
     public double AverageSiloScore { get; set; }
     public double AverageAdaptationScore { get; set; }
+    public double AveragePipelineCompletionScore { get; set; }
+    public string MostCommonPipelineBottleneck { get; set; } = "--";
+    public string PipelineBottleneckInterpretation { get; set; } = "-";
     public int EmergentRunCount { get; set; }
     public int StableRunCount { get; set; }
     public int LearningRunCount { get; set; }
@@ -43,6 +46,7 @@ public sealed class ParameterSweepAnalysisPoint
     public double? DeltaEmergentScore { get; set; }
     public double? DeltaStableScore { get; set; }
     public double? DeltaLearningScore { get; set; }
+    public double? DeltaPipelineCompletionScore { get; set; }
     public int TrustInsufficientRunCount { get; set; }
     public int EffectiveDensityInsufficientRunCount { get; set; }
     public int StrongLinkInsufficientRunCount { get; set; }
@@ -53,6 +57,7 @@ public sealed class ParameterSweepAnalysisPoint
     public int IdeaProposalInsufficientRunCount { get; set; }
     public int ShareInfoInsufficientRunCount { get; set; }
     public int ConstructiveCriticismInsufficientRunCount { get; set; }
+    public int PsychologicalSafetyInsufficientRunCount { get; set; }
     public string MainEmergentFailureReason { get; set; } = "";
     public string TransitionCandidates { get; set; } = "";
 }

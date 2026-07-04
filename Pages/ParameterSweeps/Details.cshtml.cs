@@ -239,6 +239,33 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         return JsonSerializer.Serialize(points);
     }
 
+    public string GetPipelineChartJson()
+    {
+        var points = AnalysisPoints.Select(item => new
+        {
+            parameterValue = item.ParameterValue.ToString("0.000"),
+            averageSerendipityScore = item.AverageSerendipityScore,
+            averageKnowledgeRecombinationScore = item.AverageKnowledgeRecombinationScore,
+            averageKnowledgeReconfigurationScore = item.AverageKnowledgeReconfigurationScore,
+            averageLearningScore = item.AverageLearningScore,
+            averageAdaptationScore = item.AverageAdaptationScore,
+            averageEmergentScore = item.AverageEmergentScore
+        });
+
+        return JsonSerializer.Serialize(points);
+    }
+
+    public string GetPipelineCompletionChartJson()
+    {
+        var points = AnalysisPoints.Select(item => new
+        {
+            parameterValue = item.ParameterValue.ToString("0.000"),
+            averagePipelineCompletionScore = item.AveragePipelineCompletionScore
+        });
+
+        return JsonSerializer.Serialize(points);
+    }
+
     public string FormatDelta(double? value)
     {
         if (!value.HasValue)
@@ -350,11 +377,19 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         var serendipityInsufficientRunCount = 0;
         var ideaProposalInsufficientRunCount = 0;
         var shareInfoInsufficientRunCount = 0;
+        var psychologicalSafetyInsufficientRunCount = 0;
         var constructiveCriticismInsufficientRunCount = 0;
         List<string> failureReasons = [];
+        List<string> pipelineBottlenecks = [];
 
         foreach (var analysis in analyses)
         {
+            if (!string.IsNullOrWhiteSpace(analysis.MostCommonPipelineBottleneck)
+                && analysis.MostCommonPipelineBottleneck != "--")
+            {
+                pipelineBottlenecks.Add(analysis.MostCommonPipelineBottleneck);
+            }
+
             var reason = DetermineEmergentFailureReason(
                 analysis,
                 out var trustInsufficient,
@@ -366,6 +401,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
                 out var serendipityInsufficient,
                 out var ideaProposalInsufficient,
                 out var shareInfoInsufficient,
+                out var psychologicalSafetyInsufficient,
                 out var constructiveCriticismInsufficient);
 
             if (!string.IsNullOrWhiteSpace(reason))
@@ -382,6 +418,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             serendipityInsufficientRunCount += serendipityInsufficient ? 1 : 0;
             ideaProposalInsufficientRunCount += ideaProposalInsufficient ? 1 : 0;
             shareInfoInsufficientRunCount += shareInfoInsufficient ? 1 : 0;
+            psychologicalSafetyInsufficientRunCount += psychologicalSafetyInsufficient ? 1 : 0;
             constructiveCriticismInsufficientRunCount += constructiveCriticismInsufficient ? 1 : 0;
         }
 
@@ -394,6 +431,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
                 .ThenBy(item => item.Reason)
                 .First()
                 .Reason;
+        var mostCommonPipelineBottleneck = BuildMostCommonPipelineBottleneck(pipelineBottlenecks);
 
         return new ParameterSweepAnalysisPoint
         {
@@ -413,6 +451,9 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             AverageLearningScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.LearningScore ?? 0)),
             AverageSiloScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.SiloScore ?? 0)),
             AverageAdaptationScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.AdaptationScore ?? 0)),
+            AveragePipelineCompletionScore = RoundAverage(analyses.Select(item => item.AveragePipelineCompletionScore)),
+            MostCommonPipelineBottleneck = mostCommonPipelineBottleneck,
+            PipelineBottleneckInterpretation = KnowledgeAnalysisService.BuildPipelineBottleneckInterpretation(mostCommonPipelineBottleneck),
             EmergentRunCount = emergentRunCount,
             StableRunCount = stableRunCount,
             LearningRunCount = learningRunCount,
@@ -436,6 +477,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             SerendipityInsufficientRunCount = serendipityInsufficientRunCount,
             IdeaProposalInsufficientRunCount = ideaProposalInsufficientRunCount,
             ShareInfoInsufficientRunCount = shareInfoInsufficientRunCount,
+            PsychologicalSafetyInsufficientRunCount = psychologicalSafetyInsufficientRunCount,
             ConstructiveCriticismInsufficientRunCount = constructiveCriticismInsufficientRunCount,
             MainEmergentFailureReason = mainFailureReason
         };
@@ -461,6 +503,25 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         var averageKnowledgeReconfigurationScore = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeReconfigurationScore), 3);
+        var averageLearningScore = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.LearningScore), 3);
+        var averageAdaptationScore = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.AdaptationScore), 3);
+        var averageEmergentScore = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.EmergentScore), 3);
+        var averagePipelineCompletionScore = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.PipelineCompletionScore), 3);
+        var mostCommonPipelineBottleneck = knowledgeTimeline.Count == 0
+            ? "--"
+            : BuildMostCommonPipelineBottleneck(
+                knowledgeTimeline
+                    .Select(item => item.PipelineBottleneck)
+                    .Where(item => !string.IsNullOrWhiteSpace(item) && item != "--")
+                    .ToList());
 
         return new ProjectAnalysisResult
         {
@@ -469,6 +530,11 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             AverageKnowledgeDiversity = averageKnowledgeDiversity,
             AverageKnowledgeRecombinationScore = averageKnowledgeRecombinationScore,
             AverageKnowledgeReconfigurationScore = averageKnowledgeReconfigurationScore,
+            AverageLearningScore = averageLearningScore,
+            AverageAdaptationScore = averageAdaptationScore,
+            AverageEmergentScore = averageEmergentScore,
+            AveragePipelineCompletionScore = averagePipelineCompletionScore,
+            MostCommonPipelineBottleneck = mostCommonPipelineBottleneck,
             SerendipityOccurred = knowledgeTimeline.Any(item => item.SerendipityOccurred),
             SerendipityToEmergenceLink = knowledgeTimeline.Any(item => item.SerendipityToEmergenceLink),
             FinalKnowledgePoint = knowledgeTimeline.OrderBy(item => item.StepNo).LastOrDefault(),
@@ -495,6 +561,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
                 current.DeltaEmergentScore = null;
                 current.DeltaStableScore = null;
                 current.DeltaLearningScore = null;
+                current.DeltaPipelineCompletionScore = null;
                 current.PreviousParameterValue = null;
                 current.TransitionCandidates = "";
                 continue;
@@ -512,6 +579,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             current.DeltaEmergentScore = Math.Round(current.AverageEmergentScore - previous.AverageEmergentScore, 3);
             current.DeltaStableScore = Math.Round(current.AverageStableScore - previous.AverageStableScore, 3);
             current.DeltaLearningScore = Math.Round(current.AverageLearningScore - previous.AverageLearningScore, 3);
+            current.DeltaPipelineCompletionScore = Math.Round(current.AveragePipelineCompletionScore - previous.AveragePipelineCompletionScore, 3);
 
             List<string> candidates = [];
             if (current.DeltaAverageTrust >= 0.15)
@@ -866,6 +934,21 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         return "対象パラメータは複数の中間指標に反応しています。";
     }
 
+    private static string BuildMostCommonPipelineBottleneck(IReadOnlyCollection<string> bottlenecks)
+    {
+        if (bottlenecks.Count == 0)
+        {
+            return "--";
+        }
+
+        return bottlenecks
+            .GroupBy(item => item)
+            .OrderByDescending(group => group.Count())
+            .ThenBy(group => group.Key, StringComparer.Ordinal)
+            .Select(group => group.Key)
+            .FirstOrDefault() ?? "--";
+    }
+
     private static string BuildMaxMetricSummary(
         IEnumerable<ParameterSweepAnalysisPoint> points,
         Func<ParameterSweepAnalysisPoint, double> selector,
@@ -916,6 +999,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         out bool serendipityInsufficient,
         out bool ideaProposalInsufficient,
         out bool shareInfoInsufficient,
+        out bool psychologicalSafetyInsufficient,
         out bool constructiveCriticismInsufficient)
     {
         trustInsufficient = false;
@@ -927,6 +1011,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         serendipityInsufficient = false;
         ideaProposalInsufficient = false;
         shareInfoInsufficient = false;
+        psychologicalSafetyInsufficient = false;
         constructiveCriticismInsufficient = false;
 
         if (analysis.FinalKnowledgePoint is not null
@@ -945,6 +1030,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         serendipityInsufficient = !criteria["Serendipity"];
         ideaProposalInsufficient = !criteria["ProposeIdea"];
         shareInfoInsufficient = !criteria["ShareInfo"];
+        psychologicalSafetyInsufficient = !criteria["PsychologicalSafety"];
         constructiveCriticismInsufficient = !criteria["ConstructiveCriticism"];
 
         if (analysis.FinalKnowledgePoint is null)
@@ -997,6 +1083,11 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             return "情報共有不足";
         }
 
+        if (psychologicalSafetyInsufficient)
+        {
+            return "心理的安全性不足";
+        }
+
         if (constructiveCriticismInsufficient)
         {
             return "建設的批判不足";
@@ -1027,6 +1118,9 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         var knowledgeReconfiguration = finalPoint?.KnowledgeReconfigurationScore ?? 0;
         var serendipityScore = finalPoint?.SerendipityScore ?? 0;
         var serendipityOccurred = finalPoint?.SerendipityOccurred ?? false;
+        var constructiveCriticismRate = KnowledgeAnalysisService.CalculateConstructiveCriticismRate(
+            analysis.ActionDistribution.CriticizeRate,
+            analysis.PsychologicalSafetyLevel);
 
         return new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
         {
@@ -1039,7 +1133,8 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             ["Serendipity"] = serendipityOccurred || serendipityScore >= 0.30,
             ["ProposeIdea"] = analysis.ActionDistribution.ProposeIdeaRate >= 0.07,
             ["ShareInfo"] = analysis.ActionDistribution.ShareInfoRate >= 0.30,
-            ["ConstructiveCriticism"] = analysis.ActionDistribution.CriticizeRate >= 0.08 && analysis.PsychologicalSafetyLevel >= 0.60
+            ["PsychologicalSafety"] = analysis.PsychologicalSafetyLevel >= 0.60,
+            ["ConstructiveCriticism"] = constructiveCriticismRate >= 0.08 && analysis.PsychologicalSafetyLevel >= 0.60
         };
     }
 
@@ -1050,6 +1145,11 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         public double AverageKnowledgeDiversity { get; init; }
         public double AverageKnowledgeRecombinationScore { get; init; }
         public double AverageKnowledgeReconfigurationScore { get; init; }
+        public double AverageLearningScore { get; init; }
+        public double AverageAdaptationScore { get; init; }
+        public double AverageEmergentScore { get; init; }
+        public double AveragePipelineCompletionScore { get; init; }
+        public string MostCommonPipelineBottleneck { get; init; } = "--";
         public bool SerendipityOccurred { get; init; }
         public bool SerendipityToEmergenceLink { get; init; }
         public KnowledgeTimelinePoint? FinalKnowledgePoint { get; init; }

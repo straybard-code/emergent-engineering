@@ -584,6 +584,13 @@ Why the threshold exists:
 - and more about whether trust is strong enough to function as an organizational connection
 - in emergence engineering, this supports the hypothesis that sufficiently strong trust, not merely positive trust, drives coordination, silo collapse, and emergence
 
+Psychological safety is not just a passive boundary parameter in this model. It now also shifts action selection and downstream knowledge metrics:
+
+- high psychological safety increases `ShareInfo`, `AskHelp`, `ProposeIdea`, and constructive criticism
+- low psychological safety increases `WorkAlone`, `Wait`, and destructive criticism
+- the direct emergence bonus only appears when psychological safety combines with knowledge recombination or serendipity
+- `PsychologicalSafetyActionEffect`, `ConstructiveCriticismRate`, `DestructiveCriticismRate`, `PsychologicalSafetyRecombinationBonus`, `PsychologicalSafetySerendipityBonus`, and `PsychologicalSafetyEmergenceBonus` are stored in step state JSON for analysis
+
 ## Parameter sweep output
 
 `ParameterSweepRun` stores a per-parameter-value summary:
@@ -598,6 +605,7 @@ This supports quick comparisons such as:
 - which parameter range produces more `Emergent`
 - whether trust magnitude rises or falls as one parameter changes
 - whether the same condition produces stable or mixed phase distributions
+- why a sweep still failed to reach `Emergent`, including `PsychologicalSafety` and `ConstructiveCriticism` insufficiency
 
 The details page currently shows:
 
@@ -949,6 +957,50 @@ The page also highlights bottlenecks such as:
 This is useful when a sweep changes trust and density but still does not move `EmergentRate`.
 
 Research hypothesis: the parameters that matter for emergence are not the ones that move a single metric, but the ones that chain together trust, network structure, knowledge recombination, and serendipity.
+
+## Emergence pipeline analysis
+
+Simulation details and Parameter Sweep details now include `創発パイプライン分析`.
+
+The pipeline is treated as:
+
+- `Serendipity`
+- `KnowledgeRecombination`
+- `KnowledgeReconfiguration`
+- `Learning`
+- `Adaptation`
+- `Emergence`
+
+For each step, the app reads or reconstructs:
+
+- `SerendipityScore`
+- `KnowledgeRecombinationScore`
+- `KnowledgeReconfigurationScore`
+- `LearningScore`
+- `AdaptationScore`
+- `EmergentScore`
+
+It then derives:
+
+- `PipelineBottleneck`: the weakest stage in the six-step chain
+- `PipelineBottleneckScore`: the score of that weakest stage
+- `PipelineCompletionScore`: the average score across the whole pipeline
+
+Interpretation:
+
+- `Serendipity` is not emergence itself; it is an upstream trigger for knowledge recombination
+- `PipelineBottleneck` shows where emergence is stopping as a process
+- `PipelineCompletionScore` shows how far the overall emergence process has progressed
+
+This is different from `Emergent未達理由`:
+
+- `Emergent未達理由` is condition-based insufficiency analysis
+- `創発パイプライン` is process-based blockage analysis
+
+Research hypothesis:
+
+> Emergence is not a single metric.  
+> It appears when serendipity, knowledge recombination, knowledge reconfiguration, learning, and adaptation propagate as a chain and eventually produce a phase change.
 
 #### ShareInfoRate
 

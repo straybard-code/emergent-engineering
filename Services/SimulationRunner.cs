@@ -102,6 +102,28 @@ public sealed class SimulationRunner(
         knowledgePoint.PhaseDecisionReason = BuildPhaseDecisionReason(project.Phase, phaseDecision);
         knowledgePoint.SerendipityDrivenReconfiguration = DetermineSerendipityDrivenReconfiguration(previousKnowledgePoint, previousKnowledgeTimeline, knowledgePoint);
         knowledgePoint.SerendipityToEmergenceLink = DetermineSerendipityToEmergenceLink(previousKnowledgeTimeline, knowledgePoint, project.Phase);
+        var pipelineBottleneck = KnowledgeAnalysisService.DeterminePipelineBottleneck(
+            knowledgePoint.SerendipityScore,
+            knowledgePoint.KnowledgeRecombinationScore,
+            knowledgePoint.KnowledgeReconfigurationScore,
+            knowledgePoint.LearningScore,
+            knowledgePoint.AdaptationScore,
+            knowledgePoint.EmergentScore);
+        var pipelineBottleneckScore = KnowledgeAnalysisService.GetPipelineBottleneckScore(
+            pipelineBottleneck,
+            knowledgePoint.SerendipityScore,
+            knowledgePoint.KnowledgeRecombinationScore,
+            knowledgePoint.KnowledgeReconfigurationScore,
+            knowledgePoint.LearningScore,
+            knowledgePoint.AdaptationScore,
+            knowledgePoint.EmergentScore);
+        var pipelineCompletionScore = KnowledgeAnalysisService.CalculatePipelineCompletionScore(
+            knowledgePoint.SerendipityScore,
+            knowledgePoint.KnowledgeRecombinationScore,
+            knowledgePoint.KnowledgeReconfigurationScore,
+            knowledgePoint.LearningScore,
+            knowledgePoint.AdaptationScore,
+            knowledgePoint.EmergentScore);
         project.CurrentStep = stepNo;
         if (project.CurrentStep >= project.TotalSteps)
         {
@@ -187,6 +209,9 @@ public sealed class SimulationRunner(
             chaosScore = knowledgePoint.ChaosScore,
             collapseScore = knowledgePoint.CollapseScore,
             adaptationScore = knowledgePoint.AdaptationScore,
+            pipelineBottleneck,
+            pipelineBottleneckScore,
+            pipelineCompletionScore,
             emergentCriteriaJson = knowledgePoint.EmergentCriteriaJson,
             phaseDecisionReason = knowledgePoint.PhaseDecisionReason,
             Agents = project.Agents.Select(agent => new
@@ -432,6 +457,7 @@ public sealed class SimulationRunner(
         var total = recentActions.Count;
         double Ratio(string action) => counts[action] / (double)total;
         var collaborationRatio = (counts[AgentActionType.ShareInfo] + counts[AgentActionType.AskHelp] + counts[AgentActionType.SupportOther]) / (double)total;
+        var askHelpRatio = Ratio(AgentActionType.AskHelp);
         var ideaRatio = Ratio(AgentActionType.ProposeIdea);
         var criticismRatio = Ratio(AgentActionType.Criticize);
         var soloRatio = Ratio(AgentActionType.WorkAlone);
@@ -450,19 +476,15 @@ public sealed class SimulationRunner(
         var serendipityComponent = knowledgePoint.SerendipityOccurred ? 1.0 : Clamp01(knowledgePoint.SerendipityScore / 0.35);
         var proposeComponent = Clamp01((ideaRatio - 0.07) / 0.10);
         var shareComponent = Clamp01((shareRatio - 0.20) / 0.15);
-        var constructiveCriticismComponent = project.PsychologicalSafetyLevel >= 0.60 && criticismRatio >= 0.08
-            ? Clamp01((criticismRatio - 0.08) / 0.12)
-            : 0;
-
         var collapseScore = Clamp01((waitRatio * 0.45) + ((1 - ideaRatio) * 0.20) + ((1 - shareRatio) * 0.20) + ((1 - collaborationRatio) * 0.15));
         var chaosScore = Clamp01((criticismRatio * 0.30) + ((1 - supportRatio) * 0.20) + ((1 - networkMetrics.EffectiveNetworkDensity) * 0.10) + ((project.PsychologicalSafetyLevel < 0.60 ? 1.0 : 0.0) * 0.10) + ((1 - knowledgePoint.KnowledgeRewiringScore) * 0.30));
         var siloScore = Clamp01((soloRatio * 0.35) + ((1 - shareRatio) * 0.15) + ((1 - supportRatio) * 0.15) + ((1 - networkMetrics.EffectiveNetworkDensity) * 0.20) + ((1 - knowledgePoint.KnowledgeRewiringScore) * 0.10) + (Math.Max(knowledgePoint.ChallengeGap, 0) * 0.05));
         var adaptationScore = Clamp01((knowledgePoint.ExplorationScore * 0.25) + (knowledgePoint.KnowledgeRecombinationScore * 0.25) + (knowledgePoint.KnowledgeReconfigurationScore * 0.25) + ((shareRatio + supportRatio + proposeComponent) / 3.0 * 0.25));
-        var emergentScore = Clamp01((trustComponent * 0.15) + (densityComponent * 0.15) + (strongLinkComponent * 0.10) + (diversityComponent * 0.15) + (recombinationComponent * 0.15) + (reconfigurationComponent * 0.10) + (serendipityComponent * 0.10) + (proposeComponent * 0.07) + (shareComponent * 0.05) + (constructiveCriticismComponent * 0.03));
+        var emergentScore = Clamp01((trustComponent * 0.15) + (densityComponent * 0.15) + (strongLinkComponent * 0.10) + (diversityComponent * 0.15) + (recombinationComponent * 0.15) + (reconfigurationComponent * 0.10) + (serendipityComponent * 0.10) + (proposeComponent * 0.07) + (shareComponent * 0.05));
         var stableScore = Clamp01((trustComponent * 0.30) + (densityComponent * 0.30) + ((1 - actionConcentration) * 0.20) + (phaseStabilityLocal * 0.20));
         var learningScore = Clamp01((collaborationRatio * 0.35) + (knowledgePoint.KnowledgeStock * 0.25) + (shareRatio * 0.20) + (knowledgePoint.KnowledgeDiversity * 0.10) + ((1 - knowledgePoint.KnowledgeRecombinationScore) * 0.05) + ((1 - knowledgePoint.SerendipityScore) * 0.05));
 
-        var emergentCriteria = BuildEmergentCriteria(project, knowledgePoint, networkMetrics, ideaRatio, shareRatio, criticismRatio);
+        var emergentCriteria = BuildEmergentCriteria(project, knowledgePoint, networkMetrics, ideaRatio, shareRatio);
         var emergentCriteriaMetCount = emergentCriteria.Count(item => item.Value.Passed);
 
         if (collapseScore >= 0.60)
@@ -1100,9 +1122,12 @@ public sealed class SimulationRunner(
                 project.CrossDomainExposure,
                 provisionalChallengeGap,
                 project.SerendipitySensitivity,
+                actions.ProposeIdeaRate,
                 challengeWindowStarted,
                 effectiveChallengeLevel,
                 project.PsychologicalSafetyLevel,
+                actions.CriticizeRate,
+                project.CompetitionLevel,
                 actions.WorkAloneRate)
             : 0;
         var serendipityOccurred = project.EnableSerendipity
@@ -1251,8 +1276,7 @@ public sealed class SimulationRunner(
         KnowledgeTimelinePoint knowledgePoint,
         NetworkMetricsResult networkMetrics,
         double ideaRatio,
-        double shareRatio,
-        double criticismRatio)
+        double shareRatio)
     {
         var strongLinkThreshold = Math.Max(project.Agents.Count * 2, 1);
         return new Dictionary<string, EmergentCriterionState>(StringComparer.OrdinalIgnoreCase)
@@ -1265,8 +1289,7 @@ public sealed class SimulationRunner(
             ["KnowledgeReconfiguration"] = new EmergentCriterionState { Value = knowledgePoint.KnowledgeReconfigurationScore, Threshold = 0.25, Passed = knowledgePoint.KnowledgeReconfigurationScore >= 0.25 },
             ["Serendipity"] = new EmergentCriterionState { Value = knowledgePoint.SerendipityOccurred ? 1 : knowledgePoint.SerendipityScore, Threshold = 0.30, Passed = knowledgePoint.SerendipityOccurred || knowledgePoint.SerendipityScore >= 0.30 },
             ["ProposeIdea"] = new EmergentCriterionState { Value = ideaRatio, Threshold = 0.07, Passed = ideaRatio >= 0.07 },
-            ["ShareInfo"] = new EmergentCriterionState { Value = shareRatio, Threshold = 0.30, Passed = shareRatio >= 0.30 },
-            ["ConstructiveCriticism"] = new EmergentCriterionState { Value = criticismRatio, Threshold = 0.08, Passed = criticismRatio >= 0.08 && project.PsychologicalSafetyLevel >= 0.60 }
+            ["ShareInfo"] = new EmergentCriterionState { Value = shareRatio, Threshold = 0.30, Passed = shareRatio >= 0.30 }
         };
     }
 

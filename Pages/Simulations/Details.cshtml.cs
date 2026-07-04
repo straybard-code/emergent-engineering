@@ -249,6 +249,24 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
         return JsonSerializer.Serialize(KnowledgeTimeline, JsonOptions);
     }
 
+    public string GetPipelineTimelineJson()
+    {
+        var points = KnowledgeTimeline.Select(point => new
+        {
+            stepNo = point.StepNo,
+            serendipityScore = point.SerendipityScore,
+            knowledgeRecombinationScore = point.KnowledgeRecombinationScore,
+            knowledgeReconfigurationScore = point.KnowledgeReconfigurationScore,
+            learningScore = point.LearningScore,
+            adaptationScore = point.AdaptationScore,
+            emergentScore = point.EmergentScore,
+            pipelineCompletionScore = point.PipelineCompletionScore,
+            pipelineBottleneck = point.PipelineBottleneck
+        });
+
+        return JsonSerializer.Serialize(points, JsonOptions);
+    }
+
     public string GetPhaseScoreTimelineJson()
     {
         var points = KnowledgeTimeline.Select(point => new
@@ -320,6 +338,20 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
     public string GetPhaseDecisionReason(KnowledgeTimelinePoint point)
     {
         return DescribePhaseDecisionReason(point);
+    }
+
+    public string GetPipelineBottleneckDisplay(KnowledgeTimelinePoint? point)
+    {
+        return point is null || string.IsNullOrWhiteSpace(point.PipelineBottleneck)
+            ? "--"
+            : point.PipelineBottleneck;
+    }
+
+    public string GetPipelineBottleneckInterpretation(KnowledgeTimelinePoint? point)
+    {
+        return point is null
+            ? "-"
+            : KnowledgeAnalysisService.BuildPipelineBottleneckInterpretation(point.PipelineBottleneck);
     }
 
     private static int MapPhase(string phase)
