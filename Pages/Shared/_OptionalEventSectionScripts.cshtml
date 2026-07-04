@@ -1,0 +1,65 @@
+@{
+    var prefix = (ViewData["PresetFieldPrefix"] as string ?? "").Trim();
+    var modelPrefix = string.IsNullOrWhiteSpace(prefix) ? "" : prefix + ".";
+}
+
+<script>
+(() => {
+    const prefix = '@modelPrefix';
+    const sections = [
+        {
+            key: 'external-shock',
+            checkbox: 'EnableExternalShock',
+            fields: ['ExternalShockLevel', 'ShockStep', 'ShockType', 'ShockDescription']
+        },
+        {
+            key: 'challenge',
+            checkbox: 'EnableChallengeEvent',
+            fields: ['ChallengeStep', 'ChallengeType', 'ChallengeLevel', 'ChallengeDescription', 'RequiredKnowledgeDiversity', 'RequiredCrossDomainExposure', 'RequiredRewiringScore']
+        }
+    ];
+
+    const resolveField = (name) => document.querySelector(`[name="${prefix}${name}"]`);
+
+    const setSectionState = (section, enabled) => {
+        const container = document.querySelector(`[data-optional-section="${section.key}"]`);
+        if (container) {
+            container.classList.toggle('is-disabled', !enabled);
+        }
+
+        section.fields.forEach((fieldName) => {
+            const control = resolveField(fieldName);
+            if (!control) {
+                return;
+            }
+
+            control.disabled = !enabled;
+            const row = control.closest('.mb-3');
+            if (row) {
+                row.classList.toggle('optional-field-disabled', !enabled);
+            }
+        });
+    };
+
+    const bindToggle = (section) => {
+        const checkbox = resolveField(section.checkbox);
+        if (!checkbox) {
+            return;
+        }
+
+        const apply = () => setSectionState(section, checkbox.checked);
+        checkbox.addEventListener('change', apply);
+        apply();
+    };
+
+    const init = () => {
+        sections.forEach(bindToggle);
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>

@@ -5,8 +5,9 @@
 }
 
 @functions {
-    private static string FormatStatus(string? status) => status switch
+    private static string GetStatusText(string? status) => status switch
     {
+        "Pending" => "Pending（待機中）",
         "Created" => "Created（作成済み）",
         "Running" => "Running（実行中）",
         "Completed" => "Completed（完了）",
@@ -14,6 +15,18 @@
         "StopRequested" => "StopRequested（停止要求）",
         "Stopped" => "Stopped（停止済み）",
         _ => status ?? "-"
+    };
+
+    private static string GetStatusBadgeClass(string? status) => status switch
+    {
+        "Running" => "status-badge status-running",
+        "Completed" => "status-badge status-completed",
+        "Failed" => "status-badge status-failed",
+        "Pending" => "status-badge status-pending",
+        "Created" => "status-badge status-pending",
+        "StopRequested" => "status-badge status-cancelled",
+        "Stopped" => "status-badge status-cancelled",
+        _ => "status-badge status-pending"
     };
 }
 
@@ -53,7 +66,7 @@ else
                     <td><strong>@sweep.Name</strong></td>
                     <td>@sweep.ScenarioName</td>
                     <td>@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(sweep.TargetParameter)</td>
-                    <td><span class="badge text-bg-secondary">@FormatStatus(sweep.Status)</span></td>
+                    <td><span class="@GetStatusBadgeClass(sweep.Status)">@GetStatusText(sweep.Status)</span></td>
                     <td>@sweep.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2 flex-wrap">

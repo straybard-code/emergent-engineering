@@ -70,6 +70,36 @@ code {
   margin-bottom: 1rem;
 }
 
+.optional-settings.is-disabled {
+  opacity: 0.58;
+}
+
+.optional-settings.is-disabled .form-label,
+.optional-settings.is-disabled .form-check-label,
+.optional-settings.is-disabled .form-text {
+  color: #6b7280;
+}
+
+.optional-settings.is-disabled .form-control,
+.optional-settings.is-disabled .form-select {
+  background-color: #f3f4f6;
+}
+
+.optional-field-disabled {
+  opacity: 0.58;
+}
+
+.optional-field-disabled .form-label,
+.optional-field-disabled .form-check-label,
+.optional-field-disabled .form-text {
+  color: #6b7280;
+}
+
+.optional-field-disabled .form-control,
+.optional-field-disabled .form-select {
+  background-color: #f3f4f6;
+}
+
 .agent-card {
   height: 100%;
 }

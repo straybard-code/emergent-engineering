@@ -102,7 +102,7 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
     {
         var points = Runs.Select(item => new
         {
-            parameterValue = item.ParameterValue.ToString("0.00"),
+            parameterValue = item.ParameterValue.ToString("0.000"),
             averageAbsTrust = item.AverageAbsTrust
         });
 
@@ -118,7 +118,7 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
     {
         var points = PhaseComparison.Select(item => new
         {
-            parameterValue = item.ParameterValue.ToString("0.00"),
+            parameterValue = item.ParameterValue.ToString("0.000"),
             emergentCount = item.GetCount(SimulationPhase.Emergent)
         });
 

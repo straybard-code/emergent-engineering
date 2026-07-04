@@ -13,7 +13,7 @@
 <div class="page-heading">
     <a asp-page="/ParameterSweeps/Details" asp-route-id="@Model.Sweep.Id" class="text-decoration-none small">&larr; パラメータスイープ詳細</a>
     <h1 class="h2 mt-2">@Model.Sweep.Name</h1>
-    <p class="text-muted">基準シナリオ「@Model.ScenarioName」をもとに、@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(Model.Sweep.TargetParameter) を @Model.Sweep.StartValue.ToString("0.00") から @Model.Sweep.EndValue.ToString("0.00") まで変化させます。</p>
+    <p class="text-muted">基準シナリオ「@Model.ScenarioName」をもとに、@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(Model.Sweep.TargetParameter) を @Model.Sweep.StartValue.ToString("0.000") から @Model.Sweep.EndValue.ToString("0.000") まで変化させます。</p>
     <p class="text-muted mb-0">各値につき @Model.Sweep.RunCountPerValue 回の実験を実行します。最初は Mock で小さめの Sweep を推奨します。</p>
 </div>
 

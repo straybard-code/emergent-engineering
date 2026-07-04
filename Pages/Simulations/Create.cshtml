@@ -77,7 +77,7 @@
         </div>
     </div>
 
-    <section class="log-section mb-4">
+    <section class="log-section mb-4 optional-settings" data-optional-section="external-shock">
         <h2 class="h5 mb-3">境界条件パラメータ</h2>
         <div class="row">
             <div class="col-md-6 mb-3">
@@ -116,7 +116,7 @@
         </div>
     </section>
 
-    <section class="log-section mb-4">
+    <section class="log-section mb-4 optional-settings" data-optional-section="challenge">
         <h2 class="h5 mb-3">知識・再配線パラメータ</h2>
         <div class="row">
             <div class="col-md-6 mb-3">
@@ -259,7 +259,7 @@
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.TrustDecayRate" class="form-label">信頼自然減衰率</label>
-                <input asp-for="Input.TrustDecayRate" class="form-control" type="number" min="0" max="1" step="0.01" />
+                <input asp-for="Input.TrustDecayRate" class="form-control" type="number" min="0" max="1" step="0.001" />
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.TrustSaturationStrength" class="form-label">信頼飽和強度</label>
@@ -271,15 +271,15 @@
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.TrustCapacityPenalty" class="form-label">信頼容量ペナルティ</label>
-                <input asp-for="Input.TrustCapacityPenalty" class="form-control" type="number" min="0" max="1" step="0.01" />
+                <input asp-for="Input.TrustCapacityPenalty" class="form-control" type="number" min="0" max="1" step="0.001" />
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.DistrustPenalty" class="form-label">不信ペナルティ</label>
-                <input asp-for="Input.DistrustPenalty" class="form-control" type="number" min="0" max="1" step="0.01" />
+                <input asp-for="Input.DistrustPenalty" class="form-control" type="number" min="0" max="1" step="0.001" />
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Input.ConstructiveCriticismBonus" class="form-label">建設的批判ボーナス</label>
-                <input asp-for="Input.ConstructiveCriticismBonus" class="form-control" type="number" min="0" max="1" step="0.01" />
+                <input asp-for="Input.ConstructiveCriticismBonus" class="form-control" type="number" min="0" max="1" step="0.001" />
             </div>
         </div>
     </section>
@@ -305,4 +305,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <partial name="_OptionalEventSectionScripts" />
 }

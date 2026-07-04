@@ -1,6 +1,8 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace EmergentEngineering.Models;
 
-public sealed class Experiment
+public sealed class Experiment : IValidatableObject
 {
     public int Id { get; set; }
     public int? ScenarioId { get; set; }
@@ -57,4 +59,28 @@ public sealed class Experiment
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public List<ExperimentRun> Runs { get; set; } = [];
     public List<SimulationProject> SimulationProjects { get; set; } = [];
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        foreach (var result in ConditionalEventValidation.ValidateExternalShock(
+                     EnableExternalShock,
+                     ShockType,
+                     ShockStep,
+                     ExternalShockLevel))
+        {
+            yield return result;
+        }
+
+        foreach (var result in ConditionalEventValidation.ValidateChallenge(
+                     EnableChallengeEvent,
+                     ChallengeType,
+                     ChallengeStep,
+                     ChallengeLevel,
+                     RequiredKnowledgeDiversity,
+                     RequiredCrossDomainExposure,
+                     RequiredRewiringScore))
+        {
+            yield return result;
+        }
+    }
 }

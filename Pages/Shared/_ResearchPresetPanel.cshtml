@@ -378,7 +378,7 @@
                 if (control.type === 'checkbox') {
                     control.checked = Boolean(value);
                 } else {
-                    control.value = value;
+                    control.value = String(value);
                 }
 
                 control.dispatchEvent(new Event('input', { bubbles: true }));

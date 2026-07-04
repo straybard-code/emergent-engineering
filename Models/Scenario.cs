@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmergentEngineering.Models;
 
-public sealed class Scenario
+public sealed class Scenario : IValidatableObject
 {
     public int Id { get; set; }
 
@@ -83,7 +83,6 @@ public sealed class Scenario
     [Range(0, 100)]
     public int ShockStep { get; set; } = KnowledgeDefaults.ShockStep;
 
-    [Required]
     [StringLength(40)]
     public string ShockType { get; set; } = KnowledgeDefaults.ShockType;
 
@@ -91,7 +90,6 @@ public sealed class Scenario
 
     public bool EnableChallengeEvent { get; set; } = ChallengeDefaults.EnableChallengeEvent;
 
-    [Required]
     [StringLength(40)]
     public string ChallengeType { get; set; } = ChallengeDefaults.ChallengeType;
 
@@ -152,4 +150,28 @@ public sealed class Scenario
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     public List<Experiment> Experiments { get; set; } = [];
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        foreach (var result in ConditionalEventValidation.ValidateExternalShock(
+                     EnableExternalShock,
+                     ShockType,
+                     ShockStep,
+                     ExternalShockLevel))
+        {
+            yield return result;
+        }
+
+        foreach (var result in ConditionalEventValidation.ValidateChallenge(
+                     EnableChallengeEvent,
+                     ChallengeType,
+                     ChallengeStep,
+                     ChallengeLevel,
+                     RequiredKnowledgeDiversity,
+                     RequiredCrossDomainExposure,
+                     RequiredRewiringScore))
+        {
+            yield return result;
+        }
+    }
 }

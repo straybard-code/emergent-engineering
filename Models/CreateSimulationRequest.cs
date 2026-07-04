@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmergentEngineering.Models;
 
-public sealed class CreateSimulationRequest
+public sealed class CreateSimulationRequest : IValidatableObject
 {
     [Required]
     [StringLength(200)]
@@ -75,7 +75,6 @@ public sealed class CreateSimulationRequest
     [Range(0, 100)]
     public int ShockStep { get; set; } = KnowledgeDefaults.ShockStep;
 
-    [Required]
     [StringLength(40)]
     public string ShockType { get; set; } = KnowledgeDefaults.ShockType;
 
@@ -83,7 +82,6 @@ public sealed class CreateSimulationRequest
 
     public bool EnableChallengeEvent { get; set; } = ChallengeDefaults.EnableChallengeEvent;
 
-    [Required]
     [StringLength(40)]
     public string ChallengeType { get; set; } = ChallengeDefaults.ChallengeType;
 
@@ -140,4 +138,28 @@ public sealed class CreateSimulationRequest
 
     [Range(0, 1)]
     public double ConstructiveCriticismBonus { get; set; } = TrustDynamicsDefaults.ConstructiveCriticismBonus;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        foreach (var result in ConditionalEventValidation.ValidateExternalShock(
+                     EnableExternalShock,
+                     ShockType,
+                     ShockStep,
+                     ExternalShockLevel))
+        {
+            yield return result;
+        }
+
+        foreach (var result in ConditionalEventValidation.ValidateChallenge(
+                     EnableChallengeEvent,
+                     ChallengeType,
+                     ChallengeStep,
+                     ChallengeLevel,
+                     RequiredKnowledgeDiversity,
+                     RequiredCrossDomainExposure,
+                     RequiredRewiringScore))
+        {
+            yield return result;
+        }
+    }
 }

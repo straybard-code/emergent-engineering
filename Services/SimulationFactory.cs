@@ -63,6 +63,8 @@ public static class SimulationFactory
 
     public static SimulationProject CreateProject(CreateSimulationRequest request)
     {
+        NormalizeOptionalEventSettings(request);
+
         var project = new SimulationProject
         {
             Name = request.Name.Trim(),
@@ -137,6 +139,8 @@ public static class SimulationFactory
 
     public static Experiment CreateExperiment(CreateExperimentRequest request)
     {
+        NormalizeOptionalEventSettings(request);
+
         return new Experiment
         {
             Name = request.Name.Trim(),
@@ -201,7 +205,7 @@ public static class SimulationFactory
         string llmProvider,
         string llmModel)
     {
-        return new Experiment
+        var experiment = new Experiment
         {
             ScenarioId = scenario.Id,
             Name = name.Trim(),
@@ -254,10 +258,15 @@ public static class SimulationFactory
             ConstructiveCriticismBonus = scenario.ConstructiveCriticismBonus,
             CreatedAt = DateTime.UtcNow
         };
+
+        NormalizeOptionalEventSettings(experiment);
+        return experiment;
     }
 
     public static Scenario CreateScenario(Scenario request)
     {
+        NormalizeOptionalEventSettings(request);
+
         return new Scenario
         {
             Name = request.Name.Trim(),
@@ -366,6 +375,117 @@ public static class SimulationFactory
         });
 
         project.ExperimentId = experiment.Id;
+        NormalizeOptionalEventSettings(project);
         return project;
+    }
+
+    public static void NormalizeOptionalEventSettings(Scenario scenario)
+    {
+        if (!scenario.EnableExternalShock)
+        {
+            scenario.ShockType = ShockTypes.None;
+            scenario.ShockStep = 0;
+            scenario.ExternalShockLevel = 0;
+            scenario.ShockDescription = "";
+        }
+
+        if (!scenario.EnableChallengeEvent)
+        {
+            scenario.ChallengeType = ChallengeTypes.None;
+            scenario.ChallengeStep = 0;
+            scenario.ChallengeLevel = 0;
+            scenario.ChallengeDescription = "";
+            scenario.RequiredKnowledgeDiversity = 0;
+            scenario.RequiredCrossDomainExposure = 0;
+            scenario.RequiredRewiringScore = 0;
+        }
+    }
+
+    public static void NormalizeOptionalEventSettings(CreateSimulationRequest request)
+    {
+        if (!request.EnableExternalShock)
+        {
+            request.ShockType = ShockTypes.None;
+            request.ShockStep = 0;
+            request.ExternalShockLevel = 0;
+            request.ShockDescription = "";
+        }
+
+        if (!request.EnableChallengeEvent)
+        {
+            request.ChallengeType = ChallengeTypes.None;
+            request.ChallengeStep = 0;
+            request.ChallengeLevel = 0;
+            request.ChallengeDescription = "";
+            request.RequiredKnowledgeDiversity = 0;
+            request.RequiredCrossDomainExposure = 0;
+            request.RequiredRewiringScore = 0;
+        }
+    }
+
+    public static void NormalizeOptionalEventSettings(CreateExperimentRequest request)
+    {
+        if (!request.EnableExternalShock)
+        {
+            request.ShockType = ShockTypes.None;
+            request.ShockStep = 0;
+            request.ExternalShockLevel = 0;
+            request.ShockDescription = "";
+        }
+
+        if (!request.EnableChallengeEvent)
+        {
+            request.ChallengeType = ChallengeTypes.None;
+            request.ChallengeStep = 0;
+            request.ChallengeLevel = 0;
+            request.ChallengeDescription = "";
+            request.RequiredKnowledgeDiversity = 0;
+            request.RequiredCrossDomainExposure = 0;
+            request.RequiredRewiringScore = 0;
+        }
+    }
+
+    public static void NormalizeOptionalEventSettings(Experiment experiment)
+    {
+        if (!experiment.EnableExternalShock)
+        {
+            experiment.ShockType = ShockTypes.None;
+            experiment.ShockStep = 0;
+            experiment.ExternalShockLevel = 0;
+            experiment.ShockDescription = "";
+        }
+
+        if (!experiment.EnableChallengeEvent)
+        {
+            experiment.ChallengeType = ChallengeTypes.None;
+            experiment.ChallengeStep = 0;
+            experiment.ChallengeLevel = 0;
+            experiment.ChallengeDescription = "";
+            experiment.RequiredKnowledgeDiversity = 0;
+            experiment.RequiredCrossDomainExposure = 0;
+            experiment.RequiredRewiringScore = 0;
+        }
+    }
+
+    public static void NormalizeOptionalEventSettings(SimulationProject project)
+    {
+        if (!project.EnableExternalShock)
+        {
+            project.ShockType = ShockTypes.None;
+            project.ShockStep = 0;
+            project.ExternalShockLevel = 0;
+            project.ShockDescription = "";
+        }
+
+        if (!project.EnableChallengeEvent)
+        {
+            project.ChallengeType = ChallengeTypes.None;
+            project.ChallengeStep = 0;
+            project.ChallengeLevel = 0;
+            project.ChallengeDescription = "";
+            project.RequiredKnowledgeDiversity = 0;
+            project.RequiredCrossDomainExposure = 0;
+            project.RequiredRewiringScore = 0;
+        }
     }
 }

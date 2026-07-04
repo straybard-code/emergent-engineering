@@ -1,6 +1,8 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace EmergentEngineering.Models;
 
-public sealed class SimulationProject
+public sealed class SimulationProject : IValidatableObject
 {
     public int Id { get; set; }
     public int? ExperimentId { get; set; }
@@ -60,4 +62,28 @@ public sealed class SimulationProject
     public List<Agent> Agents { get; set; } = [];
     public List<SimulationStep> Steps { get; set; } = [];
     public List<TrustSnapshot> TrustSnapshots { get; set; } = [];
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        foreach (var result in ConditionalEventValidation.ValidateExternalShock(
+                     EnableExternalShock,
+                     ShockType,
+                     ShockStep,
+                     ExternalShockLevel))
+        {
+            yield return result;
+        }
+
+        foreach (var result in ConditionalEventValidation.ValidateChallenge(
+                     EnableChallengeEvent,
+                     ChallengeType,
+                     ChallengeStep,
+                     ChallengeLevel,
+                     RequiredKnowledgeDiversity,
+                     RequiredCrossDomainExposure,
+                     RequiredRewiringScore))
+        {
+            yield return result;
+        }
+    }
 }

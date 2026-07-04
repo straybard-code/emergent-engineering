@@ -164,8 +164,33 @@ public static class BoundaryParameterNames
     public const string LearningOrientationLevel = "LearningOrientationLevel";
     public const string CustomerOrientationLevel = "CustomerOrientationLevel";
     public const string ShortTermResultPressureLevel = "ShortTermResultPressureLevel";
+    public const string EffectiveTrustThreshold = "EffectiveTrustThreshold";
 
-    public static readonly string[] All =
+    public const string KnowledgeStock = "KnowledgeStock";
+    public const string KnowledgeDiversity = "KnowledgeDiversity";
+    public const string ExternalShockLevel = "ExternalShockLevel";
+    public const string CrossDomainExposure = "CrossDomainExposure";
+    public const string RewiringSensitivity = "RewiringSensitivity";
+
+    public const string ExplorationTendency = "ExplorationTendency";
+    public const string SerendipitySensitivity = "SerendipitySensitivity";
+    public const string KnowledgeRecombinationRate = "KnowledgeRecombinationRate";
+    public const string SerendipityThreshold = "SerendipityThreshold";
+
+    public const string TrustGrowthRate = "TrustGrowthRate";
+    public const string TrustDecayRate = "TrustDecayRate";
+    public const string TrustSaturationStrength = "TrustSaturationStrength";
+    public const string TrustCapacity = "TrustCapacity";
+    public const string TrustCapacityPenalty = "TrustCapacityPenalty";
+    public const string DistrustPenalty = "DistrustPenalty";
+    public const string ConstructiveCriticismBonus = "ConstructiveCriticismBonus";
+
+    public const string ChallengeLevel = "ChallengeLevel";
+    public const string RequiredKnowledgeDiversity = "RequiredKnowledgeDiversity";
+    public const string RequiredCrossDomainExposure = "RequiredCrossDomainExposure";
+    public const string RequiredRewiringScore = "RequiredRewiringScore";
+
+    public static readonly string[] BoundaryConditions =
     [
         InformationSharingLevel,
         CooperationLevel,
@@ -173,7 +198,62 @@ public static class BoundaryParameterNames
         PsychologicalSafetyLevel,
         LearningOrientationLevel,
         CustomerOrientationLevel,
-        ShortTermResultPressureLevel
+        ShortTermResultPressureLevel,
+        EffectiveTrustThreshold
+    ];
+
+    public static readonly string[] KnowledgeAndRewiring =
+    [
+        KnowledgeStock,
+        KnowledgeDiversity,
+        ExternalShockLevel,
+        CrossDomainExposure,
+        RewiringSensitivity
+    ];
+
+    public static readonly string[] Serendipity =
+    [
+        ExplorationTendency,
+        SerendipitySensitivity,
+        KnowledgeRecombinationRate,
+        SerendipityThreshold
+    ];
+
+    public static readonly string[] TrustDynamics =
+    [
+        TrustGrowthRate,
+        TrustDecayRate,
+        TrustSaturationStrength,
+        TrustCapacity,
+        TrustCapacityPenalty,
+        DistrustPenalty,
+        ConstructiveCriticismBonus
+    ];
+
+    public static readonly string[] Challenge =
+    [
+        ChallengeLevel,
+        RequiredKnowledgeDiversity,
+        RequiredCrossDomainExposure,
+        RequiredRewiringScore
+    ];
+
+    public static readonly string[] All =
+    [
+        ..BoundaryConditions,
+        ..KnowledgeAndRewiring,
+        ..Serendipity,
+        ..TrustDynamics,
+        ..Challenge
+    ];
+
+    public static readonly (string Label, string[] Parameters)[] Groups =
+    [
+        ("境界条件", BoundaryConditions),
+        ("知識・再配線", KnowledgeAndRewiring),
+        ("セレンディピティ", Serendipity),
+        ("信頼ダイナミクス", TrustDynamics),
+        ("Challenge", Challenge)
     ];
 
     public static string GetLabel(string parameterName) => parameterName switch
@@ -185,6 +265,27 @@ public static class BoundaryParameterNames
         LearningOrientationLevel => "学習志向",
         CustomerOrientationLevel => "顧客志向",
         ShortTermResultPressureLevel => "短期成果圧力",
+        EffectiveTrustThreshold => "実効信頼閾値",
+        KnowledgeStock => "知識蓄積",
+        KnowledgeDiversity => "知識多様性",
+        ExternalShockLevel => "外部刺激レベル",
+        CrossDomainExposure => "異分野接触度",
+        RewiringSensitivity => "再配線感度",
+        ExplorationTendency => "探索傾向",
+        SerendipitySensitivity => "セレンディピティ感受性",
+        KnowledgeRecombinationRate => "知識再結合率",
+        SerendipityThreshold => "セレンディピティ閾値",
+        TrustGrowthRate => "信頼成長率",
+        TrustDecayRate => "信頼自然減衰率",
+        TrustSaturationStrength => "信頼飽和強度",
+        TrustCapacity => "信頼容量",
+        TrustCapacityPenalty => "信頼容量ペナルティ",
+        DistrustPenalty => "不信ペナルティ",
+        ConstructiveCriticismBonus => "建設的批判ボーナス",
+        ChallengeLevel => "Challengeレベル",
+        RequiredKnowledgeDiversity => "必要知識多様性",
+        RequiredCrossDomainExposure => "必要異分野接触度",
+        RequiredRewiringScore => "必要再配線スコア",
         _ => parameterName
     };
 
@@ -217,6 +318,69 @@ public static class BoundaryParameterNames
                 return true;
             case ShortTermResultPressureLevel:
                 experiment.ShortTermResultPressureLevel = value;
+                return true;
+            case EffectiveTrustThreshold:
+                experiment.EffectiveTrustThreshold = value;
+                return true;
+            case KnowledgeStock:
+                experiment.KnowledgeStock = value;
+                return true;
+            case KnowledgeDiversity:
+                experiment.KnowledgeDiversity = value;
+                return true;
+            case ExternalShockLevel:
+                experiment.ExternalShockLevel = value;
+                return true;
+            case CrossDomainExposure:
+                experiment.CrossDomainExposure = value;
+                return true;
+            case RewiringSensitivity:
+                experiment.RewiringSensitivity = value;
+                return true;
+            case ExplorationTendency:
+                experiment.ExplorationTendency = value;
+                return true;
+            case SerendipitySensitivity:
+                experiment.SerendipitySensitivity = value;
+                return true;
+            case KnowledgeRecombinationRate:
+                experiment.KnowledgeRecombinationRate = value;
+                return true;
+            case SerendipityThreshold:
+                experiment.SerendipityThreshold = value;
+                return true;
+            case TrustGrowthRate:
+                experiment.TrustGrowthRate = value;
+                return true;
+            case TrustDecayRate:
+                experiment.TrustDecayRate = value;
+                return true;
+            case TrustSaturationStrength:
+                experiment.TrustSaturationStrength = value;
+                return true;
+            case TrustCapacity:
+                experiment.TrustCapacity = Math.Max(1, (int)Math.Round(value));
+                return true;
+            case TrustCapacityPenalty:
+                experiment.TrustCapacityPenalty = value;
+                return true;
+            case DistrustPenalty:
+                experiment.DistrustPenalty = value;
+                return true;
+            case ConstructiveCriticismBonus:
+                experiment.ConstructiveCriticismBonus = value;
+                return true;
+            case ChallengeLevel:
+                experiment.ChallengeLevel = value;
+                return true;
+            case RequiredKnowledgeDiversity:
+                experiment.RequiredKnowledgeDiversity = value;
+                return true;
+            case RequiredCrossDomainExposure:
+                experiment.RequiredCrossDomainExposure = value;
+                return true;
+            case RequiredRewiringScore:
+                experiment.RequiredRewiringScore = value;
                 return true;
             default:
                 return false;

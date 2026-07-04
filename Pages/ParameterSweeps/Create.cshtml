@@ -40,9 +40,14 @@
         <div class="col-md-6 mb-3">
             <label asp-for="Input.TargetParameter" class="form-label">対象パラメータ</label>
             <select asp-for="Input.TargetParameter" class="form-select">
-                @foreach (var parameterName in EmergentEngineering.Models.BoundaryParameterNames.All)
+                @foreach (var group in EmergentEngineering.Models.BoundaryParameterNames.Groups)
                 {
-                    <option value="@parameterName">@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(parameterName)</option>
+                    <optgroup label="@group.Label">
+                        @foreach (var parameterName in group.Parameters)
+                        {
+                            <option value="@parameterName">@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(parameterName)</option>
+                        }
+                    </optgroup>
                 }
             </select>
             <span asp-validation-for="Input.TargetParameter" class="text-danger"></span>
@@ -57,17 +62,17 @@
     <div class="row">
         <div class="col-md-4 mb-3">
             <label asp-for="Input.StartValue" class="form-label">開始値</label>
-            <input asp-for="Input.StartValue" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <input asp-for="Input.StartValue" class="form-control" type="number" min="0" max="20" step="0.001" />
             <span asp-validation-for="Input.StartValue" class="text-danger"></span>
         </div>
         <div class="col-md-4 mb-3">
             <label asp-for="Input.EndValue" class="form-label">終了値</label>
-            <input asp-for="Input.EndValue" class="form-control" type="number" min="0" max="1" step="0.1" />
+            <input asp-for="Input.EndValue" class="form-control" type="number" min="0" max="20" step="0.001" />
             <span asp-validation-for="Input.EndValue" class="text-danger"></span>
         </div>
         <div class="col-md-4 mb-3">
             <label asp-for="Input.StepValue" class="form-label">刻み幅</label>
-            <input asp-for="Input.StepValue" class="form-control" type="number" min="0.01" max="1" step="0.01" />
+            <input asp-for="Input.StepValue" class="form-control" type="number" min="0.001" max="20" step="0.001" />
             <span asp-validation-for="Input.StepValue" class="text-danger"></span>
         </div>
     </div>

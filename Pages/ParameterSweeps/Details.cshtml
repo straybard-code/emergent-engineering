@@ -47,9 +47,9 @@
     <div><h2 class="h6">名前</h2><p>@Model.Sweep.Name</p></div>
     <div><h2 class="h6">基準シナリオ</h2><p>@Model.ScenarioName</p></div>
     <div><h2 class="h6">対象パラメータ</h2><p>@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(Model.Sweep.TargetParameter)</p></div>
-    <div><h2 class="h6">開始値</h2><p>@Model.Sweep.StartValue.ToString("0.00")</p></div>
-    <div><h2 class="h6">終了値</h2><p>@Model.Sweep.EndValue.ToString("0.00")</p></div>
-    <div><h2 class="h6">刻み幅</h2><p>@Model.Sweep.StepValue.ToString("0.00")</p></div>
+    <div><h2 class="h6">開始値</h2><p>@Model.Sweep.StartValue.ToString("0.000")</p></div>
+    <div><h2 class="h6">終了値</h2><p>@Model.Sweep.EndValue.ToString("0.000")</p></div>
+    <div><h2 class="h6">刻み幅</h2><p>@Model.Sweep.StepValue.ToString("0.000")</p></div>
     <div><h2 class="h6">各値の実行回数</h2><p>@Model.Sweep.RunCountPerValue</p></div>
     <div><h2 class="h6">エージェント数</h2><p>@Model.Sweep.AgentCount</p></div>
     <div><h2 class="h6">総ステップ数</h2><p>@Model.Sweep.TotalSteps</p></div>
@@ -109,7 +109,7 @@
                 @foreach (var run in Model.Runs)
                 {
                     <tr>
-                        <td>@run.ParameterValue.ToString("0.00")</td>
+                        <td>@run.ParameterValue.ToString("0.000")</td>
                         <td><a asp-page="/Experiments/Details" asp-route-id="@run.ExperimentId">@Model.GetExperimentName(run.ExperimentId)</a></td>
                         <td>@Model.FormatPhaseSummary(run.FinalPhaseSummaryJson)</td>
                         <td>@run.AverageTrust.ToString("0.00")</td>
@@ -146,7 +146,7 @@
                 @foreach (var row in Model.PhaseComparison)
                 {
                     <tr>
-                        <td>@row.ParameterValue.ToString("0.00")</td>
+                        <td>@row.ParameterValue.ToString("0.000")</td>
                         @foreach (var phase in phases)
                         {
                             <td>@row.GetCount(phase)</td>
@@ -180,7 +180,7 @@
                 @foreach (var run in Model.Runs)
                 {
                     <tr>
-                        <td>@run.ParameterValue.ToString("0.00")</td>
+                        <td>@run.ParameterValue.ToString("0.000")</td>
                         <td>@run.AverageTrust.ToString("0.00")</td>
                         <td>@run.AverageAbsTrust.ToString("0.00")</td>
                     </tr>

@@ -81,8 +81,8 @@ public sealed class RunModel(AppDbContext db, IExperimentExecutionService experi
                 var parameterLabel = BoundaryParameterNames.GetLabel(sweep.TargetParameter);
                 var experiment = SimulationFactory.CreateExperimentFromScenario(
                     scenario,
-                    $"{sweep.Name} {parameterLabel}={parameterValue:0.00}",
-                    $"{sweep.Description} / {parameterLabel}={parameterValue:0.00}",
+                    $"{sweep.Name} {parameterLabel}={parameterValue:0.000}",
+                    $"{sweep.Description} / {parameterLabel}={parameterValue:0.000}",
                     sweep.RunCountPerValue,
                     sweep.AgentCount,
                     sweep.TotalSteps,
@@ -210,13 +210,13 @@ public sealed class RunModel(AppDbContext db, IExperimentExecutionService experi
     private static List<double> BuildParameterValues(double startValue, double endValue, double stepValue)
     {
         List<double> values = [];
-        var start = decimal.Round((decimal)startValue, 2);
-        var end = decimal.Round((decimal)endValue, 2);
-        var step = decimal.Round((decimal)stepValue, 2);
+        var start = decimal.Round((decimal)startValue, 3);
+        var end = decimal.Round((decimal)endValue, 3);
+        var step = decimal.Round((decimal)stepValue, 3);
 
         for (var value = start; value <= end + 0.0001m; value += step)
         {
-            values.Add(Math.Round((double)value, 2));
+            values.Add(Math.Round((double)value, 3));
         }
 
         return values;

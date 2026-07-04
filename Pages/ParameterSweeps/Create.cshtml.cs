@@ -11,12 +11,12 @@ public sealed class CreateModel(AppDbContext db) : PageModel
     [BindProperty]
     public ParameterSweep Input { get; set; } = new()
     {
-        Name = "情報共有スイープ",
+        Name = "信頼成長率スイープ",
         Description = "基準シナリオに対して1パラメータのみを変化させる感度分析",
-        TargetParameter = BoundaryParameterNames.InformationSharingLevel,
+        TargetParameter = BoundaryParameterNames.TrustGrowthRate,
         StartValue = 0.2,
         EndValue = 0.8,
-        StepValue = 0.2,
+        StepValue = 0.1,
         RunCountPerValue = 3,
         AgentCount = 4,
         TotalSteps = 5,

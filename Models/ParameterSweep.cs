@@ -20,13 +20,13 @@ public sealed class ParameterSweep
     [StringLength(120)]
     public string TargetParameter { get; set; } = BoundaryParameterNames.InformationSharingLevel;
 
-    [Range(0, 1)]
+    [Range(0, 20)]
     public double StartValue { get; set; } = 0;
 
-    [Range(0, 1)]
+    [Range(0, 20)]
     public double EndValue { get; set; } = 1;
 
-    [Range(typeof(double), "0.01", "1")]
+    [Range(typeof(double), "0.001", "20")]
     public double StepValue { get; set; } = 0.1;
 
     [Range(1, 50)]

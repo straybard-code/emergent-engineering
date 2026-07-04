@@ -144,6 +144,8 @@ Scenario pages also support copying an existing scenario into a new draft:
 
 Create pages for `Scenario`, `Experiment`, and `Simulation` also expose a research preset picker. It applies standardized condition sets in the browser and can be combined with scenario-copy mode.
 
+`External Shock` and `Challenge Event` are optional settings. When they are disabled, the related fields are grayed out in the UI and normalized on save to `None`, `0`, or an empty string. Their description fields are optional, so research presets can leave them blank.
+
 Available presets:
 
 - 標準市場学習型
@@ -244,8 +246,38 @@ Stored fields include:
 - `CustomerOrientationLevel`
 - `ShortTermResultPressureLevel`
 - `EffectiveTrustThreshold`
+- `KnowledgeStock`
+- `KnowledgeDiversity`
+- `ExternalShockLevel`
+- `CrossDomainExposure`
+- `RewiringSensitivity`
+- `ExplorationTendency`
+- `SerendipitySensitivity`
+- `KnowledgeRecombinationRate`
+- `SerendipityThreshold`
+- `TrustGrowthRate`
+- `TrustDecayRate`
+- `TrustSaturationStrength`
+- `TrustCapacity`
+- `TrustCapacityPenalty`
+- `DistrustPenalty`
+- `ConstructiveCriticismBonus`
+- `ChallengeLevel`
+- `RequiredKnowledgeDiversity`
+- `RequiredCrossDomainExposure`
+- `RequiredRewiringScore`
 
 Each parameter value produces one `Experiment`, and the sweep stores a compact result summary in `ParameterSweepRun`.
+
+Use `TrustGrowthRate` when you want to inspect the trust-to-emergence curve directly. A typical sweep is:
+
+- Parameter: `TrustGrowthRate`
+- Start: `0.20`
+- End: `0.80`
+- Step: `0.10`
+- Runs per value: `20`
+
+The sweep UI accepts `0.001` increments for start, end, and step values so you can test fine-grained trust-dynamics settings such as `TrustDecayRate = 0.005`.
 
 ### SimulationMetrics
 
@@ -1504,6 +1536,8 @@ Fields:
 - `RequiredCrossDomainExposure`
 - `RequiredRewiringScore`
 
+If `EnableChallengeEvent` is off, these fields are not required and are normalized to default values on save.
+
 The migration for these columns is:
 
 - `20260703082000_AddChallengeEventParameters`
@@ -1617,6 +1651,8 @@ Stored configuration fields on `Scenario`, `Experiment`, and `SimulationProject`
 - `TrustCapacityPenalty`
 - `DistrustPenalty`
 - `ConstructiveCriticismBonus`
+
+These trust-dynamics parameters are editable in `0.001` increments in the UI. In practice, `TrustDecayRate` is often tuned in the `0.002` to `0.010` range.
 
 Migration:
 

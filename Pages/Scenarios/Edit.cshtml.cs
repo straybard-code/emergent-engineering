@@ -1,5 +1,6 @@
 using EmergentEngineering.Data;
 using EmergentEngineering.Models;
+using EmergentEngineering.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -84,6 +85,7 @@ public sealed class EditModel(AppDbContext db) : PageModel
         scenario.TrustCapacityPenalty = Input.TrustCapacityPenalty;
         scenario.DistrustPenalty = Input.DistrustPenalty;
         scenario.ConstructiveCriticismBonus = Input.ConstructiveCriticismBonus;
+        SimulationFactory.NormalizeOptionalEventSettings(scenario);
         scenario.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();
