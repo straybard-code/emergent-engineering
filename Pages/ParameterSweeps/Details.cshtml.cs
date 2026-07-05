@@ -31,6 +31,10 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
     public string ImpactPathBottleneck { get; private set; } = "--";
     public string SensitivityConclusion { get; private set; } = "--";
     public string TargetParameterLabel { get; private set; } = "-";
+    public List<ParameterSweepSummaryCard> SummaryCards { get; private set; } = [];
+    public List<PipelineStageSummaryRow> PipelineStageSummaries { get; private set; } = [];
+    public string RecommendedInterpretation { get; private set; } = "--";
+    public string PrimaryConclusionMessage { get; private set; } = "--";
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
@@ -91,6 +95,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         BuildSweepSummaries();
         BuildImpactPathAnalysis();
         BuildSensitivityRanking();
+        BuildDashboardSummary();
 
         return Page();
     }
@@ -515,7 +520,15 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         var averagePipelineCompletionScore = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.PipelineCompletionScore), 3);
-        var mostCommonPipelineBottleneck = knowledgeTimeline.Count == 0
+        var hasPipelineData = knowledgeTimeline.Any(item =>
+            item.SerendipityScore > 0
+            || item.KnowledgeRecombinationScore > 0
+            || item.KnowledgeReconfigurationScore > 0
+            || item.LearningScore > 0
+            || item.AdaptationScore > 0
+            || item.EmergentScore > 0
+            || item.PipelineCompletionScore > 0);
+        var mostCommonPipelineBottleneck = !hasPipelineData
             ? "--"
             : BuildMostCommonPipelineBottleneck(
                 knowledgeTimeline
@@ -701,16 +714,21 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
 
         var rows = new List<SensitivityRankingRow>
         {
-            BuildSensitivityRow("平均信頼度", maxPoint.AverageTrust - minPoint.AverageTrust, false),
-            BuildSensitivityRow("実効密度", maxPoint.EffectiveDensity - minPoint.EffectiveDensity, false),
-            BuildSensitivityRow("Strong Links", maxPoint.StrongLinks - minPoint.StrongLinks, true),
-            BuildSensitivityRow("知識多様性", maxPoint.AverageKnowledgeDiversity - minPoint.AverageKnowledgeDiversity, false),
-            BuildSensitivityRow("知識再結合", maxPoint.AverageKnowledgeRecombinationScore - minPoint.AverageKnowledgeRecombinationScore, false),
-            BuildSensitivityRow("知識再構成", maxPoint.AverageKnowledgeReconfigurationScore - minPoint.AverageKnowledgeReconfigurationScore, false),
-            BuildSensitivityRow("セレンディピティ率", maxPoint.SerendipityRate - minPoint.SerendipityRate, false),
-            BuildSensitivityRow("セレンディピティ→創発率", maxPoint.SerendipityToEmergenceRate - minPoint.SerendipityToEmergenceRate, false),
-            BuildSensitivityRow("EmergentScore", maxPoint.AverageEmergentScore - minPoint.AverageEmergentScore, false),
-            BuildSensitivityRow("EmergentRate", maxPoint.EmergentRate - minPoint.EmergentRate, false)
+            BuildSensitivityRow("平均信頼度", minPoint.AverageTrust, maxPoint.AverageTrust, false),
+            BuildSensitivityRow("実効密度", minPoint.EffectiveDensity, maxPoint.EffectiveDensity, false),
+            BuildSensitivityRow("Strong Links", minPoint.StrongLinks, maxPoint.StrongLinks, true),
+            BuildSensitivityRow("EmergentRate", minPoint.EmergentRate, maxPoint.EmergentRate, false),
+            BuildSensitivityRow("StableRate", minPoint.StableRate, maxPoint.StableRate, false),
+            BuildSensitivityRow("LearningRate", minPoint.LearningRate, maxPoint.LearningRate, false),
+            BuildSensitivityRow("セレンディピティ率", minPoint.SerendipityRate, maxPoint.SerendipityRate, false),
+            BuildSensitivityRow("セレンディピティ→創発率", minPoint.SerendipityToEmergenceRate, maxPoint.SerendipityToEmergenceRate, false),
+            BuildSensitivityRow("知識多様性", minPoint.AverageKnowledgeDiversity, maxPoint.AverageKnowledgeDiversity, false),
+            BuildSensitivityRow("知識再結合", minPoint.AverageKnowledgeRecombinationScore, maxPoint.AverageKnowledgeRecombinationScore, false),
+            BuildSensitivityRow("知識再構成", minPoint.AverageKnowledgeReconfigurationScore, maxPoint.AverageKnowledgeReconfigurationScore, false),
+            BuildSensitivityRow("AveragePipelineCompletionScore", minPoint.AveragePipelineCompletionScore, maxPoint.AveragePipelineCompletionScore, false),
+            BuildSensitivityRow("AverageEmergentScore", minPoint.AverageEmergentScore, maxPoint.AverageEmergentScore, false),
+            BuildSensitivityRow("AverageStableScore", minPoint.AverageStableScore, maxPoint.AverageStableScore, false),
+            BuildSensitivityRow("AverageLearningScore", minPoint.AverageLearningScore, maxPoint.AverageLearningScore, false)
         };
 
         SensitivityRanking = rows
@@ -720,6 +738,62 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             .ToList();
 
         SensitivityConclusion = BuildSensitivityConclusion(SensitivityRanking);
+    }
+
+    private void BuildDashboardSummary()
+    {
+        if (AnalysisPoints.Count == 0)
+        {
+            SummaryCards = [];
+            PipelineStageSummaries = [];
+            RecommendedInterpretation = "このデータには創発パイプライン情報が含まれていません。新しくスイープを実行すると表示されます。";
+            PrimaryConclusionMessage = "このデータには創発パイプライン情報が含まれていません。新しくスイープを実行すると表示されます。";
+            return;
+        }
+
+        var mostCommonPhase = ResolveMostCommonFinalPhase();
+        var emergentRateMax = AnalysisPoints.Max(item => item.EmergentRate);
+        var pipelineCompletionMax = AnalysisPoints.Max(item => item.AveragePipelineCompletionScore);
+        var mostCommonBottleneck = BuildMostCommonPipelineBottleneck(
+            AnalysisPoints
+                .Select(item => item.MostCommonPipelineBottleneck)
+                .Where(item => !string.IsNullOrWhiteSpace(item) && item != "--")
+                .ToList());
+        var averageTrustMax = AnalysisPoints.Max(item => item.AverageTrust);
+        var effectiveDensityMax = AnalysisPoints.Max(item => item.EffectiveDensity);
+        var serendipityRateMax = AnalysisPoints.Max(item => item.SerendipityRate);
+        var knowledgeReconfigurationMax = AnalysisPoints.Max(item => item.AverageKnowledgeReconfigurationScore);
+
+        RecommendedInterpretation = BuildRecommendedInterpretation(
+            emergentRateMax,
+            pipelineCompletionMax,
+            averageTrustMax,
+            effectiveDensityMax,
+            serendipityRateMax,
+            knowledgeReconfigurationMax);
+        PrimaryConclusionMessage = BuildPrimaryConclusionMessage(
+            SensitivityRanking,
+            emergentRateMax,
+            pipelineCompletionMax);
+
+        SummaryCards =
+        [
+            new ParameterSweepSummaryCard { Label = "最終相の最多", Value = FormatPhaseDisplay(mostCommonPhase) },
+            new ParameterSweepSummaryCard { Label = "Emergent Rate 最大", Value = emergentRateMax.ToString("0.00") },
+            new ParameterSweepSummaryCard { Label = "Pipeline Completion 最大", Value = pipelineCompletionMax.ToString("0.00") },
+            new ParameterSweepSummaryCard { Label = "最頻ボトルネック", Value = string.IsNullOrWhiteSpace(mostCommonBottleneck) ? "--" : mostCommonBottleneck },
+            new ParameterSweepSummaryCard { Label = "最大Average Trust", Value = averageTrustMax.ToString("0.00") },
+            new ParameterSweepSummaryCard { Label = "最大Effective Density", Value = effectiveDensityMax.ToString("0.00") },
+            new ParameterSweepSummaryCard { Label = "最大Serendipity Rate", Value = serendipityRateMax.ToString("0.00") },
+            new ParameterSweepSummaryCard { Label = "最大Knowledge Reconfiguration", Value = knowledgeReconfigurationMax.ToString("0.00") }
+        ];
+
+        PipelineStageSummaries = BuildPipelineStageSummaries();
+        if (PipelineStageSummaries.Count == 0)
+        {
+            RecommendedInterpretation = "このデータには創発パイプライン情報が含まれていません。新しくスイープを実行すると表示されます。";
+            PrimaryConclusionMessage = "このデータには創発パイプライン情報が含まれていません。新しくスイープを実行すると表示されます。";
+        }
     }
 
     private static ImpactPathNode BuildImpactNode(string title, double delta, bool strongLink)
@@ -733,15 +807,19 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         };
     }
 
-    private static SensitivityRankingRow BuildSensitivityRow(string metric, double delta, bool strongLink)
+    private static SensitivityRankingRow BuildSensitivityRow(string metric, double minValue, double maxValue, bool strongLink)
     {
+        var delta = Math.Round(maxValue - minValue, 3);
         return new SensitivityRankingRow
         {
             Metric = metric,
-            Delta = Math.Round(delta, 3),
-            AbsoluteDelta = Math.Abs(Math.Round(delta, 3)),
+            MinValue = Math.Round(minValue, 3),
+            MaxValue = Math.Round(maxValue, 3),
+            Delta = delta,
+            AbsoluteDelta = Math.Abs(delta),
             ImpactLabel = GetImpactStrengthLabel(delta, strongLink),
-            CssClass = GetImpactCssClass(delta, strongLink)
+            CssClass = GetImpactCssClass(delta, strongLink),
+            Interpretation = BuildSensitivityInterpretation(metric, delta)
         };
     }
 
@@ -777,6 +855,27 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         return "弱い影響";
     }
 
+    private static string BuildSensitivityInterpretation(string metric, double delta)
+    {
+        if (Math.Abs(delta) < 0.01)
+        {
+            return "影響小";
+        }
+
+        return metric switch
+        {
+            "平均信頼度" => "信頼形成への影響が大きい",
+            "実効密度" => "ネットワーク形成への影響が大きい",
+            "Strong Links" => "強いリンク形成への影響が大きい",
+            "セレンディピティ率" => "偶然の有用結合への影響が大きい",
+            "知識再構成" => "知識構造の再編への影響が大きい",
+            "AveragePipelineCompletionScore" => "創発プロセス全体への影響が大きい",
+            "EmergentRate" => "創発相への到達に直接影響している",
+            "AverageEmergentScore" => "創発判定スコアへの影響が大きい",
+            _ => "中間指標への影響が確認できる"
+        };
+    }
+
     private static string FormatSignedDelta(double value, bool integerLike = false)
     {
         if (integerLike)
@@ -791,6 +890,19 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
     {
         return FormatSignedDelta(value, integerLike);
     }
+
+    public static string FormatPhaseDisplay(string? phase) => phase switch
+    {
+        SimulationPhase.Forming => "Forming（形成期）",
+        SimulationPhase.Learning => "Learning（学習期）",
+        SimulationPhase.Stable => "Stable（安定期）",
+        SimulationPhase.Emergent => "Emergent（創発期）",
+        SimulationPhase.Silo => "Silo（サイロ化）",
+        SimulationPhase.Chaos => "Chaos（混乱）",
+        SimulationPhase.Collapse => "Collapse（崩壊）",
+        SimulationPhase.Adaptation => "Adaptation（適応期）",
+        _ => string.IsNullOrWhiteSpace(phase) ? "--" : phase
+    };
 
     private static string BuildImpactBottleneck(
         double deltaAverageTrust,
@@ -904,7 +1016,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             return "このパラメータは創発相への直接レバーである可能性があります。";
         }
 
-        var emergentScore = ranking.FirstOrDefault(item => item.Metric == "EmergentScore");
+        var emergentScore = ranking.FirstOrDefault(item => item.Metric == "AverageEmergentScore");
         if (emergentScore is not null && emergentScore.Delta > 0)
         {
             var emergentRate = ranking.FirstOrDefault(item => item.Metric == "EmergentRate");
@@ -915,7 +1027,7 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         }
 
         var trustDelta = ranking.Any(item => (item.Metric == "平均信頼度" || item.Metric == "実効密度") && item.Delta > 0);
-        var knowledgeDelta = ranking.Any(item => (item.Metric == "知識多様性" || item.Metric == "知識再結合" || item.Metric == "知識再構成" || item.Metric == "セレンディピティ率" || item.Metric == "セレンディピティ→創発率") && item.Delta > 0);
+        var knowledgeDelta = ranking.Any(item => (item.Metric == "知識多様性" || item.Metric == "知識再結合" || item.Metric == "知識再構成" || item.Metric == "セレンディピティ率" || item.Metric == "セレンディピティ→創発率" || item.Metric == "AveragePipelineCompletionScore") && item.Delta > 0);
         if (trustDelta && !knowledgeDelta)
         {
             return "このパラメータは信頼ネットワーク形成には効きますが、知識再結合には届いていません。";
@@ -932,6 +1044,121 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         }
 
         return "対象パラメータは複数の中間指標に反応しています。";
+    }
+
+    private string ResolveMostCommonFinalPhase()
+    {
+        var phase = Runs
+            .SelectMany(item => DeserializePhaseSummary(item.FinalPhaseSummaryJson))
+            .GroupBy(item => item.Key)
+            .Select(group => new
+            {
+                Phase = group.Key,
+                Count = group.Sum(item => item.Value)
+            })
+            .OrderByDescending(item => item.Count)
+            .ThenBy(item => item.Phase, StringComparer.Ordinal)
+            .FirstOrDefault();
+
+        return phase is null || phase.Count == 0 ? "--" : phase.Phase;
+    }
+
+    private List<PipelineStageSummaryRow> BuildPipelineStageSummaries()
+    {
+        var rows = new List<PipelineStageSummaryRow>
+        {
+            new() { Label = "Serendipity", Value = RoundAverage(AnalysisPoints.Select(item => item.AverageSerendipityScore)) },
+            new() { Label = "Knowledge Recombination", Value = RoundAverage(AnalysisPoints.Select(item => item.AverageKnowledgeRecombinationScore)) },
+            new() { Label = "Knowledge Reconfiguration", Value = RoundAverage(AnalysisPoints.Select(item => item.AverageKnowledgeReconfigurationScore)) },
+            new() { Label = "Learning", Value = RoundAverage(AnalysisPoints.Select(item => item.AverageLearningScore)) },
+            new() { Label = "Adaptation", Value = RoundAverage(AnalysisPoints.Select(item => item.AverageAdaptationScore)) },
+            new() { Label = "Emergence", Value = RoundAverage(AnalysisPoints.Select(item => item.AverageEmergentScore)) }
+        };
+
+        if (rows.Count == 0 || rows.All(item => item.Value <= 0))
+        {
+            return [];
+        }
+
+        var minValue = rows.Min(item => item.Value);
+        foreach (var row in rows)
+        {
+            row.IsBottleneck = Math.Abs(row.Value - minValue) < 0.0005;
+        }
+
+        return rows;
+    }
+
+    private static string BuildRecommendedInterpretation(
+        double emergentRateMax,
+        double pipelineCompletionMax,
+        double averageTrustMax,
+        double effectiveDensityMax,
+        double serendipityRateMax,
+        double knowledgeReconfigurationMax)
+    {
+        if (emergentRateMax > 0)
+        {
+            return "一部条件で創発相が発生しています。最大創発率となったパラメータ値を中心に追加検証してください。";
+        }
+
+        if (averageTrustMax < 0.3)
+        {
+            return "信頼ネットワークが十分に形成されていません。信頼成長率、実効信頼閾値、自然減衰率を確認してください。";
+        }
+
+        if (effectiveDensityMax < 0.3)
+        {
+            return "実効ネットワーク密度が不足しています。信頼閾値または信頼形成条件が厳しすぎる可能性があります。";
+        }
+
+        if (serendipityRateMax == 0)
+        {
+            return "セレンディピティが発生していません。探索傾向、セレンディピティ感受性、閾値を確認してください。";
+        }
+
+        if (knowledgeReconfigurationMax < 0.4)
+        {
+            return "知識再構成が不足しています。異分野接触度、再配線感度、知識再結合率を確認してください。";
+        }
+
+        if (pipelineCompletionMax >= 0.7)
+        {
+            return "創発直前までプロセスは進んでいますが、最終的な相変化には届いていません。ボトルネック段階を調整してください。";
+        }
+
+        return "信頼・セレンディピティ・知識再構成の連鎖が弱く、創発プロセスが中途で停滞しています。";
+    }
+
+    private static string BuildPrimaryConclusionMessage(
+        IReadOnlyList<SensitivityRankingRow> ranking,
+        double emergentRateMax,
+        double pipelineCompletionMax)
+    {
+        if (emergentRateMax <= 0 && pipelineCompletionMax >= 0.7)
+        {
+            return "創発プロセスは進行していますが、最終的な相変化には至っていません。";
+        }
+
+        if (emergentRateMax <= 0 && pipelineCompletionMax < 0.7)
+        {
+            return "創発プロセスの初期段階で停滞しています。";
+        }
+
+        var top = ranking.FirstOrDefault();
+        if (top is null)
+        {
+            return "--";
+        }
+
+        return top.Metric switch
+        {
+            "セレンディピティ率" => "このスイープでは、対象パラメータは主にセレンディピティ発生率に影響しています。",
+            "知識再構成" => "このスイープでは、対象パラメータは主に知識再構成に影響しています。",
+            "平均信頼度" or "実効密度" => "このスイープでは、対象パラメータは主に信頼ネットワーク形成に影響しています。",
+            "EmergentRate" => "このスイープでは、対象パラメータが創発相への到達に直接影響しています。",
+            _ => "このスイープでは、対象パラメータは複数の中間指標に影響しています。"
+        };
     }
 
     private static string BuildMostCommonPipelineBottleneck(IReadOnlyCollection<string> bottlenecks)
@@ -1205,8 +1432,18 @@ public sealed record class SensitivityRankingRow
 {
     public int Rank { get; init; }
     public string Metric { get; init; } = "";
+    public double MinValue { get; init; }
+    public double MaxValue { get; init; }
     public double Delta { get; init; }
     public double AbsoluteDelta { get; init; }
     public string ImpactLabel { get; init; } = "";
+    public string Interpretation { get; init; } = "";
     public string CssClass { get; init; } = "";
+}
+
+public sealed class PipelineStageSummaryRow
+{
+    public string Label { get; set; } = "";
+    public double Value { get; set; }
+    public bool IsBottleneck { get; set; }
 }

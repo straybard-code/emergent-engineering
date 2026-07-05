@@ -58,13 +58,49 @@
     <div><h2 class="h6">状態</h2><p>@Model.FormatStatus(Model.Sweep.Status)</p></div>
 </section>
 
-<section class="summary-grid mb-4">
-    <div><h2 class="h6">最大信頼</h2><p>@Model.MaxAverageTrustSummary</p></div>
-    <div><h2 class="h6">最大実効密度</h2><p>@Model.MaxEffectiveDensitySummary</p></div>
-    <div><h2 class="h6">最大創発率</h2><p>@Model.MaxEmergentRateSummary</p></div>
-    <div><h2 class="h6">最大セレンディピティ率</h2><p>@Model.MaxSerendipityRateSummary</p></div>
-    <div><h2 class="h6">最大信頼ジャンプ</h2><p>@Model.MaxTrustJumpSummary</p></div>
-    <div><h2 class="h6">最大創発ジャンプ</h2><p>@Model.MaxEmergenceJumpSummary</p></div>
+<section class="log-section mb-4">
+    <h2 class="h5 mb-2">実験サマリー</h2>
+    <p class="text-muted mb-3">このスイープ実験の主要な結果と、創発に至らなかった主な要因を要約します。</p>
+    <div class="alert alert-primary mb-3">
+        <strong>主要結論：</strong> @Model.PrimaryConclusionMessage
+    </div>
+    <div class="analysis-summary-grid mb-3">
+        @foreach (var card in Model.SummaryCards)
+        {
+            <article class="summary-card">
+                <div class="summary-card-label">@card.Label</div>
+                <div class="summary-card-value">@card.Value</div>
+            </article>
+        }
+    </div>
+    <div class="summary-card summary-card-wide">
+        <div class="summary-card-label">推奨解釈</div>
+        <div class="summary-card-value summary-card-text">@Model.RecommendedInterpretation</div>
+    </div>
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-2">創発パイプライン概要</h2>
+    <p class="text-muted mb-3">SerendipityからEmergenceまでの各段階がどの程度進んでいるかを平均値で表示します。</p>
+    @if (Model.PipelineStageSummaries.Count == 0)
+    {
+        <p class="text-muted mb-0">このデータには創発パイプライン情報が含まれていません。新しくスイープを実行すると表示されます。</p>
+    }
+    else
+    {
+        <div class="pipeline-summary">
+            @foreach (var row in Model.PipelineStageSummaries)
+            {
+                <div class="pipeline-row @(row.IsBottleneck ? "pipeline-bottleneck" : string.Empty)">
+                    <div class="pipeline-label">@row.Label</div>
+                    <div class="pipeline-bar">
+                        <div class="pipeline-bar-fill" style="width:@($"{Math.Clamp(row.Value, 0, 1) * 100:0.#}%")"></div>
+                    </div>
+                    <div class="pipeline-value">@row.Value.ToString("0.00")</div>
+                </div>
+            }
+        </div>
+    }
 </section>
 
 <section class="chart-panel mb-4">
@@ -179,8 +215,11 @@
                     <tr>
                         <th>Rank</th>
                         <th>指標</th>
+                        <th>最小値</th>
+                        <th>最大値</th>
                         <th>差分</th>
                         <th>影響度</th>
+                        <th>解釈</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -189,8 +228,11 @@
                     <tr class="@row.CssClass">
                         <td>@row.Rank</td>
                         <td>@row.Metric</td>
+                        <td>@row.MinValue.ToString("0.000")</td>
+                        <td>@row.MaxValue.ToString("0.000")</td>
                         <td>@Model.FormatImpactDelta(row.Delta, row.Metric == "Strong Links")</td>
                         <td>@row.ImpactLabel</td>
+                        <td>@row.Interpretation</td>
                     </tr>
                 }
                 </tbody>
@@ -198,6 +240,15 @@
         </div>
         <div class="alert alert-secondary mb-0">@Model.SensitivityConclusion</div>
     }
+</section>
+
+<section class="summary-grid mb-4">
+    <div><h2 class="h6">最大信頼</h2><p>@Model.MaxAverageTrustSummary</p></div>
+    <div><h2 class="h6">最大実効密度</h2><p>@Model.MaxEffectiveDensitySummary</p></div>
+    <div><h2 class="h6">最大創発率</h2><p>@Model.MaxEmergentRateSummary</p></div>
+    <div><h2 class="h6">最大セレンディピティ率</h2><p>@Model.MaxSerendipityRateSummary</p></div>
+    <div><h2 class="h6">最大信頼ジャンプ</h2><p>@Model.MaxTrustJumpSummary</p></div>
+    <div><h2 class="h6">最大創発ジャンプ</h2><p>@Model.MaxEmergenceJumpSummary</p></div>
 </section>
 
 <section class="chart-panel mb-4">

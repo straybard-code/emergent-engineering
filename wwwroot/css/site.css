@@ -250,6 +250,102 @@ code {
   color: #1f2937;
 }
 
+.analysis-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.summary-card {
+  background: #ffffff;
+  border: 1px solid #d9dee7;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.summary-card-wide {
+  margin-top: 0.25rem;
+}
+
+.summary-card-label {
+  color: #5c6470;
+  font-size: 0.82rem;
+  margin-bottom: 0.35rem;
+}
+
+.summary-card-value {
+  color: #1f2937;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.summary-card-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.pipeline-summary {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.pipeline-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 60px;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.pipeline-label {
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.pipeline-bar {
+  height: 12px;
+  border-radius: 999px;
+  background: #e9ecef;
+  overflow: hidden;
+}
+
+.pipeline-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4c7ed9 0%, #7fb0ff 100%);
+}
+
+.pipeline-value {
+  color: #1f2937;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 700;
+}
+
+.pipeline-bottleneck .pipeline-label,
+.pipeline-bottleneck .pipeline-value {
+  color: #a63d3d;
+}
+
+.pipeline-bottleneck .pipeline-bar {
+  background: #f4d0d0;
+}
+
+.pipeline-bottleneck .pipeline-bar-fill {
+  background: linear-gradient(90deg, #dc3545 0%, #f08f99 100%);
+}
+
+@media (max-width: 768px) {
+  .pipeline-row {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .pipeline-value {
+    text-align: left;
+  }
+}
+
 .impact-node-strong > *,
 .impact-node-medium > *,
 .impact-node-weak > * {

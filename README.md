@@ -1002,6 +1002,18 @@ Research hypothesis:
 > Emergence is not a single metric.  
 > It appears when serendipity, knowledge recombination, knowledge reconfiguration, learning, and adaptation propagate as a chain and eventually produce a phase change.
 
+Parameter Sweep details now also include a research dashboard layer:
+
+- `実験サマリー`: top-level outcome summary, most common final phase, dominant bottleneck, and recommended interpretation
+- `創発パイプライン概要`: horizontal-bar view of average progress from `Serendipity` to `Emergence`
+- `感度ランキング`: which metrics reacted most strongly to the swept parameter
+
+Recommended reading order for analysis:
+
+- first check `実験サマリー`
+- then review `感度ランキング`
+- then open the detailed graphs and tables only where needed
+
 #### ShareInfoRate
 
 `ShareInfoCount / TotalAgentActions`

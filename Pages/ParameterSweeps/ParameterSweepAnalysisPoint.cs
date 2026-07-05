@@ -61,3 +61,9 @@ public sealed class ParameterSweepAnalysisPoint
     public string MainEmergentFailureReason { get; set; } = "";
     public string TransitionCandidates { get; set; } = "";
 }
+
+public sealed class ParameterSweepSummaryCard
+{
+    public string Label { get; set; } = "";
+    public string Value { get; set; } = "--";
+}
