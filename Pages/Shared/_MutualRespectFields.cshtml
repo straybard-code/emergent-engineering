@@ -1,0 +1,36 @@
+@model dynamic
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">相互敬意</h2>
+    <p class="text-muted small mb-3">相互敬意は、異なる視点を学ぶ価値として受け止め、知識再構成へつなげる土台です。Thanks Coin はその状態を観測するための信号として扱います。</p>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="MutualRespectBase">相互敬意ベース</label>
+            <input class="form-control" id="MutualRespectBase" name="MutualRespectBase" type="number" min="0" max="1" step="0.001" value="@Model.MutualRespectBase" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="MutualRespectGrowthRate">相互敬意成長率</label>
+            <input class="form-control" id="MutualRespectGrowthRate" name="MutualRespectGrowthRate" type="number" min="0" max="1" step="0.001" value="@Model.MutualRespectGrowthRate" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="MutualRespectDecayRate">相互敬意減衰率</label>
+            <input class="form-control" id="MutualRespectDecayRate" name="MutualRespectDecayRate" type="number" min="0" max="1" step="0.001" value="@Model.MutualRespectDecayRate" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="MutualRespectDiversitySensitivity">異質性尊重感度</label>
+            <input class="form-control" id="MutualRespectDiversitySensitivity" name="MutualRespectDiversitySensitivity" type="number" min="0" max="1" step="0.001" value="@Model.MutualRespectDiversitySensitivity" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="MutualRespectChallengeSensitivity">異論尊重感度</label>
+            <input class="form-control" id="MutualRespectChallengeSensitivity" name="MutualRespectChallengeSensitivity" type="number" min="0" max="1" step="0.001" value="@Model.MutualRespectChallengeSensitivity" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="MutualRespectBridgeSensitivity">橋渡し尊重感度</label>
+            <input class="form-control" id="MutualRespectBridgeSensitivity" name="MutualRespectBridgeSensitivity" type="number" min="0" max="1" step="0.001" value="@Model.MutualRespectBridgeSensitivity" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="MutualRespectPopularityPenalty">人気集中ペナルティ</label>
+            <input class="form-control" id="MutualRespectPopularityPenalty" name="MutualRespectPopularityPenalty" type="number" min="0" max="1" step="0.001" value="@Model.MutualRespectPopularityPenalty" />
+        </div>
+    </div>
+</section>

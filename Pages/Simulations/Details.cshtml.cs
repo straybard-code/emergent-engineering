@@ -316,6 +316,42 @@ public sealed class DetailsModel(
         return JsonSerializer.Serialize(points, JsonOptions);
     }
 
+    public string GetThanksCoinTimelineJson()
+    {
+        var points = KnowledgeTimeline.Select(point => new
+        {
+            stepNo = point.StepNo,
+            thanksCoinOccurred = point.ThanksCoinOccurred,
+            thanksCoinCount = point.ThanksCoinCount,
+            thanksCoinHelpCount = point.ThanksCoinHelpCount,
+            thanksCoinIdeaCount = point.ThanksCoinIdeaCount,
+            thanksCoinChallengeCount = point.ThanksCoinChallengeCount,
+            thanksCoinBridgeCount = point.ThanksCoinBridgeCount,
+            averageRespect = point.AverageRespect,
+            respectDensity = point.RespectDensity,
+            respectConcentration = point.RespectConcentration,
+            thanksConcentration = point.ThanksConcentration,
+            thanksCoinTrustDelta = point.ThanksCoinTrustDelta,
+            thanksCoinReconfigurationDelta = point.ThanksCoinReconfigurationDelta,
+            thanksCoinSerendipityDelta = point.ThanksCoinSerendipityDelta,
+            constructiveCriticismRate = point.ConstructiveCriticismRate,
+            destructiveCriticismRate = point.DestructiveCriticismRate,
+            challengeAcceptanceScore = point.ChallengeAcceptanceScore,
+            respectReconfigurationBoost = point.RespectReconfigurationBoost,
+            thanksChallengeEffect = point.ThanksChallengeEffect,
+            thanksBridgeEffect = point.ThanksBridgeEffect,
+            diversityRespectEffect = point.DiversityRespectEffect,
+            respectEmergenceComponent = point.RespectEmergenceComponent,
+            popularityTrapPenalty = point.PopularityTrapPenalty,
+            popularityTrapDetected = point.PopularityTrapDetected,
+            thanksCoinToReconfigurationContribution = point.ThanksCoinToReconfigurationContribution,
+            thanksCoinToSerendipityContribution = point.ThanksCoinToSerendipityContribution,
+            thanksCoinToEmergenceContribution = point.ThanksCoinToEmergenceContribution
+        });
+
+        return JsonSerializer.Serialize(points, JsonOptions);
+    }
+
     public string FormatSignedDelta(double value, string format = "0.00")
     {
         return value.ToString($"+{format};-{format};0.00");

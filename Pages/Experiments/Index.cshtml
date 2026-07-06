@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model EmergentEngineering.Pages.Experiments.IndexModel
 @{
     ViewData["Title"] = "Experiments";
@@ -39,7 +39,7 @@
         <h1 class="h2 mb-1">Experiments</h1>
         <p class="text-muted mb-0">同じ条件で複数回の実行結果を比較し、Phase 遷移と Trust 状態を確認します。</p>
     </div>
-    <a class="btn btn-primary" asp-page="/Experiments/Create">新規 Experiment</a>
+    <a class="btn btn-primary" asp-page="/Experiments/Create">新規実験</a>
 </div>
 
 @if (!string.IsNullOrWhiteSpace(Model.CleanupMessage))

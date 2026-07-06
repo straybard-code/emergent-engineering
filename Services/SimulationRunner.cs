@@ -98,6 +98,145 @@ public sealed class SimulationRunner(
         var stepActionSummary = ActionDistributionCalculator.Calculate(currentStepActions.Select(action => action.Action));
         var knowledgePoint = ApplyKnowledgeShockAndChallenge(project, stepNo, stepActionSummary, previousKnowledgePoint);
         var trustDynamicsSummary = ApplyTrustDynamics(project, touchedTrustEdges, trustDynamicsState);
+        var thanksCoinSummary = ThanksCoinService.Apply(project, stepActionSummary, previousKnowledgePoint, stepNo);
+
+        knowledgePoint.KnowledgeRecombinationScore = Clamp01(
+            knowledgePoint.KnowledgeRecombinationScore
+            + (thanksCoinSummary.ReconfigurationDelta * 0.50)
+            + (thanksCoinSummary.BridgeDelta * 0.25));
+        knowledgePoint.KnowledgeReconfigurationScore = Clamp01(
+            knowledgePoint.KnowledgeReconfigurationScore
+            + thanksCoinSummary.ReconfigurationDelta
+            + (thanksCoinSummary.BridgeDelta * 0.25));
+        knowledgePoint.SerendipityScore = Clamp01(
+            knowledgePoint.SerendipityScore
+            + thanksCoinSummary.SerendipityDelta
+            + (thanksCoinSummary.BridgeDelta * 0.50));
+        knowledgePoint.KnowledgeRewiringScore = Clamp01(
+            knowledgePoint.KnowledgeRewiringScore
+            + (thanksCoinSummary.BridgeDelta * 0.35)
+            + (thanksCoinSummary.RewiringDelta * 0.25));
+        knowledgePoint.CrossDomainExposure = Clamp01(
+            knowledgePoint.CrossDomainExposure
+            + thanksCoinSummary.CrossDomainExposureDelta);
+        knowledgePoint.PsychologicalSafetyActionEffect = Math.Round(
+            knowledgePoint.PsychologicalSafetyActionEffect + thanksCoinSummary.PsychologicalSafetyDelta,
+            4);
+        knowledgePoint.PsychologicalSafetyRecombinationBonus = Math.Round(
+            knowledgePoint.PsychologicalSafetyRecombinationBonus + (thanksCoinSummary.PsychologicalSafetyDelta * 0.5),
+            4);
+        knowledgePoint.PsychologicalSafetySerendipityBonus = Math.Round(
+            knowledgePoint.PsychologicalSafetySerendipityBonus + (thanksCoinSummary.BridgeDelta * 0.5),
+            4);
+        knowledgePoint.PsychologicalSafetyEmergenceBonus = Math.Round(
+            knowledgePoint.PsychologicalSafetyEmergenceBonus + (thanksCoinSummary.PsychologicalSafetyDelta * 0.25),
+            4);
+        knowledgePoint.AverageRespect = thanksCoinSummary.AverageRespect;
+        knowledgePoint.RespectDensity = thanksCoinSummary.RespectDensity;
+        knowledgePoint.RespectStrongLinks = thanksCoinSummary.RespectStrongLinks;
+        knowledgePoint.RespectWeakLinks = thanksCoinSummary.RespectWeakLinks;
+        knowledgePoint.RespectConcentration = thanksCoinSummary.RespectConcentration;
+        knowledgePoint.RespectJson = thanksCoinSummary.RespectJson;
+        knowledgePoint.ThanksCoinOccurred = thanksCoinSummary.Occurred;
+        knowledgePoint.ThanksCoinCount = thanksCoinSummary.Count;
+        knowledgePoint.ThanksCoinHelpCount = thanksCoinSummary.HelpCount;
+        knowledgePoint.ThanksCoinIdeaCount = thanksCoinSummary.IdeaCount;
+        knowledgePoint.ThanksCoinChallengeCount = thanksCoinSummary.ChallengeCount;
+        knowledgePoint.ThanksCoinBridgeCount = thanksCoinSummary.BridgeCount;
+        knowledgePoint.ThanksCoinRespectDelta = thanksCoinSummary.RespectDelta;
+        knowledgePoint.ThanksCoinTrustDelta = thanksCoinSummary.TrustDelta;
+        knowledgePoint.ThanksCoinReconfigurationDelta = thanksCoinSummary.ReconfigurationDelta;
+        knowledgePoint.ThanksCoinSerendipityDelta = thanksCoinSummary.SerendipityDelta;
+        knowledgePoint.ThanksCoinBridgeDelta = thanksCoinSummary.BridgeDelta;
+        knowledgePoint.ThanksConcentration = thanksCoinSummary.ThanksConcentration;
+
+        var constructiveCriticismRate = KnowledgeAnalysisService.CalculateConstructiveCriticismRate(
+            stepActionSummary.CriticizeRate,
+            project.PsychologicalSafetyLevel);
+        var destructiveCriticismRate = KnowledgeAnalysisService.CalculateDestructiveCriticismRate(
+            stepActionSummary.CriticizeRate,
+            project.PsychologicalSafetyLevel);
+        var thanksChallengeRate = thanksCoinSummary.Count == 0 ? 0 : thanksCoinSummary.ChallengeCount / (double)thanksCoinSummary.Count;
+        var thanksBridgeRate = thanksCoinSummary.Count == 0 ? 0 : thanksCoinSummary.BridgeCount / (double)thanksCoinSummary.Count;
+        var challengeAcceptanceScore = KnowledgeAnalysisService.CalculateChallengeAcceptanceScore(
+            project.PsychologicalSafetyLevel,
+            thanksCoinSummary.AverageRespect,
+            thanksChallengeRate,
+            project.ConstructiveCriticismBonus);
+        var respectReconfigurationBoost = KnowledgeAnalysisService.CalculateRespectReconfigurationBoost(
+            thanksCoinSummary.AverageRespect,
+            thanksCoinSummary.RespectDensity,
+            thanksChallengeRate,
+            thanksBridgeRate);
+        var thanksChallengeEffect = KnowledgeAnalysisService.CalculateThanksChallengeEffect(thanksCoinSummary.ChallengeCount, project.Agents.Count);
+        var thanksBridgeEffect = KnowledgeAnalysisService.CalculateThanksBridgeEffect(thanksCoinSummary.BridgeCount, project.Agents.Count);
+        var diversityRespectEffect = KnowledgeAnalysisService.CalculateDiversityRespectEffect(
+            project.ThanksCoinDiversityBonus,
+            thanksChallengeRate,
+            thanksBridgeRate);
+        var respectEmergenceComponent = KnowledgeAnalysisService.CalculateRespectEmergenceComponent(
+            thanksCoinSummary.AverageRespect,
+            thanksCoinSummary.RespectDensity,
+            challengeAcceptanceScore,
+            thanksChallengeRate,
+            thanksBridgeRate,
+            diversityRespectEffect);
+        var popularityTrapPenalty = KnowledgeAnalysisService.CalculatePopularityTrapPenalty(
+            thanksCoinSummary.ThanksConcentration,
+            thanksCoinSummary.AverageRespect);
+        var popularityTrapDetected = thanksCoinSummary.ThanksConcentration >= 0.60;
+        var thanksCoinToReconfigurationContribution = Math.Round(
+            respectReconfigurationBoost
+            + (thanksChallengeEffect * 0.20)
+            + (thanksBridgeEffect * 0.15)
+            + diversityRespectEffect,
+            4);
+        var thanksCoinToSerendipityContribution = Math.Round(
+            (thanksBridgeEffect * 0.20)
+            + diversityRespectEffect
+            + (challengeAcceptanceScore * 0.05),
+            4);
+        var thanksCoinToEmergenceContribution = Math.Round(
+            (respectEmergenceComponent * 0.50)
+            + (challengeAcceptanceScore * 0.20)
+            + (thanksChallengeEffect * 0.15)
+            + (thanksBridgeEffect * 0.15)
+            - popularityTrapPenalty,
+            4);
+
+        knowledgePoint.ConstructiveCriticismRate = constructiveCriticismRate;
+        knowledgePoint.DestructiveCriticismRate = destructiveCriticismRate;
+        knowledgePoint.ChallengeAcceptanceScore = challengeAcceptanceScore;
+        knowledgePoint.RespectReconfigurationBoost = respectReconfigurationBoost;
+        knowledgePoint.ThanksChallengeEffect = thanksChallengeEffect;
+        knowledgePoint.ThanksBridgeEffect = thanksBridgeEffect;
+        knowledgePoint.DiversityRespectEffect = diversityRespectEffect;
+        knowledgePoint.RespectEmergenceComponent = respectEmergenceComponent;
+        knowledgePoint.PopularityTrapPenalty = popularityTrapPenalty;
+        knowledgePoint.PopularityTrapDetected = popularityTrapDetected;
+        knowledgePoint.ThanksCoinToReconfigurationContribution = thanksCoinToReconfigurationContribution;
+        knowledgePoint.ThanksCoinToSerendipityContribution = thanksCoinToSerendipityContribution;
+        knowledgePoint.ThanksCoinToEmergenceContribution = thanksCoinToEmergenceContribution;
+
+        knowledgePoint.KnowledgeRecombinationScore = Clamp01(
+            knowledgePoint.KnowledgeRecombinationScore
+            + (challengeAcceptanceScore * 0.05)
+            + (diversityRespectEffect * 0.05));
+        knowledgePoint.KnowledgeReconfigurationScore = Clamp01(
+            knowledgePoint.KnowledgeReconfigurationScore
+            + respectReconfigurationBoost
+            + (thanksChallengeEffect * 0.20)
+            + (thanksBridgeEffect * 0.15)
+            + diversityRespectEffect);
+        knowledgePoint.SerendipityScore = Clamp01(
+            knowledgePoint.SerendipityScore
+            + (thanksBridgeEffect * 0.20)
+            + diversityRespectEffect
+            + (challengeAcceptanceScore * 0.05)
+            - popularityTrapPenalty * 0.20);
+        knowledgePoint.KnowledgeRewiringScore = Clamp01(
+            knowledgePoint.KnowledgeRewiringScore
+            + (diversityRespectEffect * 0.10));
 
         var phaseDecision = await DeterminePhaseAsync(
             project,
@@ -193,6 +332,35 @@ public sealed class SimulationRunner(
             project.TrustCapacityPenalty,
             project.DistrustPenalty,
             project.ConstructiveCriticismBonus,
+            thanksCoinOccurred = knowledgePoint.ThanksCoinOccurred,
+            thanksCoinCount = knowledgePoint.ThanksCoinCount,
+            thanksCoinHelpCount = knowledgePoint.ThanksCoinHelpCount,
+            thanksCoinIdeaCount = knowledgePoint.ThanksCoinIdeaCount,
+            thanksCoinChallengeCount = knowledgePoint.ThanksCoinChallengeCount,
+            thanksCoinBridgeCount = knowledgePoint.ThanksCoinBridgeCount,
+            thanksCoinRespectDelta = knowledgePoint.ThanksCoinRespectDelta,
+            thanksCoinTrustDelta = knowledgePoint.ThanksCoinTrustDelta,
+            thanksCoinReconfigurationDelta = knowledgePoint.ThanksCoinReconfigurationDelta,
+            thanksCoinSerendipityDelta = knowledgePoint.ThanksCoinSerendipityDelta,
+            thanksCoinBridgeDelta = knowledgePoint.ThanksCoinBridgeDelta,
+            thanksConcentration = knowledgePoint.ThanksConcentration,
+            challengeAcceptanceScore = knowledgePoint.ChallengeAcceptanceScore,
+            respectReconfigurationBoost = knowledgePoint.RespectReconfigurationBoost,
+            thanksChallengeEffect = knowledgePoint.ThanksChallengeEffect,
+            thanksBridgeEffect = knowledgePoint.ThanksBridgeEffect,
+            diversityRespectEffect = knowledgePoint.DiversityRespectEffect,
+            respectEmergenceComponent = knowledgePoint.RespectEmergenceComponent,
+            popularityTrapPenalty = knowledgePoint.PopularityTrapPenalty,
+            popularityTrapDetected = knowledgePoint.PopularityTrapDetected,
+            thanksCoinToReconfigurationContribution = knowledgePoint.ThanksCoinToReconfigurationContribution,
+            thanksCoinToSerendipityContribution = knowledgePoint.ThanksCoinToSerendipityContribution,
+            thanksCoinToEmergenceContribution = knowledgePoint.ThanksCoinToEmergenceContribution,
+            averageRespect = knowledgePoint.AverageRespect,
+            respectDensity = knowledgePoint.RespectDensity,
+            respectStrongLinks = knowledgePoint.RespectStrongLinks,
+            respectWeakLinks = knowledgePoint.RespectWeakLinks,
+            respectConcentration = knowledgePoint.RespectConcentration,
+            respectJson = knowledgePoint.RespectJson,
             knowledgeStock = knowledgePoint.KnowledgeStock,
             knowledgeDiversity = knowledgePoint.KnowledgeDiversity,
             externalShockLevel = knowledgePoint.ExternalShockLevel,
@@ -545,15 +713,54 @@ public sealed class SimulationRunner(
         var serendipityComponent = knowledgePoint.SerendipityOccurred ? 1.0 : Clamp01(knowledgePoint.SerendipityScore / 0.35);
         var proposeComponent = Clamp01((ideaRatio - 0.07) / 0.10);
         var shareComponent = Clamp01((shareRatio - 0.20) / 0.15);
+        var thanksCoinRate = knowledgePoint.ThanksCoinCount <= 0 ? 0 : knowledgePoint.ThanksCoinCount / (double)Math.Max(project.Agents.Count, 1);
+        var thanksChallengeRate = knowledgePoint.ThanksCoinCount <= 0 ? 0 : knowledgePoint.ThanksCoinChallengeCount / (double)knowledgePoint.ThanksCoinCount;
+        var thanksBridgeRate = knowledgePoint.ThanksCoinCount <= 0 ? 0 : knowledgePoint.ThanksCoinBridgeCount / (double)knowledgePoint.ThanksCoinCount;
+        var respectComponent = Clamp01((knowledgePoint.AverageRespect - 0.25) / 0.35);
+        var respectDensityComponent = Clamp01((knowledgePoint.RespectDensity - 0.20) / 0.35);
+        var respectConcentrationComponent = Clamp01(knowledgePoint.RespectConcentration);
+        var challengeAcceptanceComponent = Clamp01((knowledgePoint.ChallengeAcceptanceScore - 0.35) / 0.30);
+        var respectReconfigurationComponent = Clamp01((knowledgePoint.RespectReconfigurationBoost - 0.10) / 0.20);
+        var respectEmergenceComponent = Clamp01(knowledgePoint.RespectEmergenceComponent);
+        var popularityTrapPenaltyComponent = Clamp01(knowledgePoint.PopularityTrapPenalty);
+        var thanksContributionComponent = Clamp01(knowledgePoint.ThanksCoinToEmergenceContribution);
+        var thanksChallengeComponent = Clamp01((thanksChallengeRate - 0.10) / 0.20);
+        var thanksBridgeComponent = Clamp01((thanksBridgeRate - 0.10) / 0.20);
         var collapseScore = Clamp01((waitRatio * 0.45) + ((1 - ideaRatio) * 0.20) + ((1 - shareRatio) * 0.20) + ((1 - collaborationRatio) * 0.15));
         var chaosScore = Clamp01((criticismRatio * 0.30) + ((1 - supportRatio) * 0.20) + ((1 - networkMetrics.EffectiveNetworkDensity) * 0.10) + ((project.PsychologicalSafetyLevel < 0.60 ? 1.0 : 0.0) * 0.10) + ((1 - knowledgePoint.KnowledgeRewiringScore) * 0.30));
         var siloScore = Clamp01((soloRatio * 0.35) + ((1 - shareRatio) * 0.15) + ((1 - supportRatio) * 0.15) + ((1 - networkMetrics.EffectiveNetworkDensity) * 0.20) + ((1 - knowledgePoint.KnowledgeRewiringScore) * 0.10) + (Math.Max(knowledgePoint.ChallengeGap, 0) * 0.05));
         var adaptationScore = Clamp01((knowledgePoint.ExplorationScore * 0.25) + (knowledgePoint.KnowledgeRecombinationScore * 0.25) + (knowledgePoint.KnowledgeReconfigurationScore * 0.25) + ((shareRatio + supportRatio + proposeComponent) / 3.0 * 0.25));
-        var emergentScore = Clamp01((trustComponent * 0.15) + (densityComponent * 0.15) + (strongLinkComponent * 0.10) + (diversityComponent * 0.15) + (recombinationComponent * 0.15) + (reconfigurationComponent * 0.10) + (serendipityComponent * 0.10) + (proposeComponent * 0.07) + (shareComponent * 0.05));
-        var stableScore = Clamp01((trustComponent * 0.30) + (densityComponent * 0.30) + ((1 - actionConcentration) * 0.20) + (phaseStabilityLocal * 0.20));
+        var emergentScore = Clamp01(
+            (trustComponent * 0.12)
+            + (densityComponent * 0.12)
+            + (strongLinkComponent * 0.08)
+            + (diversityComponent * 0.12)
+            + (recombinationComponent * 0.13)
+            + (reconfigurationComponent * 0.10)
+            + (serendipityComponent * 0.08)
+            + (proposeComponent * 0.06)
+            + (shareComponent * 0.04)
+            + (Clamp01(thanksCoinRate / 0.20) * 0.02)
+            + (respectComponent * 0.05)
+            + (respectDensityComponent * 0.05)
+            + (challengeAcceptanceComponent * 0.08)
+            + (respectReconfigurationComponent * 0.06)
+            + (respectEmergenceComponent * 0.08)
+            + (thanksChallengeComponent * 0.03)
+            + (thanksBridgeComponent * 0.03)
+            + (thanksContributionComponent * 0.06)
+            - (popularityTrapPenaltyComponent * 0.12));
+        var stableScore = Clamp01(
+            (trustComponent * 0.26)
+            + (densityComponent * 0.26)
+            + ((1 - actionConcentration) * 0.16)
+            + (phaseStabilityLocal * 0.14)
+            + ((knowledgePoint.AverageRespect > 0.80 && knowledgePoint.ThanksConcentration > 0.60) ? 0.10 : 0)
+            + (respectConcentrationComponent * 0.08)
+            + (popularityTrapPenaltyComponent * 0.10));
         var learningScore = Clamp01((collaborationRatio * 0.35) + (knowledgePoint.KnowledgeStock * 0.25) + (shareRatio * 0.20) + (knowledgePoint.KnowledgeDiversity * 0.10) + ((1 - knowledgePoint.KnowledgeRecombinationScore) * 0.05) + ((1 - knowledgePoint.SerendipityScore) * 0.05));
 
-        var emergentCriteria = BuildEmergentCriteria(project, knowledgePoint, networkMetrics, ideaRatio, shareRatio);
+        var emergentCriteria = BuildEmergentCriteria(project, knowledgePoint, networkMetrics, ideaRatio, shareRatio, thanksChallengeRate, thanksBridgeRate);
         var emergentCriteriaMetCount = emergentCriteria.Count(item => item.Value.Passed);
 
         if (collapseScore >= 0.60)
@@ -1290,6 +1497,15 @@ public sealed class SimulationRunner(
                 challengeRequirementAverage - (previousKnowledgePoint?.ChallengeResolutionScore ?? 0),
                 0), 4)
             : 0;
+        var previousAverageRespect = previousKnowledgePoint?.AverageRespect ?? 0;
+        var previousRespectDensity = previousKnowledgePoint?.RespectDensity ?? 0;
+        var previousChallengeAcceptanceScore = previousKnowledgePoint?.ChallengeAcceptanceScore ?? 0;
+        var previousThanksChallengeRate = previousKnowledgePoint is not null && previousKnowledgePoint.ThanksCoinCount > 0
+            ? previousKnowledgePoint.ThanksCoinChallengeCount / (double)previousKnowledgePoint.ThanksCoinCount
+            : 0;
+        var previousThanksBridgeRate = previousKnowledgePoint is not null && previousKnowledgePoint.ThanksCoinCount > 0
+            ? previousKnowledgePoint.ThanksCoinBridgeCount / (double)previousKnowledgePoint.ThanksCoinCount
+            : 0;
         var explorationScore = project.EnableSerendipity
             ? SerendipityAnalysisService.CalculateExplorationScore(
                 actions,
@@ -1311,7 +1527,12 @@ public sealed class SimulationRunner(
                 project.PsychologicalSafetyLevel,
                 actions.CriticizeRate,
                 project.CompetitionLevel,
-                actions.WorkAloneRate)
+                actions.WorkAloneRate,
+                previousAverageRespect,
+                previousRespectDensity,
+                previousChallengeAcceptanceScore,
+                previousThanksChallengeRate,
+                previousThanksBridgeRate)
             : 0;
         var serendipityOccurred = project.EnableSerendipity
             && serendipityScore >= Math.Clamp(project.SerendipityThreshold, 0, 1);
@@ -1321,7 +1542,12 @@ public sealed class SimulationRunner(
                 actions,
                 project.PsychologicalSafetyLevel,
                 project.KnowledgeRecombinationRate,
-                project.ConstructiveCriticismBonus)
+                project.ConstructiveCriticismBonus,
+                previousAverageRespect,
+                previousRespectDensity,
+                previousChallengeAcceptanceScore,
+                previousThanksChallengeRate,
+                previousThanksBridgeRate)
             : 0;
         var knowledgeReconfigurationScore = KnowledgeAnalysisService.CalculateKnowledgeReconfigurationScore(
             rewiringScore,
@@ -1330,7 +1556,12 @@ public sealed class SimulationRunner(
             project.PsychologicalSafetyLevel,
             challengeWindowStarted,
             knowledgeRecombinationScore,
-            project.ConstructiveCriticismBonus);
+            project.ConstructiveCriticismBonus,
+            previousAverageRespect,
+            previousRespectDensity,
+            previousChallengeAcceptanceScore,
+            previousThanksChallengeRate,
+            previousThanksBridgeRate);
         var challengeResolutionScore = challengeWindowStarted
             ? KnowledgeAnalysisService.CalculateChallengeResolutionScore(
                 project.KnowledgeDiversity,
@@ -1459,7 +1690,9 @@ public sealed class SimulationRunner(
         KnowledgeTimelinePoint knowledgePoint,
         NetworkMetricsResult networkMetrics,
         double ideaRatio,
-        double shareRatio)
+        double shareRatio,
+        double thanksChallengeRate,
+        double thanksBridgeRate)
     {
         var strongLinkThreshold = Math.Max(project.Agents.Count * 2, 1);
         return new Dictionary<string, EmergentCriterionState>(StringComparer.OrdinalIgnoreCase)
@@ -1472,7 +1705,15 @@ public sealed class SimulationRunner(
             ["KnowledgeReconfiguration"] = new EmergentCriterionState { Value = knowledgePoint.KnowledgeReconfigurationScore, Threshold = 0.25, Passed = knowledgePoint.KnowledgeReconfigurationScore >= 0.25 },
             ["Serendipity"] = new EmergentCriterionState { Value = knowledgePoint.SerendipityOccurred ? 1 : knowledgePoint.SerendipityScore, Threshold = 0.30, Passed = knowledgePoint.SerendipityOccurred || knowledgePoint.SerendipityScore >= 0.30 },
             ["ProposeIdea"] = new EmergentCriterionState { Value = ideaRatio, Threshold = 0.07, Passed = ideaRatio >= 0.07 },
-            ["ShareInfo"] = new EmergentCriterionState { Value = shareRatio, Threshold = 0.30, Passed = shareRatio >= 0.30 }
+            ["ShareInfo"] = new EmergentCriterionState { Value = shareRatio, Threshold = 0.30, Passed = shareRatio >= 0.30 },
+            ["AverageRespect"] = new EmergentCriterionState { Value = knowledgePoint.AverageRespect, Threshold = 0.50, Passed = knowledgePoint.AverageRespect >= 0.50 },
+            ["RespectDensity"] = new EmergentCriterionState { Value = knowledgePoint.RespectDensity, Threshold = 0.30, Passed = knowledgePoint.RespectDensity >= 0.30 },
+            ["ChallengeAcceptanceScore"] = new EmergentCriterionState { Value = knowledgePoint.ChallengeAcceptanceScore, Threshold = 0.55, Passed = knowledgePoint.ChallengeAcceptanceScore >= 0.55 },
+            ["ThanksChallenge"] = new EmergentCriterionState { Value = thanksChallengeRate, Threshold = 0.10, Passed = thanksChallengeRate > 0.10 },
+            ["ThanksBridge"] = new EmergentCriterionState { Value = thanksBridgeRate, Threshold = 0.10, Passed = thanksBridgeRate > 0.10 },
+            ["RespectReconfigurationBoost"] = new EmergentCriterionState { Value = knowledgePoint.RespectReconfigurationBoost, Threshold = 0.10, Passed = knowledgePoint.RespectReconfigurationBoost >= 0.10 },
+            ["RespectEmergenceComponent"] = new EmergentCriterionState { Value = knowledgePoint.RespectEmergenceComponent, Threshold = 0.10, Passed = knowledgePoint.RespectEmergenceComponent >= 0.10 },
+            ["PopularityTrapNotDetected"] = new EmergentCriterionState { Value = knowledgePoint.PopularityTrapDetected ? 0 : 1, Threshold = 1, Passed = !knowledgePoint.PopularityTrapDetected }
         };
     }
 

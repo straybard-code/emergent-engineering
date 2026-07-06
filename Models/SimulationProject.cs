@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmergentEngineering.Models;
 
-public sealed class SimulationProject : IValidatableObject
+public sealed class SimulationProject : IThanksCoinSettings, IMutualRespectSettings, IValidatableObject
 {
     public int Id { get; set; }
     public int? ExperimentId { get; set; }
@@ -57,6 +57,23 @@ public sealed class SimulationProject : IValidatableObject
     public double TrustCapacityPenalty { get; set; } = TrustDynamicsDefaults.TrustCapacityPenalty;
     public double DistrustPenalty { get; set; } = TrustDynamicsDefaults.DistrustPenalty;
     public double ConstructiveCriticismBonus { get; set; } = TrustDynamicsDefaults.ConstructiveCriticismBonus;
+    public bool EnableThanksCoin { get; set; } = ThanksCoinDefaults.EnableThanksCoin;
+    public double ThanksCoinRate { get; set; } = ThanksCoinDefaults.ThanksCoinRate;
+    public double ThanksCoinRespectGain { get; set; } = ThanksCoinDefaults.ThanksCoinRespectGain;
+    public double ThanksCoinTrustGain { get; set; } = ThanksCoinDefaults.ThanksCoinTrustGain;
+    public double ThanksCoinReconfigurationGain { get; set; } = ThanksCoinDefaults.ThanksCoinReconfigurationGain;
+    public double ThanksCoinPsychologicalSafetyGain { get; set; } = ThanksCoinDefaults.ThanksCoinPsychologicalSafetyGain;
+    public double ThanksCoinBridgeGain { get; set; } = ThanksCoinDefaults.ThanksCoinBridgeGain;
+    public double ThanksCoinPopularityBias { get; set; } = ThanksCoinDefaults.ThanksCoinPopularityBias;
+    public double ThanksCoinDiversityBonus { get; set; } = ThanksCoinDefaults.ThanksCoinDiversityBonus;
+    public double ThanksCoinChallengeBonus { get; set; } = ThanksCoinDefaults.ThanksCoinChallengeBonus;
+    public double MutualRespectBase { get; set; } = MutualRespectDefaults.Base;
+    public double MutualRespectGrowthRate { get; set; } = MutualRespectDefaults.GrowthRate;
+    public double MutualRespectDecayRate { get; set; } = MutualRespectDefaults.DecayRate;
+    public double MutualRespectDiversitySensitivity { get; set; } = MutualRespectDefaults.DiversitySensitivity;
+    public double MutualRespectChallengeSensitivity { get; set; } = MutualRespectDefaults.ChallengeSensitivity;
+    public double MutualRespectBridgeSensitivity { get; set; } = MutualRespectDefaults.BridgeSensitivity;
+    public double MutualRespectPopularityPenalty { get; set; } = MutualRespectDefaults.PopularityPenalty;
     public string Status { get; set; } = SimulationStatus.Created;
     public string Phase { get; set; } = SimulationPhase.Forming;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

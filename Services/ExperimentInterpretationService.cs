@@ -943,4 +943,12 @@ public sealed class PhaseDiagramExperimentSummary
     public double AverageShareInfoRate { get; init; }
     public double AverageProposeIdeaRate { get; init; }
     public double AverageCriticizeSupportRatio { get; init; }
+    public double AverageRespect { get; init; }
+    public double AverageChallengeAcceptanceScore { get; init; }
+    public double AverageRespectReconfigurationBoost { get; init; }
+    public double AverageRespectEmergenceComponent { get; init; }
+    public double AverageThanksCoinToReconfigurationContribution { get; init; }
+    public double AverageThanksCoinToSerendipityContribution { get; init; }
+    public double AverageThanksCoinToEmergenceContribution { get; init; }
+    public double PopularityTrapRate { get; init; }
 }

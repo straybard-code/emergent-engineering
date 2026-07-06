@@ -464,7 +464,9 @@ public sealed class DetailsModel(
                 out var ideaProposalInsufficient,
                 out var shareInfoInsufficient,
                 out var psychologicalSafetyInsufficient,
-                out var constructiveCriticismInsufficient);
+                out var constructiveCriticismInsufficient,
+                out var challengeAcceptanceInsufficient,
+                out var popularityTrapDetected);
 
             if (!string.IsNullOrWhiteSpace(reason))
             {
@@ -482,6 +484,8 @@ public sealed class DetailsModel(
             shareInfoInsufficientRunCount += shareInfoInsufficient ? 1 : 0;
             psychologicalSafetyInsufficientRunCount += psychologicalSafetyInsufficient ? 1 : 0;
             constructiveCriticismInsufficientRunCount += constructiveCriticismInsufficient ? 1 : 0;
+            _ = challengeAcceptanceInsufficient;
+            _ = popularityTrapDetected;
         }
 
         var mainFailureReason = failureReasons.Count == 0
@@ -565,6 +569,18 @@ public sealed class DetailsModel(
         var averageKnowledgeReconfigurationScore = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeReconfigurationScore), 3);
+        var averageRespect = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.AverageRespect), 3);
+        var averageChallengeAcceptanceScore = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ChallengeAcceptanceScore), 3);
+        var averageRespectReconfigurationBoost = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.RespectReconfigurationBoost), 3);
+        var averageRespectEmergenceComponent = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.RespectEmergenceComponent), 3);
         var averageLearningScore = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.LearningScore), 3);
@@ -577,6 +593,18 @@ public sealed class DetailsModel(
         var averagePipelineCompletionScore = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.PipelineCompletionScore), 3);
+        var averageThanksCoinToReconfigurationContribution = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ThanksCoinToReconfigurationContribution), 3);
+        var averageThanksCoinToSerendipityContribution = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ThanksCoinToSerendipityContribution), 3);
+        var averageThanksCoinToEmergenceContribution = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ThanksCoinToEmergenceContribution), 3);
+        var popularityTrapRate = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Count(item => item.PopularityTrapDetected) / (double)knowledgeTimeline.Count, 3);
         var hasPipelineData = knowledgeTimeline.Any(item =>
             item.SerendipityScore > 0
             || item.KnowledgeRecombinationScore > 0
@@ -600,10 +628,18 @@ public sealed class DetailsModel(
             AverageKnowledgeDiversity = averageKnowledgeDiversity,
             AverageKnowledgeRecombinationScore = averageKnowledgeRecombinationScore,
             AverageKnowledgeReconfigurationScore = averageKnowledgeReconfigurationScore,
+            AverageRespect = averageRespect,
+            AverageChallengeAcceptanceScore = averageChallengeAcceptanceScore,
+            AverageRespectReconfigurationBoost = averageRespectReconfigurationBoost,
+            AverageRespectEmergenceComponent = averageRespectEmergenceComponent,
             AverageLearningScore = averageLearningScore,
             AverageAdaptationScore = averageAdaptationScore,
             AverageEmergentScore = averageEmergentScore,
             AveragePipelineCompletionScore = averagePipelineCompletionScore,
+            AverageThanksCoinToReconfigurationContribution = averageThanksCoinToReconfigurationContribution,
+            AverageThanksCoinToSerendipityContribution = averageThanksCoinToSerendipityContribution,
+            AverageThanksCoinToEmergenceContribution = averageThanksCoinToEmergenceContribution,
+            PopularityTrapRate = popularityTrapRate,
             MostCommonPipelineBottleneck = mostCommonPipelineBottleneck,
             SerendipityOccurred = knowledgeTimeline.Any(item => item.SerendipityOccurred),
             SerendipityToEmergenceLink = knowledgeTimeline.Any(item => item.SerendipityToEmergenceLink),
@@ -782,10 +818,16 @@ public sealed class DetailsModel(
             BuildSensitivityRow("知識多様性", minPoint.AverageKnowledgeDiversity, maxPoint.AverageKnowledgeDiversity, false),
             BuildSensitivityRow("知識再結合", minPoint.AverageKnowledgeRecombinationScore, maxPoint.AverageKnowledgeRecombinationScore, false),
             BuildSensitivityRow("知識再構成", minPoint.AverageKnowledgeReconfigurationScore, maxPoint.AverageKnowledgeReconfigurationScore, false),
+            BuildSensitivityRow("AverageRespect", minPoint.AverageRespect, maxPoint.AverageRespect, false),
+            BuildSensitivityRow("ChallengeAcceptanceScore", minPoint.AverageChallengeAcceptanceScore, maxPoint.AverageChallengeAcceptanceScore, false),
+            BuildSensitivityRow("RespectReconfigurationBoost", minPoint.AverageRespectReconfigurationBoost, maxPoint.AverageRespectReconfigurationBoost, false),
+            BuildSensitivityRow("RespectEmergenceComponent", minPoint.AverageRespectEmergenceComponent, maxPoint.AverageRespectEmergenceComponent, false),
             BuildSensitivityRow("AveragePipelineCompletionScore", minPoint.AveragePipelineCompletionScore, maxPoint.AveragePipelineCompletionScore, false),
             BuildSensitivityRow("AverageEmergentScore", minPoint.AverageEmergentScore, maxPoint.AverageEmergentScore, false),
             BuildSensitivityRow("AverageStableScore", minPoint.AverageStableScore, maxPoint.AverageStableScore, false),
-            BuildSensitivityRow("AverageLearningScore", minPoint.AverageLearningScore, maxPoint.AverageLearningScore, false)
+            BuildSensitivityRow("AverageLearningScore", minPoint.AverageLearningScore, maxPoint.AverageLearningScore, false),
+            BuildSensitivityRow("AverageThanksToEmergenceContribution", minPoint.AverageThanksCoinToEmergenceContribution, maxPoint.AverageThanksCoinToEmergenceContribution, false),
+            BuildSensitivityRow("PopularityTrapRate", minPoint.PopularityTrapRate, maxPoint.PopularityTrapRate, false)
         };
 
         SensitivityRanking = rows
@@ -820,6 +862,9 @@ public sealed class DetailsModel(
         var effectiveDensityMax = AnalysisPoints.Max(item => item.EffectiveDensity);
         var serendipityRateMax = AnalysisPoints.Max(item => item.SerendipityRate);
         var knowledgeReconfigurationMax = AnalysisPoints.Max(item => item.AverageKnowledgeReconfigurationScore);
+        var averageRespectMax = AnalysisPoints.Max(item => item.AverageRespect);
+        var challengeAcceptanceMax = AnalysisPoints.Max(item => item.AverageChallengeAcceptanceScore);
+        var popularityTrapRateMax = AnalysisPoints.Max(item => item.PopularityTrapRate);
 
         RecommendedInterpretation = BuildRecommendedInterpretation(
             emergentRateMax,
@@ -827,7 +872,10 @@ public sealed class DetailsModel(
             averageTrustMax,
             effectiveDensityMax,
             serendipityRateMax,
-            knowledgeReconfigurationMax);
+            knowledgeReconfigurationMax,
+            averageRespectMax,
+            challengeAcceptanceMax,
+            popularityTrapRateMax);
         PrimaryConclusionMessage = BuildPrimaryConclusionMessage(
             SensitivityRanking,
             emergentRateMax,
@@ -842,7 +890,10 @@ public sealed class DetailsModel(
             new ParameterSweepSummaryCard { Label = "最大Average Trust", Value = averageTrustMax.ToString("0.00") },
             new ParameterSweepSummaryCard { Label = "最大Effective Density", Value = effectiveDensityMax.ToString("0.00") },
             new ParameterSweepSummaryCard { Label = "最大Serendipity Rate", Value = serendipityRateMax.ToString("0.00") },
-            new ParameterSweepSummaryCard { Label = "最大Knowledge Reconfiguration", Value = knowledgeReconfigurationMax.ToString("0.00") }
+            new ParameterSweepSummaryCard { Label = "最大Knowledge Reconfiguration", Value = knowledgeReconfigurationMax.ToString("0.00") },
+            new ParameterSweepSummaryCard { Label = "最大Average Respect", Value = AnalysisPoints.Max(item => item.AverageRespect).ToString("0.00") },
+            new ParameterSweepSummaryCard { Label = "最大ChallengeAcceptanceScore", Value = AnalysisPoints.Max(item => item.AverageChallengeAcceptanceScore).ToString("0.00") },
+            new ParameterSweepSummaryCard { Label = "PopularityTrapRate", Value = AnalysisPoints.Max(item => item.PopularityTrapRate).ToString("0.00") }
         ];
 
         PipelineStageSummaries = BuildPipelineStageSummaries();
@@ -926,6 +977,12 @@ public sealed class DetailsModel(
             "Strong Links" => "強いリンク形成への影響が大きい",
             "セレンディピティ率" => "偶然の有用結合への影響が大きい",
             "知識再構成" => "知識構造の再編への影響が大きい",
+            "AverageRespect" => "相互敬意の形成への影響が大きい",
+            "ChallengeAcceptanceScore" => "異論受容への影響が大きい",
+            "RespectReconfigurationBoost" => "敬意から知識再構成への橋渡しが強い",
+            "RespectEmergenceComponent" => "敬意駆動の創発寄与が大きい",
+            "AverageThanksToEmergenceContribution" => "Thanks Coin の創発寄与が大きい",
+            "PopularityTrapRate" => "人気投票化の影響が大きい",
             "AveragePipelineCompletionScore" => "創発プロセス全体への影響が大きい",
             "EmergentRate" => "創発相への到達に直接影響している",
             "AverageEmergentScore" => "創発判定スコアへの影響が大きい",
@@ -1084,10 +1141,16 @@ public sealed class DetailsModel(
         }
 
         var trustDelta = ranking.Any(item => (item.Metric == "平均信頼度" || item.Metric == "実効密度") && item.Delta > 0);
-        var knowledgeDelta = ranking.Any(item => (item.Metric == "知識多様性" || item.Metric == "知識再結合" || item.Metric == "知識再構成" || item.Metric == "セレンディピティ率" || item.Metric == "セレンディピティ→創発率" || item.Metric == "AveragePipelineCompletionScore") && item.Delta > 0);
+        var respectDelta = ranking.Any(item => (item.Metric == "AverageRespect" || item.Metric == "ChallengeAcceptanceScore" || item.Metric == "RespectReconfigurationBoost" || item.Metric == "RespectEmergenceComponent") && item.Delta > 0);
+        var knowledgeDelta = ranking.Any(item => (item.Metric == "知識多様性" || item.Metric == "知識再結合" || item.Metric == "知識再構成" || item.Metric == "セレンディピティ率" || item.Metric == "セレンディピティ→創発率" || item.Metric == "AveragePipelineCompletionScore" || item.Metric == "AverageThanksToEmergenceContribution") && item.Delta > 0);
         if (trustDelta && !knowledgeDelta)
         {
             return "このパラメータは信頼ネットワーク形成には効きますが、知識再結合には届いていません。";
+        }
+
+        if (respectDelta && !knowledgeDelta)
+        {
+            return "このパラメータは相互敬意には効きますが、知識再構成や創発への接続はまだ弱いです。";
         }
 
         if (!trustDelta && knowledgeDelta)
@@ -1152,11 +1215,29 @@ public sealed class DetailsModel(
         double averageTrustMax,
         double effectiveDensityMax,
         double serendipityRateMax,
-        double knowledgeReconfigurationMax)
+        double knowledgeReconfigurationMax,
+        double averageRespectMax,
+        double challengeAcceptanceMax,
+        double popularityTrapRateMax)
     {
         if (emergentRateMax > 0)
         {
             return "一部条件で創発相が発生しています。最大創発率となったパラメータ値を中心に追加検証してください。";
+        }
+
+        if (averageRespectMax < 0.4)
+        {
+            return "相互敬意が十分に形成されていません。Thanks Coin と Challenge 受容の設計を見直してください。";
+        }
+
+        if (challengeAcceptanceMax < 0.55)
+        {
+            return "建設的な異論の受け止めが弱い状態です。心理的安全性と相互敬意の連鎖を確認してください。";
+        }
+
+        if (popularityTrapRateMax >= 0.4)
+        {
+            return "感謝が人気投票化している可能性があります。Bridge / Challenge 型 Thanks を強めるとよさそうです。";
         }
 
         if (averageTrustMax < 0.3)
@@ -1213,6 +1294,8 @@ public sealed class DetailsModel(
             "セレンディピティ率" => "このスイープでは、対象パラメータは主にセレンディピティ発生率に影響しています。",
             "知識再構成" => "このスイープでは、対象パラメータは主に知識再構成に影響しています。",
             "平均信頼度" or "実効密度" => "このスイープでは、対象パラメータは主に信頼ネットワーク形成に影響しています。",
+            "AverageRespect" => "このスイープでは、対象パラメータは主に相互敬意の形成に影響しています。",
+            "ChallengeAcceptanceScore" => "このスイープでは、対象パラメータは主に異論受容に影響しています。",
             "EmergentRate" => "このスイープでは、対象パラメータが創発相への到達に直接影響しています。",
             _ => "このスイープでは、対象パラメータは複数の中間指標に影響しています。"
         };
@@ -1284,7 +1367,9 @@ public sealed class DetailsModel(
         out bool ideaProposalInsufficient,
         out bool shareInfoInsufficient,
         out bool psychologicalSafetyInsufficient,
-        out bool constructiveCriticismInsufficient)
+        out bool constructiveCriticismInsufficient,
+        out bool challengeAcceptanceInsufficient,
+        out bool popularityTrapDetected)
     {
         trustInsufficient = false;
         effectiveDensityInsufficient = false;
@@ -1297,6 +1382,8 @@ public sealed class DetailsModel(
         shareInfoInsufficient = false;
         psychologicalSafetyInsufficient = false;
         constructiveCriticismInsufficient = false;
+        challengeAcceptanceInsufficient = false;
+        popularityTrapDetected = false;
 
         if (analysis.FinalKnowledgePoint is not null
             && string.Equals(analysis.FinalKnowledgePoint.Phase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
@@ -1316,6 +1403,8 @@ public sealed class DetailsModel(
         shareInfoInsufficient = !criteria["ShareInfo"];
         psychologicalSafetyInsufficient = !criteria["PsychologicalSafety"];
         constructiveCriticismInsufficient = !criteria["ConstructiveCriticism"];
+        challengeAcceptanceInsufficient = !criteria["ChallengeAcceptanceScore"];
+        popularityTrapDetected = !criteria["PopularityTrapNotDetected"];
 
         if (analysis.FinalKnowledgePoint is null)
         {
@@ -1377,6 +1466,16 @@ public sealed class DetailsModel(
             return "建設的批判不足";
         }
 
+        if (challengeAcceptanceInsufficient)
+        {
+            return "Challenge受容不足";
+        }
+
+        if (popularityTrapDetected)
+        {
+            return "人気投票停滞";
+        }
+
         if (string.Equals(analysis.FinalKnowledgePoint.Phase, SimulationPhase.Stable, StringComparison.OrdinalIgnoreCase)
             || analysis.FinalKnowledgePoint.StableScore >= analysis.FinalKnowledgePoint.EmergentScore)
         {
@@ -1402,6 +1501,8 @@ public sealed class DetailsModel(
         var knowledgeReconfiguration = finalPoint?.KnowledgeReconfigurationScore ?? 0;
         var serendipityScore = finalPoint?.SerendipityScore ?? 0;
         var serendipityOccurred = finalPoint?.SerendipityOccurred ?? false;
+        var challengeAcceptanceScore = finalPoint?.ChallengeAcceptanceScore ?? 0;
+        var popularityTrapDetected = finalPoint?.PopularityTrapDetected ?? false;
         var constructiveCriticismRate = KnowledgeAnalysisService.CalculateConstructiveCriticismRate(
             analysis.ActionDistribution.CriticizeRate,
             analysis.PsychologicalSafetyLevel);
@@ -1418,7 +1519,11 @@ public sealed class DetailsModel(
             ["ProposeIdea"] = analysis.ActionDistribution.ProposeIdeaRate >= 0.07,
             ["ShareInfo"] = analysis.ActionDistribution.ShareInfoRate >= 0.30,
             ["PsychologicalSafety"] = analysis.PsychologicalSafetyLevel >= 0.60,
-            ["ConstructiveCriticism"] = constructiveCriticismRate >= 0.08 && analysis.PsychologicalSafetyLevel >= 0.60
+            ["ConstructiveCriticism"] = constructiveCriticismRate >= 0.08 && analysis.PsychologicalSafetyLevel >= 0.60,
+            ["ChallengeAcceptanceScore"] = challengeAcceptanceScore >= 0.55,
+            ["RespectReconfigurationBoost"] = (finalPoint?.RespectReconfigurationBoost ?? 0) >= 0.10,
+            ["RespectEmergenceComponent"] = (finalPoint?.RespectEmergenceComponent ?? 0) >= 0.10,
+            ["PopularityTrapNotDetected"] = !popularityTrapDetected
         };
     }
 
@@ -1429,10 +1534,18 @@ public sealed class DetailsModel(
         public double AverageKnowledgeDiversity { get; init; }
         public double AverageKnowledgeRecombinationScore { get; init; }
         public double AverageKnowledgeReconfigurationScore { get; init; }
+        public double AverageRespect { get; init; }
+        public double AverageChallengeAcceptanceScore { get; init; }
+        public double AverageRespectReconfigurationBoost { get; init; }
+        public double AverageRespectEmergenceComponent { get; init; }
         public double AverageLearningScore { get; init; }
         public double AverageAdaptationScore { get; init; }
         public double AverageEmergentScore { get; init; }
         public double AveragePipelineCompletionScore { get; init; }
+        public double AverageThanksCoinToReconfigurationContribution { get; init; }
+        public double AverageThanksCoinToSerendipityContribution { get; init; }
+        public double AverageThanksCoinToEmergenceContribution { get; init; }
+        public double PopularityTrapRate { get; init; }
         public string MostCommonPipelineBottleneck { get; init; } = "--";
         public bool SerendipityOccurred { get; init; }
         public bool SerendipityToEmergenceLink { get; init; }

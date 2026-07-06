@@ -21,7 +21,7 @@ public sealed class IndexModel(AppDbContext db, PhaseDiagramRunner phaseDiagramR
         {
             try
             {
-                await phaseDiagramRunner.RecalculateStatusAsync(id);
+                await phaseDiagramRunner.RecalculatePhaseDiagramStatusAsync(id);
             }
             catch
             {

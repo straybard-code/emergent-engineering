@@ -14,12 +14,20 @@ public sealed class ParameterSweepAnalysisPoint
     public double AverageKnowledgeDiversity { get; set; }
     public double AverageKnowledgeRecombinationScore { get; set; }
     public double AverageKnowledgeReconfigurationScore { get; set; }
+    public double AverageRespect { get; set; }
+    public double AverageChallengeAcceptanceScore { get; set; }
+    public double AverageRespectReconfigurationBoost { get; set; }
+    public double AverageRespectEmergenceComponent { get; set; }
     public double AverageEmergentScore { get; set; }
     public double AverageStableScore { get; set; }
     public double AverageLearningScore { get; set; }
     public double AverageSiloScore { get; set; }
     public double AverageAdaptationScore { get; set; }
     public double AveragePipelineCompletionScore { get; set; }
+    public double AverageThanksCoinToReconfigurationContribution { get; set; }
+    public double AverageThanksCoinToSerendipityContribution { get; set; }
+    public double AverageThanksCoinToEmergenceContribution { get; set; }
+    public double PopularityTrapRate { get; set; }
     public string MostCommonPipelineBottleneck { get; set; } = "--";
     public string PipelineBottleneckInterpretation { get; set; } = "-";
     public int EmergentRunCount { get; set; }

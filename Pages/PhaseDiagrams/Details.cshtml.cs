@@ -40,6 +40,32 @@ public sealed class DetailsModel(
     public int EmergentBoundaryCount { get; private set; }
     public int StableBoundaryCount { get; private set; }
     public int SiloBoundaryCount { get; private set; }
+    public int TotalPointCount { get; private set; }
+    public int CompletedPointCount { get; private set; }
+    public int RunningPointCount { get; private set; }
+    public int PendingPointCount { get; private set; }
+    public int FailedPointCount { get; private set; }
+    public double ProgressRate { get; private set; }
+    public double AverageRespectMean { get; private set; }
+    public double AverageChallengeAcceptanceScoreMean { get; private set; }
+    public double AverageRespectReconfigurationBoostMean { get; private set; }
+    public double AverageRespectEmergenceComponentMean { get; private set; }
+    public double AverageThanksCoinToEmergenceContributionMean { get; private set; }
+    public double PopularityTrapRateMean { get; private set; }
+    public bool IsFullyCompleted => Diagram is not null
+        && string.Equals(Diagram.Status, PhaseDiagramStatus.Completed, StringComparison.OrdinalIgnoreCase)
+        && TotalPointCount > 0
+        && CompletedPointCount >= TotalPointCount
+        && RunningPointCount == 0
+        && PendingPointCount == 0
+        && FailedPointCount == 0;
+    public bool ShowPrimaryActionButton => Diagram is not null && !IsFullyCompleted;
+    public string PrimaryActionLabel => Diagram is null
+        ? "実行"
+        : string.Equals(Diagram.Status, PhaseDiagramStatus.Created, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(Diagram.Status, "Pending", StringComparison.OrdinalIgnoreCase)
+            ? "実行"
+            : "再開";
     public string MostCommonBoundaryPattern { get; private set; } = "--";
     public PhaseDiagramRegionSummary EmergentRegionSummary { get; private set; } = new();
     public PhaseDiagramRegionSummary PipelineRegionSummary { get; private set; } = new();
@@ -47,13 +73,14 @@ public sealed class DetailsModel(
     public string ParentDiagramName { get; private set; } = "-";
     public string AdaptiveSourceTypeText { get; private set; } = "--";
     public string AdaptiveReasonText { get; private set; } = "--";
-    public string NextExplorationMessage { get; private set; } = "明確な探索候補は見つかっていません。別のパラメータ軸を選んでください。";
+    public string NextExplorationMessage { get; private set; } = "明確な探索候補はまだ見つかっていません。別のパラメータ軸を選ぶと、次の再探索が見つかりやすくなります。";
     public bool CanCreateBoundaryAdaptive { get; private set; }
     public bool CanCreateHighPipelineAdaptive { get; private set; }
     public bool CanCreateEmergentAdaptive { get; private set; }
 
     private HashSet<string> BoundaryCellKeys { get; } = new(StringComparer.Ordinal);
-    private Dictionary<int, PhaseDiagramExperimentSummary> ExperimentSummariesByExperimentId { get; set; } = [];
+    private Dictionary<int, PhaseDiagramExperimentSummary> ExperimentSummariesByExperimentId { get; set; } = new();
+    private Dictionary<int, string> ExperimentStatusesByExperimentId { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
@@ -103,11 +130,11 @@ public sealed class DetailsModel(
             return false;
         }
 
-        if (recalcRunningStatus && Diagram.Status == PhaseDiagramStatus.Running)
+        if (recalcRunningStatus && Diagram.Status != PhaseDiagramStatus.Failed)
         {
             try
             {
-                await phaseDiagramRunner.RecalculateStatusAsync(Diagram.Id);
+                await phaseDiagramRunner.RecalculatePhaseDiagramStatusAsync(Diagram.Id);
             }
             catch
             {
@@ -144,14 +171,39 @@ public sealed class DetailsModel(
             .ToList();
 
         ExperimentSummariesByExperimentId = experimentIds.Count == 0
-            ? []
+            ? new Dictionary<int, PhaseDiagramExperimentSummary>()
             : await BuildExperimentSummariesAsync(experimentIds);
+        ExperimentStatusesByExperimentId = experimentIds.Count == 0
+            ? new Dictionary<int, string>()
+            : await db.Experiments
+                .Where(item => experimentIds.Contains(item.Id))
+                .ToDictionaryAsync(item => item.Id, item => item.Status);
+
+        AverageRespectMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageRespect), 3);
+        AverageChallengeAcceptanceScoreMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageChallengeAcceptanceScore), 3);
+        AverageRespectReconfigurationBoostMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageRespectReconfigurationBoost), 3);
+        AverageRespectEmergenceComponentMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageRespectEmergenceComponent), 3);
+        AverageThanksCoinToEmergenceContributionMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageThanksCoinToEmergenceContribution), 3);
+        PopularityTrapRateMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.PopularityTrapRate), 3);
 
         BuildRegionSummaries();
         BuildBoundaryAnalysis();
         BuildSummary();
         BuildHeatmaps();
         BuildPointResults();
+        BuildProgressSummary();
         BuildAdaptiveProposal();
 
         var interpretation = interpretationService.BuildPhaseDiagramInterpretation(Points, ExperimentSummariesByExperimentId);
@@ -172,16 +224,67 @@ public sealed class DetailsModel(
             .Where(item => experimentIds.Contains(item.ExperimentId))
             .ToListAsync();
 
+        var projects = await db.SimulationProjects
+            .Where(item => item.ExperimentId.HasValue && experimentIds.Contains(item.ExperimentId.Value))
+            .ToListAsync();
+        var projectIds = projects.Select(item => item.Id).ToList();
+        var steps = await db.SimulationSteps
+            .Where(item => projectIds.Contains(item.SimulationProjectId))
+            .OrderBy(item => item.SimulationProjectId)
+            .ThenBy(item => item.StepNo)
+            .ToListAsync();
+
+        var stepsByProjectId = steps
+            .GroupBy(item => item.SimulationProjectId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+        var projectSummaries = projects
+            .Where(item => item.ExperimentId.HasValue)
+            .Select(project =>
+            {
+                var timeline = KnowledgeAnalysisService.BuildTimeline(stepsByProjectId.GetValueOrDefault(project.Id, []));
+                var finalPoint = timeline.OrderBy(item => item.StepNo).LastOrDefault();
+
+                return new
+                {
+                    ExperimentId = project.ExperimentId!.Value,
+                    AverageRespect = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.AverageRespect), 3),
+                    AverageChallengeAcceptanceScore = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.ChallengeAcceptanceScore), 3),
+                    AverageRespectReconfigurationBoost = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.RespectReconfigurationBoost), 3),
+                    AverageRespectEmergenceComponent = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.RespectEmergenceComponent), 3),
+                    AverageThanksCoinToReconfigurationContribution = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.ThanksCoinToReconfigurationContribution), 3),
+                    AverageThanksCoinToSerendipityContribution = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.ThanksCoinToSerendipityContribution), 3),
+                    AverageThanksCoinToEmergenceContribution = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.ThanksCoinToEmergenceContribution), 3),
+                    PopularityTrapRate = timeline.Count == 0 ? 0 : Math.Round(timeline.Count(item => item.PopularityTrapDetected) / (double)timeline.Count, 3),
+                    AverageComponentCount = finalPoint?.StableScore ?? 0,
+                    AverageShareInfoRate = finalPoint is null ? 0 : Math.Round(finalPoint.ThanksCoinHelpCount / (double)Math.Max(finalPoint.ThanksCoinCount, 1), 3),
+                    AverageProposeIdeaRate = finalPoint is null ? 0 : Math.Round(finalPoint.ThanksCoinIdeaCount / (double)Math.Max(finalPoint.ThanksCoinCount, 1), 3),
+                    AverageCriticizeSupportRatio = finalPoint is null ? 0 : Math.Round(finalPoint.ThanksCoinChallengeCount / (double)Math.Max(finalPoint.ThanksCoinCount, 1), 3)
+                };
+            })
+            .ToList();
+
         return runs
             .GroupBy(item => item.ExperimentId)
             .ToDictionary(
                 group => group.Key,
-                group => new PhaseDiagramExperimentSummary
+                group =>
+                {
+                    var projectGroup = projectSummaries.Where(item => item.ExperimentId == group.Key).ToList();
+                    return new PhaseDiagramExperimentSummary
                 {
                     AverageComponentCount = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.ComponentCount), 3),
                     AverageShareInfoRate = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.ShareInfoRate), 3),
                     AverageProposeIdeaRate = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.ProposeIdeaRate), 3),
-                    AverageCriticizeSupportRatio = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.CriticizeSupportRatio), 3)
+                    AverageCriticizeSupportRatio = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.CriticizeSupportRatio), 3),
+                    AverageRespect = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespect), 3),
+                    AverageChallengeAcceptanceScore = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageChallengeAcceptanceScore), 3),
+                    AverageRespectReconfigurationBoost = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespectReconfigurationBoost), 3),
+                    AverageRespectEmergenceComponent = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespectEmergenceComponent), 3),
+                    AverageThanksCoinToReconfigurationContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToReconfigurationContribution), 3),
+                    AverageThanksCoinToSerendipityContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToSerendipityContribution), 3),
+                    AverageThanksCoinToEmergenceContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToEmergenceContribution), 3),
+                    PopularityTrapRate = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.PopularityTrapRate), 3)
+                };
                 });
     }
 
@@ -284,7 +387,10 @@ public sealed class DetailsModel(
             new() { Label = "最大 Average Trust", Value = maxTrust.ToString("0.00") },
             new() { Label = "最大 Effective Density", Value = maxDensity.ToString("0.00") },
             new() { Label = "最大 Serendipity Rate", Value = maxSerendipity.ToString("0.00") },
-            new() { Label = "最大 Knowledge Reconfiguration", Value = maxReconfiguration.ToString("0.00") }
+            new() { Label = "最大 Knowledge Reconfiguration", Value = maxReconfiguration.ToString("0.00") },
+            new() { Label = "AverageRespect", Value = AverageRespectMean.ToString("0.00") },
+            new() { Label = "ChallengeAcceptanceScore", Value = AverageChallengeAcceptanceScoreMean.ToString("0.00") },
+            new() { Label = "PopularityTrapRate", Value = PopularityTrapRateMean.ToString("0.00") }
         ];
 
         RecommendedInterpretation = BuildInterpretation(
@@ -588,6 +694,65 @@ public sealed class DetailsModel(
                 DominantBottleneck = item.DominantBottleneck
             })
             .ToList();
+    }
+
+    private void BuildProgressSummary()
+    {
+        TotalPointCount = XValues.Count * YValues.Count;
+        CompletedPointCount = 0;
+        RunningPointCount = 0;
+        PendingPointCount = 0;
+        FailedPointCount = 0;
+
+        if (TotalPointCount == 0)
+        {
+            ProgressRate = 0;
+            return;
+        }
+
+        var pointMap = Points
+            .GroupBy(item => GetPointKey(item.XValue, item.YValue), StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+
+        foreach (var yValue in YValues)
+        {
+            foreach (var xValue in XValues)
+            {
+                if (!pointMap.TryGetValue(GetPointKey(xValue, yValue), out var point))
+                {
+                    PendingPointCount++;
+                    continue;
+                }
+
+                if (!point.ExperimentId.HasValue)
+                {
+                    PendingPointCount++;
+                    continue;
+                }
+
+                if (!ExperimentStatusesByExperimentId.TryGetValue(point.ExperimentId.Value, out var status))
+                {
+                    PendingPointCount++;
+                    continue;
+                }
+
+                if (string.Equals(status, ExperimentStatus.Failed, StringComparison.OrdinalIgnoreCase))
+                {
+                    FailedPointCount++;
+                    continue;
+                }
+
+                if (string.Equals(status, ExperimentStatus.Completed, StringComparison.OrdinalIgnoreCase))
+                {
+                    CompletedPointCount++;
+                    continue;
+                }
+
+                RunningPointCount++;
+            }
+        }
+
+        ProgressRate = CompletedPointCount / (double)TotalPointCount;
     }
 
     private List<PhaseDiagramHeatmapRow> BuildRows(Func<PhaseDiagramPoint, PhaseDiagramHeatmapCell> selector)

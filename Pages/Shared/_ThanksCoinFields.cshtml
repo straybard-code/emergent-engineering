@@ -1,0 +1,49 @@
+@model EmergentEngineering.Models.IThanksCoinSettings
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">Thanks Coin / 相互敬意</h2>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="form-check mt-4">
+                <input asp-for="EnableThanksCoin" class="form-check-input" type="checkbox" />
+                <label asp-for="EnableThanksCoin" class="form-check-label">Thanks Coin を有効化</label>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ThanksCoinRate" class="form-label">Thanks Coin 発生率</label>
+            <input asp-for="ThanksCoinRate" class="form-control" type="number" min="0" max="1" step="0.001" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="ThanksCoinRespectGain" class="form-label">敬意増加量</label>
+            <input asp-for="ThanksCoinRespectGain" class="form-control" type="number" min="0" max="1" step="0.001" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="ThanksCoinTrustGain" class="form-label">信頼増加量</label>
+            <input asp-for="ThanksCoinTrustGain" class="form-control" type="number" min="0" max="1" step="0.001" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="ThanksCoinReconfigurationGain" class="form-label">知識再構成増加量</label>
+            <input asp-for="ThanksCoinReconfigurationGain" class="form-control" type="number" min="0" max="1" step="0.001" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="ThanksCoinPsychologicalSafetyGain" class="form-label">心理的安全性増加量</label>
+            <input asp-for="ThanksCoinPsychologicalSafetyGain" class="form-control" type="number" min="0" max="1" step="0.001" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="ThanksCoinBridgeGain" class="form-label">橋渡し増加量</label>
+            <input asp-for="ThanksCoinBridgeGain" class="form-control" type="number" min="0" max="1" step="0.001" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="ThanksCoinPopularityBias" class="form-label">人気集中バイアス</label>
+            <input asp-for="ThanksCoinPopularityBias" class="form-control" type="number" min="0" max="1" step="0.001" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ThanksCoinDiversityBonus" class="form-label">多様性ボーナス</label>
+            <input asp-for="ThanksCoinDiversityBonus" class="form-control" type="number" min="0" max="1" step="0.001" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ThanksCoinChallengeBonus" class="form-label">建設的異論ボーナス</label>
+            <input asp-for="ThanksCoinChallengeBonus" class="form-control" type="number" min="0" max="1" step="0.001" />
+        </div>
+    </div>
+</section>

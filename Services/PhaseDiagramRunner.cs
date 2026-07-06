@@ -23,11 +23,6 @@ public sealed class PhaseDiagramRunner(
             return null;
         }
 
-        if (diagram.Status == PhaseDiagramStatus.Running)
-        {
-            return diagram;
-        }
-
         var baseScenario = await db.Scenarios
             .AsNoTracking()
             .FirstOrDefaultAsync(item => item.Id == diagram.BaseScenarioId, cancellationToken);
@@ -48,46 +43,108 @@ public sealed class PhaseDiagramRunner(
 
         try
         {
-            await DeleteExistingResultsAsync(diagram.Id, cancellationToken);
+            var existingPoints = await db.PhaseDiagramPoints
+                .Where(item => item.PhaseDiagramId == diagram.Id)
+                .ToListAsync(cancellationToken);
+            var pointMap = existingPoints
+                .GroupBy(item => GetPointKey(item.XValue, item.YValue), StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+            var experimentIds = existingPoints
+                .Where(item => item.ExperimentId.HasValue)
+                .Select(item => item.ExperimentId!.Value)
+                .Distinct()
+                .ToList();
+            var experimentsById = await LoadExperimentsByIdAsync(experimentIds, cancellationToken);
 
             foreach (var xValue in xValues)
             {
                 foreach (var yValue in yValues)
                 {
-                    var experiment = SimulationFactory.CreateExperimentFromScenario(
-                        baseScenario,
-                        $"{diagram.Name} X={diagram.XParameterDisplayName}:{xValue:0.000} / Y={diagram.YParameterDisplayName}:{yValue:0.000}",
-                        $"{diagram.Description} / X={diagram.XParameterDisplayName}:{xValue:0.000} / Y={diagram.YParameterDisplayName}:{yValue:0.000}",
-                        diagram.RunsPerPoint,
-                        diagram.AgentCount,
-                        diagram.TotalSteps,
-                        diagram.LlmProvider,
-                        diagram.LlmModel);
-
-                    if (!parameterApplier.ApplyParameter(experiment, diagram.XParameterName, xValue))
+                    var pointKey = GetPointKey(xValue, yValue);
+                    pointMap.TryGetValue(pointKey, out var existingPoint);
+                    Experiment? experiment = null;
+                    if (existingPoint?.ExperimentId is int existingExperimentId &&
+                        experimentsById.TryGetValue(existingExperimentId, out var existingExperiment))
                     {
-                        throw new InvalidOperationException($"Unsupported X parameter: {diagram.XParameterName}");
+                        if (IsExperimentCompleted(existingExperiment.Status))
+                        {
+                            continue;
+                        }
+
+                        if (IsExperimentFailed(existingExperiment.Status))
+                        {
+                            throw new InvalidOperationException($"Experiment {existingExperiment.Id} failed before the phase diagram could resume.");
+                        }
+
+                        experiment = await experimentExecutionService.RunExperimentAsync(existingExperiment.Id, "Minimal", cancellationToken);
+                        if (experiment is null)
+                        {
+                            throw new InvalidOperationException($"Experiment {existingExperiment.Id} could not be resumed.");
+                        }
+
+                        experimentsById[experiment.Id] = experiment;
+                    }
+                    else
+                    {
+                        experiment = SimulationFactory.CreateExperimentFromScenario(
+                            baseScenario,
+                            $"{diagram.Name} X={diagram.XParameterDisplayName}:{xValue:0.000} / Y={diagram.YParameterDisplayName}:{yValue:0.000}",
+                            $"{diagram.Description} / X={diagram.XParameterDisplayName}:{xValue:0.000} / Y={diagram.YParameterDisplayName}:{yValue:0.000}",
+                            diagram.RunsPerPoint,
+                            diagram.AgentCount,
+                            diagram.TotalSteps,
+                            diagram.LlmProvider,
+                            diagram.LlmModel);
+
+                        if (!parameterApplier.ApplyParameter(experiment, diagram.XParameterName, xValue))
+                        {
+                            throw new InvalidOperationException($"Unsupported X parameter: {diagram.XParameterName}");
+                        }
+
+                        if (!parameterApplier.ApplyParameter(experiment, diagram.YParameterName, yValue))
+                        {
+                            throw new InvalidOperationException($"Unsupported Y parameter: {diagram.YParameterName}");
+                        }
+
+                        db.Experiments.Add(experiment);
+                        await db.SaveChangesAsync(cancellationToken);
+
+                        experiment = await experimentExecutionService.RunExperimentAsync(experiment.Id, "Minimal", cancellationToken);
+                        if (experiment is null)
+                        {
+                            throw new InvalidOperationException("Experiment execution did not return a result.");
+                        }
+
+                        experimentsById[experiment.Id] = experiment;
                     }
 
-                    if (!parameterApplier.ApplyParameter(experiment, diagram.YParameterName, yValue))
+                    if (IsExperimentFailed(experiment.Status))
                     {
-                        throw new InvalidOperationException($"Unsupported Y parameter: {diagram.YParameterName}");
+                        throw new InvalidOperationException($"Experiment {experiment.Id} failed while building the phase diagram.");
                     }
 
-                    db.Experiments.Add(experiment);
-                    await db.SaveChangesAsync(cancellationToken);
-
-                    await experimentExecutionService.RunExperimentAsync(experiment.Id, "Minimal", cancellationToken);
+                    if (!IsExperimentCompleted(experiment.Status))
+                    {
+                        throw new InvalidOperationException($"Experiment {experiment.Id} did not complete while building the phase diagram.");
+                    }
 
                     var point = await BuildPointAsync(diagram.Id, experiment.Id, xValue, yValue, cancellationToken);
-                    db.PhaseDiagramPoints.Add(point);
+                    if (existingPoint is null)
+                    {
+                        db.PhaseDiagramPoints.Add(point);
+                        existingPoints.Add(point);
+                        pointMap[pointKey] = point;
+                    }
+                    else
+                    {
+                        ApplyPointValues(existingPoint, point);
+                    }
+
                     await db.SaveChangesAsync(cancellationToken);
                 }
             }
 
-            diagram.Status = PhaseDiagramStatus.Completed;
-            diagram.CompletedAt = DateTime.UtcNow;
-            await db.SaveChangesAsync(cancellationToken);
+            return await RecalculatePhaseDiagramStatusAsync(diagram.Id, cancellationToken);
         }
         catch
         {
@@ -95,7 +152,107 @@ public sealed class PhaseDiagramRunner(
             await db.SaveChangesAsync(cancellationToken);
             throw;
         }
+    }
 
+    public Task<PhaseDiagram?> RecalculateStatusAsync(int phaseDiagramId, CancellationToken cancellationToken = default)
+        => RecalculatePhaseDiagramStatusAsync(phaseDiagramId, cancellationToken);
+
+    public async Task<PhaseDiagram?> RecalculatePhaseDiagramStatusAsync(int phaseDiagramId, CancellationToken cancellationToken = default)
+    {
+        var diagram = await db.PhaseDiagrams.FirstOrDefaultAsync(item => item.Id == phaseDiagramId, cancellationToken);
+        if (diagram is null)
+        {
+            return null;
+        }
+
+        var xValues = BuildParameterValues(diagram.XStartValue, diagram.XEndValue, diagram.XStepValue);
+        var yValues = BuildParameterValues(diagram.YStartValue, diagram.YEndValue, diagram.YStepValue);
+        var expectedPoints = xValues.Count * yValues.Count;
+
+        var points = await db.PhaseDiagramPoints
+            .Where(item => item.PhaseDiagramId == diagram.Id)
+            .Select(item => new { item.XValue, item.YValue, item.ExperimentId })
+            .ToListAsync(cancellationToken);
+
+        if (expectedPoints == 0 || points.Count == 0)
+        {
+            diagram.Status = PhaseDiagramStatus.Created;
+            diagram.CompletedAt = null;
+            await db.SaveChangesAsync(cancellationToken);
+            return diagram;
+        }
+
+        var experimentIds = points
+            .Where(item => item.ExperimentId.HasValue)
+            .Select(item => item.ExperimentId!.Value)
+            .Distinct()
+            .ToList();
+
+        var experimentStatuses = await LoadExperimentStatusesAsync(experimentIds, cancellationToken);
+        var pointMap = points
+            .GroupBy(item => GetPointKey(item.XValue, item.YValue), StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+
+        var completedPointCount = 0;
+        var failedPointCount = 0;
+        var runningPointCount = 0;
+        var pendingPointCount = 0;
+
+        foreach (var xValue in xValues)
+        {
+            foreach (var yValue in yValues)
+            {
+                if (!pointMap.TryGetValue(GetPointKey(xValue, yValue), out var point))
+                {
+                    pendingPointCount++;
+                    continue;
+                }
+
+                if (!point.ExperimentId.HasValue)
+                {
+                    pendingPointCount++;
+                    continue;
+                }
+
+                if (!experimentStatuses.TryGetValue(point.ExperimentId.Value, out var status))
+                {
+                    pendingPointCount++;
+                    continue;
+                }
+
+                if (IsExperimentFailed(status))
+                {
+                    failedPointCount++;
+                    continue;
+                }
+
+                if (IsExperimentCompleted(status))
+                {
+                    completedPointCount++;
+                    continue;
+                }
+
+                runningPointCount++;
+            }
+        }
+
+        if (failedPointCount > 0)
+        {
+            diagram.Status = PhaseDiagramStatus.Failed;
+            diagram.CompletedAt = null;
+        }
+        else if (completedPointCount >= expectedPoints && pointMap.Count >= expectedPoints)
+        {
+            diagram.Status = PhaseDiagramStatus.Completed;
+            diagram.CompletedAt ??= DateTime.UtcNow;
+        }
+        else
+        {
+            diagram.Status = PhaseDiagramStatus.Running;
+            diagram.CompletedAt = null;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
         return diagram;
     }
 
@@ -107,69 +264,6 @@ public sealed class PhaseDiagramRunner(
 
     public Task<PhaseDiagram?> CreateAdaptiveEmergentSweepAsync(int parentPhaseDiagramId, CancellationToken cancellationToken = default)
         => CreateAdaptiveSweepAsync(parentPhaseDiagramId, "EmergentRegion", cancellationToken);
-
-    public async Task<PhaseDiagram?> RecalculateStatusAsync(int phaseDiagramId, CancellationToken cancellationToken = default)
-    {
-        var diagram = await db.PhaseDiagrams.FirstOrDefaultAsync(item => item.Id == phaseDiagramId, cancellationToken);
-        if (diagram is null)
-        {
-            return null;
-        }
-
-        if (diagram.Status == PhaseDiagramStatus.Failed || diagram.Status == PhaseDiagramStatus.Completed)
-        {
-            return diagram;
-        }
-
-        var xCount = BuildParameterValues(diagram.XStartValue, diagram.XEndValue, diagram.XStepValue).Count;
-        var yCount = BuildParameterValues(diagram.YStartValue, diagram.YEndValue, diagram.YStepValue).Count;
-        var expectedPoints = xCount * yCount;
-
-        var points = await db.PhaseDiagramPoints
-            .Where(item => item.PhaseDiagramId == diagram.Id)
-            .Select(item => new { item.ExperimentId })
-            .ToListAsync(cancellationToken);
-
-        if (points.Count == 0)
-        {
-            diagram.Status = PhaseDiagramStatus.Created;
-            await db.SaveChangesAsync(cancellationToken);
-            return diagram;
-        }
-
-        var experimentIds = points
-            .Where(item => item.ExperimentId.HasValue)
-            .Select(item => item.ExperimentId!.Value)
-            .Distinct()
-            .ToList();
-
-        var experiments = experimentIds.Count == 0
-            ? []
-            : await db.Experiments
-                .Where(item => experimentIds.Contains(item.Id))
-                .Select(item => new { item.Id, item.Status })
-                .ToListAsync(cancellationToken);
-
-        if (experiments.Any(item => string.Equals(item.Status, "Failed", StringComparison.OrdinalIgnoreCase)))
-        {
-            diagram.Status = PhaseDiagramStatus.Failed;
-            await db.SaveChangesAsync(cancellationToken);
-            return diagram;
-        }
-
-        var completed = points.Count >= expectedPoints
-            && experiments.Count >= expectedPoints
-            && experiments.All(item => string.Equals(item.Status, ExperimentStatus.Completed, StringComparison.OrdinalIgnoreCase));
-
-        diagram.Status = completed ? PhaseDiagramStatus.Completed : PhaseDiagramStatus.Running;
-        if (completed && !diagram.CompletedAt.HasValue)
-        {
-            diagram.CompletedAt = DateTime.UtcNow;
-        }
-
-        await db.SaveChangesAsync(cancellationToken);
-        return diagram;
-    }
 
     public async Task<AdaptivePlan?> BuildAdaptivePlanAsync(
         int parentPhaseDiagramId,
@@ -494,6 +588,109 @@ public sealed class PhaseDiagramRunner(
 
         var transitionKey = $"{FormatPhaseLabel(current.DominantPhase)} → {FormatPhaseLabel(neighbor.DominantPhase)}";
         boundaryTransitions[transitionKey] = boundaryTransitions.TryGetValue(transitionKey, out var count) ? count + 1 : 1;
+    }
+
+    private async Task<Dictionary<int, Experiment>> LoadExperimentsByIdAsync(
+        IReadOnlyCollection<int> experimentIds,
+        CancellationToken cancellationToken)
+    {
+        if (experimentIds.Count == 0)
+        {
+            return new Dictionary<int, Experiment>();
+        }
+
+        var experiments = await db.Experiments
+            .Where(item => experimentIds.Contains(item.Id))
+            .ToDictionaryAsync(item => item.Id, cancellationToken);
+
+        foreach (var experimentId in experimentIds)
+        {
+            if (!experiments.TryGetValue(experimentId, out var experiment))
+            {
+                continue;
+            }
+
+            if (IsExperimentTerminal(experiment.Status))
+            {
+                continue;
+            }
+
+            var recalculated = await experimentExecutionService.RecalculateExperimentStatusAsync(experimentId, cancellationToken);
+            if (recalculated is not null)
+            {
+                experiments[experimentId] = recalculated;
+            }
+        }
+
+        return experiments;
+    }
+
+    private async Task<Dictionary<int, string>> LoadExperimentStatusesAsync(
+        IReadOnlyCollection<int> experimentIds,
+        CancellationToken cancellationToken)
+    {
+        if (experimentIds.Count == 0)
+        {
+            return new Dictionary<int, string>();
+        }
+
+        var experimentStatuses = await db.Experiments
+            .Where(item => experimentIds.Contains(item.Id))
+            .ToDictionaryAsync(item => item.Id, item => item.Status, cancellationToken);
+
+        foreach (var experimentId in experimentIds)
+        {
+            if (!experimentStatuses.TryGetValue(experimentId, out var status))
+            {
+                continue;
+            }
+
+            if (IsExperimentTerminal(status))
+            {
+                continue;
+            }
+
+            var recalculated = await experimentExecutionService.RecalculateExperimentStatusAsync(experimentId, cancellationToken);
+            if (recalculated is not null)
+            {
+                experimentStatuses[experimentId] = recalculated.Status;
+            }
+        }
+
+        return experimentStatuses;
+    }
+
+    private static bool IsExperimentCompleted(string? status)
+        => string.Equals(status, ExperimentStatus.Completed, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsExperimentFailed(string? status)
+        => string.Equals(status, ExperimentStatus.Failed, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsExperimentTerminal(string? status)
+        => IsExperimentCompleted(status) || IsExperimentFailed(status);
+
+    private static void ApplyPointValues(PhaseDiagramPoint target, PhaseDiagramPoint source)
+    {
+        target.PhaseDiagramId = source.PhaseDiagramId;
+        target.XValue = source.XValue;
+        target.YValue = source.YValue;
+        target.ExperimentId = source.ExperimentId;
+        target.FinalPhaseSummary = source.FinalPhaseSummary;
+        target.DominantPhase = source.DominantPhase;
+        target.EmergentRate = source.EmergentRate;
+        target.StableRate = source.StableRate;
+        target.LearningRate = source.LearningRate;
+        target.SiloRate = source.SiloRate;
+        target.ChaosRate = source.ChaosRate;
+        target.CollapseRate = source.CollapseRate;
+        target.AverageTrust = source.AverageTrust;
+        target.AverageEffectiveDensity = source.AverageEffectiveDensity;
+        target.AverageKnowledgeDiversity = source.AverageKnowledgeDiversity;
+        target.AverageKnowledgeRecombinationScore = source.AverageKnowledgeRecombinationScore;
+        target.AverageKnowledgeReconfigurationScore = source.AverageKnowledgeReconfigurationScore;
+        target.AverageSerendipityRate = source.AverageSerendipityRate;
+        target.AveragePipelineCompletionScore = source.AveragePipelineCompletionScore;
+        target.DominantBottleneck = source.DominantBottleneck;
     }
 
     private async Task DeleteExistingResultsAsync(int phaseDiagramId, CancellationToken cancellationToken)

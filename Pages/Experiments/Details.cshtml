@@ -1,4 +1,4 @@
-﻿@page "{id:int}"
+@page "{id:int}"
 @model EmergentEngineering.Pages.Experiments.DetailsModel
 @{
     ViewData["Title"] = Model.Experiment?.Name ?? "Experiment Details";
@@ -64,7 +64,7 @@
 
 <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
     <div>
-        <a asp-page="/Experiments/Index" class="text-decoration-none small">&larr; Experiments</a>
+        <a asp-page="/Experiments/Index" class="text-decoration-none small">&larr; 実験一覧</a>
         <h1 class="h2 mt-2 mb-1">@Model.Experiment.Name</h1>
         <div class="text-muted">@Model.Experiment.Description</div>
     </div>
@@ -308,6 +308,108 @@
                         </td>
                     </tr>
                 }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Thanks Coin 集計</h2>
+            <p class="text-muted small mb-0">Run ごとに、敬意・感謝の内訳と、創発への寄与を俯瞰します。</p>
+        </div>
+    </div>
+    @if (Model.RunFingerprints.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ Thanks Coin 集計を表示できる Run はありません。</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均Thanks発生率</div>
+                    <div class="fs-5">@Model.AverageThanksCoinRateMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">AverageRespect</div>
+                    <div class="fs-5">@Model.AverageRespectMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">RespectDensity</div>
+                    <div class="fs-5">@Model.AverageRespectDensityMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">ThanksConcentration</div>
+                    <div class="fs-5">@Model.AverageThanksConcentrationMean.ToString("0.000")</div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">ChallengeAcceptanceScore</div>
+                    <div class="fs-5">@Model.AverageChallengeAcceptanceScoreMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">RespectReconfigurationBoost</div>
+                    <div class="fs-5">@Model.AverageRespectReconfigurationBoostMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">RespectEmergenceComponent</div>
+                    <div class="fs-5">@Model.AverageRespectEmergenceComponentMean.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">PopularityTrapRunCount</div>
+                    <div class="fs-5">@Model.PopularityTrapRunCount.ToString("0")</div>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Help率</th>
+                        <th>Idea率</th>
+                        <th>Challenge率</th>
+                        <th>Bridge率</th>
+                        <th>RespectConcentration</th>
+                        <th>Thanks Diversity</th>
+                        <th>Challenge Thanks / Emergent</th>
+                        <th>Challenge Thanks / Learning</th>
+                        <th>Reconfiguration Contribution</th>
+                        <th>Serendipity Contribution</th>
+                        <th>Emergence Contribution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>@Model.AverageThanksHelpRateMean.ToString("0.000")</td>
+                        <td>@Model.AverageThanksIdeaRateMean.ToString("0.000")</td>
+                        <td>@Model.AverageThanksChallengeRateMean.ToString("0.000")</td>
+                        <td>@Model.AverageThanksBridgeRateMean.ToString("0.000")</td>
+                        <td>@Model.AverageRespectConcentrationMean.ToString("0.000")</td>
+                        <td>@Model.AverageThanksDiversityIndexMean.ToString("0.000")</td>
+                        <td>@Model.EmergentChallengeThanksRateMean.ToString("0.000")</td>
+                        <td>@Model.LearningChallengeThanksRateMean.ToString("0.000")</td>
+                        <td>@Model.AverageThanksCoinToReconfigurationContributionMean.ToString("0.000")</td>
+                        <td>@Model.AverageThanksCoinToSerendipityContributionMean.ToString("0.000")</td>
+                        <td>@Model.AverageThanksCoinToEmergenceContributionMean.ToString("0.000")</td>
+                    </tr>
                 </tbody>
             </table>
         </div>

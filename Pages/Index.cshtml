@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model IndexModel
 @{
     ViewData["Title"] = "Simulations";
@@ -41,7 +41,7 @@
         <h1 class="h2 mb-1">Simulation Projects</h1>
         <p class="text-muted mb-0">複数の Simulation を一覧し、Phase と Trust の変化を確認します。</p>
     </div>
-    <a class="btn btn-primary" asp-page="/Simulations/Create">新規 Simulation</a>
+    <a class="btn btn-primary" asp-page="/Simulations/Create">新規シミュレーション</a>
 </div>
 
 @if (!string.IsNullOrWhiteSpace(Model.SimulationMessage))

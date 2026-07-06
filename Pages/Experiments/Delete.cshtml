@@ -1,4 +1,4 @@
-﻿@page "{id:int}"
+@page "{id:int}"
 @model EmergentEngineering.Pages.Experiments.DeleteModel
 @{
     ViewData["Title"] = Model.Experiment?.Name ?? "Experiment 削除";
@@ -11,7 +11,7 @@
 }
 
 <div class="page-heading">
-    <a asp-page="/Experiments/Details" asp-route-id="@Model.Experiment.Id" class="text-decoration-none small">&larr; Experiment 詳細</a>
+    <a asp-page="/Experiments/Details" asp-route-id="@Model.Experiment.Id" class="text-decoration-none small">&larr; 実験詳細</a>
     <h1 class="h2 mt-2">Experiment 削除</h1>
     <p class="text-muted mb-0">この Experiment を削除すると、関連する実行データもまとめて削除されます。</p>
 </div>

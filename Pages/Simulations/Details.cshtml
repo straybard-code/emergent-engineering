@@ -1,4 +1,4 @@
-﻿@page "{id:int}"
+@page "{id:int}"
 @model EmergentEngineering.Pages.Simulations.DetailsModel
 @{
     ViewData["Title"] = Model.Project?.Name ?? "Simulation詳細";
@@ -66,13 +66,13 @@
 
 @if (Model.Project is null)
 {
-    <div class="alert alert-warning">Simulation が見つかりません。</div>
+    <div class="alert alert-warning">シミュレーションが見つかりません。</div>
     return;
 }
 
 <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
     <div>
-        <a asp-page="/Index" class="text-decoration-none small">&larr; Simulation一覧</a>
+        <a asp-page="/Index" class="text-decoration-none small">&larr; シミュレーション一覧</a>
         <h1 class="h2 mt-2 mb-1">@Model.Project.Name</h1>
         <div class="text-muted">現在ステップ @Model.Project.CurrentStep / @Model.Project.TotalSteps ・ 状態 @FormatStatus(Model.Project.Status) ・ 相 @FormatPhase(Model.Project.Phase)</div>
     </div>
@@ -149,6 +149,40 @@
         <h2 class="h6">LLMモデル</h2>
         <p>@Model.Project.LlmModel</p>
     </div>
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">Thanks Coin / 相互敬意分析</h2>
+            <p class="text-muted small mb-0">支援・新しい視点・建設的異論・橋渡しへの感謝が、敬意・知識再構成・セレンディピティにどう作用したかを確認します。</p>
+        </div>
+    </div>
+    @if (Model.KnowledgeTimeline.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ Thanks Coin のタイムラインを表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <tbody>
+                    <tr><th>Thanks発生数</th><td>@Model.KnowledgeTimeline.Sum(point => point.ThanksCoinCount)</td><th>Help / Idea / Challenge / Bridge</th><td>@($"{Model.KnowledgeTimeline.Sum(point => point.ThanksCoinHelpCount)} / {Model.KnowledgeTimeline.Sum(point => point.ThanksCoinIdeaCount)} / {Model.KnowledgeTimeline.Sum(point => point.ThanksCoinChallengeCount)} / {Model.KnowledgeTimeline.Sum(point => point.ThanksCoinBridgeCount)}")</td></tr>
+                    <tr><th>AverageRespect</th><td>@Model.KnowledgeTimeline.Last().AverageRespect.ToString("0.000")</td><th>RespectDensity</th><td>@Model.KnowledgeTimeline.Last().RespectDensity.ToString("0.000")</td></tr>
+                    <tr><th>RespectConcentration</th><td>@Model.KnowledgeTimeline.Last().RespectConcentration.ToString("0.000")</td><th>ThanksConcentration</th><td>@Model.KnowledgeTimeline.Last().ThanksConcentration.ToString("0.000")</td></tr>
+                    <tr><th>ChallengeAcceptanceScore</th><td>@Model.KnowledgeTimeline.Last().ChallengeAcceptanceScore.ToString("0.000")</td><th>RespectReconfigurationBoost</th><td>@Model.KnowledgeTimeline.Last().RespectReconfigurationBoost.ToString("0.000")</td></tr>
+                    <tr><th>RespectEmergenceComponent</th><td>@Model.KnowledgeTimeline.Last().RespectEmergenceComponent.ToString("0.000")</td><th>PopularityTrapPenalty</th><td>@Model.KnowledgeTimeline.Last().PopularityTrapPenalty.ToString("0.000")</td></tr>
+                    <tr><th>Thanks→Reconfiguration</th><td>@Model.KnowledgeTimeline.Last().ThanksCoinToReconfigurationContribution.ToString("0.000")</td><th>Thanks→Serendipity</th><td>@Model.KnowledgeTimeline.Last().ThanksCoinToSerendipityContribution.ToString("0.000")</td></tr>
+                    <tr><th>Thanks→Emergence</th><td>@Model.KnowledgeTimeline.Last().ThanksCoinToEmergenceContribution.ToString("0.000")</td><th>PopularityTrap</th><td>@(Model.KnowledgeTimeline.Last().PopularityTrapDetected ? "Yes" : "No")</td></tr>
+                    <tr><th>ThanksCoinTrustDelta</th><td>@Model.KnowledgeTimeline.Sum(point => point.ThanksCoinTrustDelta).ToString("0.000")</td><th>ThanksCoinReconfigurationDelta</th><td>@Model.KnowledgeTimeline.Sum(point => point.ThanksCoinReconfigurationDelta).ToString("0.000")</td></tr>
+                    <tr><th>ThanksCoinSerendipityDelta</th><td>@Model.KnowledgeTimeline.Sum(point => point.ThanksCoinSerendipityDelta).ToString("0.000")</td><th>ThanksCoinBridgeDelta</th><td>@Model.KnowledgeTimeline.Sum(point => point.ThanksCoinBridgeDelta).ToString("0.000")</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <canvas id="thanksCoinTimelineChart" height="120" class="mb-4"></canvas>
+        <canvas id="respectTimelineChart" height="120" class="mb-4"></canvas>
+        <canvas id="thanksContributionChart" height="120"></canvas>
+    }
 </section>
 
 <section class="log-section mb-4">
@@ -1161,13 +1195,13 @@
 
 <ul class="nav nav-tabs mb-3" id="simulationTabs" role="tablist">
     <li class="nav-item" role="presentation">
-        <button class="nav-link @(Model.SelectedView == "logs" ? "active" : "")" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">Step Log</button>
+        <button class="nav-link @(Model.SelectedView == "logs" ? "active" : "")" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">実行ログ</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="agents-tab" data-bs-toggle="tab" data-bs-target="#agents" type="button" role="tab">Agents</button>
+        <button class="nav-link" id="agents-tab" data-bs-toggle="tab" data-bs-target="#agents" type="button" role="tab">エージェント</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link @(Model.SelectedView == "history" ? "active" : "")" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">Agent History</button>
+        <button class="nav-link @(Model.SelectedView == "history" ? "active" : "")" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">エージェント履歴</button>
     </li>
 </ul>
 
@@ -1192,7 +1226,7 @@
         @if (Model.Actions.Count == 0)
         {
             <div class="empty-state">
-                <h2 class="h5">Step Log はまだありません</h2>
+                <h2 class="h5">実行ログはまだありません</h2>
                 <p>1ステップ実行すると message, memory, action, target が保存されます。</p>
             </div>
         }
@@ -1323,6 +1357,7 @@
             const knowledgeTimeline = @Html.Raw(Model.GetKnowledgeTimelineJson());
             const pipelineTimeline = @Html.Raw(Model.GetPipelineTimelineJson());
             const phaseScorePoints = @Html.Raw(Model.GetPhaseScoreTimelineJson());
+            const thanksCoinPoints = @Html.Raw(Model.GetThanksCoinTimelineJson());
 
             renderPhaseTimeline(phasePoints);
             arrangeAnalysisSections();
@@ -1331,6 +1366,9 @@
             renderPipelineTimeline(pipelineTimeline);
             renderPipelineCompletionTimeline(pipelineTimeline);
             renderPhaseScoreTimeline(phaseScorePoints);
+            renderThanksCoinTimeline(thanksCoinPoints);
+            renderRespectTimeline(thanksCoinPoints);
+            renderThanksContributionTimeline(thanksCoinPoints);
             renderSerendipityTimeline(knowledgeTimeline);
             renderActionTimeline(actionTimeline);
             renderThresholdSweep(thresholdSweep);
@@ -1549,6 +1587,92 @@
                                     callback: value => Number(value).toFixed(2)
                                 }
                             }
+                        }
+                    }
+                });
+            }
+
+            function renderThanksCoinTimeline(points) {
+                const canvas = document.getElementById('thanksCoinTimelineChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [
+                            buildRateDataset('Help', points.map(point => point.thanksCoinHelpCount), '#2563eb'),
+                            buildRateDataset('Idea', points.map(point => point.thanksCoinIdeaCount), '#0f766e'),
+                            buildRateDataset('Challenge', points.map(point => point.thanksCoinChallengeCount), '#d97706'),
+                            buildRateDataset('Bridge', points.map(point => point.thanksCoinBridgeCount), '#7c3aed')
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: { title: { display: true, text: 'Step' } },
+                            y: { beginAtZero: true, ticks: { callback: value => Number(value).toFixed(2) } }
+                        }
+                    }
+                });
+            }
+
+            function renderRespectTimeline(points) {
+                const canvas = document.getElementById('respectTimelineChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [
+                            buildRateDataset('AverageRespect', points.map(point => point.averageRespect), '#2563eb'),
+                            buildRateDataset('RespectDensity', points.map(point => point.respectDensity), '#0f766e'),
+                            buildRateDataset('RespectConcentration', points.map(point => point.respectConcentration), '#d97706')
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: { title: { display: true, text: 'Step' } },
+                            y: { beginAtZero: true, max: 1, ticks: { callback: value => Number(value).toFixed(2) } }
+                        }
+                    }
+                });
+            }
+
+            function renderThanksContributionTimeline(points) {
+                const canvas = document.getElementById('thanksContributionChart');
+                if (!canvas || !points || points.length === 0 || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(point => point.stepNo),
+                        datasets: [
+                            buildRateDataset('ReconfigurationDelta', points.map(point => point.thanksCoinReconfigurationDelta), '#7c3aed'),
+                            buildRateDataset('SerendipityDelta', points.map(point => point.thanksCoinSerendipityDelta), '#d97706'),
+                            buildRateDataset('TrustDelta', points.map(point => point.thanksCoinTrustDelta), '#2563eb'),
+                            buildRateDataset('EmergenceContribution', points.map(point => point.thanksCoinToEmergenceContribution), '#198754')
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: { title: { display: true, text: 'Step' } },
+                            y: { beginAtZero: true, ticks: { callback: value => Number(value).toFixed(2) } }
                         }
                     }
                 });

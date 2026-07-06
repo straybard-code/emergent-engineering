@@ -85,6 +85,16 @@ public sealed class EditModel(AppDbContext db) : PageModel
         scenario.TrustCapacityPenalty = Input.TrustCapacityPenalty;
         scenario.DistrustPenalty = Input.DistrustPenalty;
         scenario.ConstructiveCriticismBonus = Input.ConstructiveCriticismBonus;
+        scenario.EnableThanksCoin = Input.EnableThanksCoin;
+        scenario.ThanksCoinRate = Input.ThanksCoinRate;
+        scenario.ThanksCoinRespectGain = Input.ThanksCoinRespectGain;
+        scenario.ThanksCoinTrustGain = Input.ThanksCoinTrustGain;
+        scenario.ThanksCoinReconfigurationGain = Input.ThanksCoinReconfigurationGain;
+        scenario.ThanksCoinPsychologicalSafetyGain = Input.ThanksCoinPsychologicalSafetyGain;
+        scenario.ThanksCoinBridgeGain = Input.ThanksCoinBridgeGain;
+        scenario.ThanksCoinPopularityBias = Input.ThanksCoinPopularityBias;
+        scenario.ThanksCoinDiversityBonus = Input.ThanksCoinDiversityBonus;
+        scenario.ThanksCoinChallengeBonus = Input.ThanksCoinChallengeBonus;
         SimulationFactory.NormalizeOptionalEventSettings(scenario);
         scenario.UpdatedAt = DateTime.UtcNow;
 

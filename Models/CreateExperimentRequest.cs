@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmergentEngineering.Models;
 
-public sealed class CreateExperimentRequest : IValidatableObject
+public sealed class CreateExperimentRequest : IThanksCoinSettings, IMutualRespectSettings, IValidatableObject
 {
     [Required]
     [StringLength(200)]
@@ -144,6 +144,56 @@ public sealed class CreateExperimentRequest : IValidatableObject
 
     [Range(0, 1)]
     public double ConstructiveCriticismBonus { get; set; } = TrustDynamicsDefaults.ConstructiveCriticismBonus;
+
+    public bool EnableThanksCoin { get; set; } = ThanksCoinDefaults.EnableThanksCoin;
+
+    [Range(0, 1)]
+    public double ThanksCoinRate { get; set; } = ThanksCoinDefaults.ThanksCoinRate;
+
+    [Range(0, 1)]
+    public double ThanksCoinRespectGain { get; set; } = ThanksCoinDefaults.ThanksCoinRespectGain;
+
+    [Range(0, 1)]
+    public double ThanksCoinTrustGain { get; set; } = ThanksCoinDefaults.ThanksCoinTrustGain;
+
+    [Range(0, 1)]
+    public double ThanksCoinReconfigurationGain { get; set; } = ThanksCoinDefaults.ThanksCoinReconfigurationGain;
+
+    [Range(0, 1)]
+    public double ThanksCoinPsychologicalSafetyGain { get; set; } = ThanksCoinDefaults.ThanksCoinPsychologicalSafetyGain;
+
+    [Range(0, 1)]
+    public double ThanksCoinBridgeGain { get; set; } = ThanksCoinDefaults.ThanksCoinBridgeGain;
+
+    [Range(0, 1)]
+    public double ThanksCoinPopularityBias { get; set; } = ThanksCoinDefaults.ThanksCoinPopularityBias;
+
+    [Range(0, 1)]
+    public double ThanksCoinDiversityBonus { get; set; } = ThanksCoinDefaults.ThanksCoinDiversityBonus;
+
+    [Range(0, 1)]
+    public double ThanksCoinChallengeBonus { get; set; } = ThanksCoinDefaults.ThanksCoinChallengeBonus;
+
+    [Range(0, 1)]
+    public double MutualRespectBase { get; set; } = MutualRespectDefaults.Base;
+
+    [Range(0, 1)]
+    public double MutualRespectGrowthRate { get; set; } = MutualRespectDefaults.GrowthRate;
+
+    [Range(0, 1)]
+    public double MutualRespectDecayRate { get; set; } = MutualRespectDefaults.DecayRate;
+
+    [Range(0, 1)]
+    public double MutualRespectDiversitySensitivity { get; set; } = MutualRespectDefaults.DiversitySensitivity;
+
+    [Range(0, 1)]
+    public double MutualRespectChallengeSensitivity { get; set; } = MutualRespectDefaults.ChallengeSensitivity;
+
+    [Range(0, 1)]
+    public double MutualRespectBridgeSensitivity { get; set; } = MutualRespectDefaults.BridgeSensitivity;
+
+    [Range(0, 1)]
+    public double MutualRespectPopularityPenalty { get; set; } = MutualRespectDefaults.PopularityPenalty;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

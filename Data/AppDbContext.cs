@@ -59,6 +59,16 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.TrustCapacityPenalty).HasDefaultValue(TrustDynamicsDefaults.TrustCapacityPenalty);
             entity.Property(project => project.DistrustPenalty).HasDefaultValue(TrustDynamicsDefaults.DistrustPenalty);
             entity.Property(project => project.ConstructiveCriticismBonus).HasDefaultValue(TrustDynamicsDefaults.ConstructiveCriticismBonus);
+            entity.Property(project => project.EnableThanksCoin).HasDefaultValue(ThanksCoinDefaults.EnableThanksCoin);
+            entity.Property(project => project.ThanksCoinRate).HasDefaultValue(ThanksCoinDefaults.ThanksCoinRate);
+            entity.Property(project => project.ThanksCoinRespectGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinRespectGain);
+            entity.Property(project => project.ThanksCoinTrustGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinTrustGain);
+            entity.Property(project => project.ThanksCoinReconfigurationGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinReconfigurationGain);
+            entity.Property(project => project.ThanksCoinPsychologicalSafetyGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinPsychologicalSafetyGain);
+            entity.Property(project => project.ThanksCoinBridgeGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinBridgeGain);
+            entity.Property(project => project.ThanksCoinPopularityBias).HasDefaultValue(ThanksCoinDefaults.ThanksCoinPopularityBias);
+            entity.Property(project => project.ThanksCoinDiversityBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinDiversityBonus);
+            entity.Property(project => project.ThanksCoinChallengeBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinChallengeBonus);
             entity.HasOne(project => project.Experiment)
                 .WithMany(experiment => experiment.SimulationProjects)
                 .HasForeignKey(project => project.ExperimentId)
@@ -118,6 +128,16 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.TrustCapacityPenalty).HasDefaultValue(TrustDynamicsDefaults.TrustCapacityPenalty);
             entity.Property(project => project.DistrustPenalty).HasDefaultValue(TrustDynamicsDefaults.DistrustPenalty);
             entity.Property(project => project.ConstructiveCriticismBonus).HasDefaultValue(TrustDynamicsDefaults.ConstructiveCriticismBonus);
+            entity.Property(project => project.EnableThanksCoin).HasDefaultValue(ThanksCoinDefaults.EnableThanksCoin);
+            entity.Property(project => project.ThanksCoinRate).HasDefaultValue(ThanksCoinDefaults.ThanksCoinRate);
+            entity.Property(project => project.ThanksCoinRespectGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinRespectGain);
+            entity.Property(project => project.ThanksCoinTrustGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinTrustGain);
+            entity.Property(project => project.ThanksCoinReconfigurationGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinReconfigurationGain);
+            entity.Property(project => project.ThanksCoinPsychologicalSafetyGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinPsychologicalSafetyGain);
+            entity.Property(project => project.ThanksCoinBridgeGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinBridgeGain);
+            entity.Property(project => project.ThanksCoinPopularityBias).HasDefaultValue(ThanksCoinDefaults.ThanksCoinPopularityBias);
+            entity.Property(project => project.ThanksCoinDiversityBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinDiversityBonus);
+            entity.Property(project => project.ThanksCoinChallengeBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinChallengeBonus);
             entity.HasOne(project => project.Scenario)
                 .WithMany(scenario => scenario.Experiments)
                 .HasForeignKey(project => project.ScenarioId)
@@ -160,6 +180,16 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(item => item.TrustCapacityPenalty).HasDefaultValue(TrustDynamicsDefaults.TrustCapacityPenalty);
             entity.Property(item => item.DistrustPenalty).HasDefaultValue(TrustDynamicsDefaults.DistrustPenalty);
             entity.Property(item => item.ConstructiveCriticismBonus).HasDefaultValue(TrustDynamicsDefaults.ConstructiveCriticismBonus);
+            entity.Property(item => item.EnableThanksCoin).HasDefaultValue(ThanksCoinDefaults.EnableThanksCoin);
+            entity.Property(item => item.ThanksCoinRate).HasDefaultValue(ThanksCoinDefaults.ThanksCoinRate);
+            entity.Property(item => item.ThanksCoinRespectGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinRespectGain);
+            entity.Property(item => item.ThanksCoinTrustGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinTrustGain);
+            entity.Property(item => item.ThanksCoinReconfigurationGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinReconfigurationGain);
+            entity.Property(item => item.ThanksCoinPsychologicalSafetyGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinPsychologicalSafetyGain);
+            entity.Property(item => item.ThanksCoinBridgeGain).HasDefaultValue(ThanksCoinDefaults.ThanksCoinBridgeGain);
+            entity.Property(item => item.ThanksCoinPopularityBias).HasDefaultValue(ThanksCoinDefaults.ThanksCoinPopularityBias);
+            entity.Property(item => item.ThanksCoinDiversityBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinDiversityBonus);
+            entity.Property(item => item.ThanksCoinChallengeBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinChallengeBonus);
         });
 
         modelBuilder.Entity<ParameterSweep>(entity =>

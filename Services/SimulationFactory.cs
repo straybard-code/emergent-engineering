@@ -113,6 +113,16 @@ public static class SimulationFactory
             TrustCapacityPenalty = request.TrustCapacityPenalty,
             DistrustPenalty = request.DistrustPenalty,
             ConstructiveCriticismBonus = request.ConstructiveCriticismBonus,
+            EnableThanksCoin = request.EnableThanksCoin,
+            ThanksCoinRate = request.ThanksCoinRate,
+            ThanksCoinRespectGain = request.ThanksCoinRespectGain,
+            ThanksCoinTrustGain = request.ThanksCoinTrustGain,
+            ThanksCoinReconfigurationGain = request.ThanksCoinReconfigurationGain,
+            ThanksCoinPsychologicalSafetyGain = request.ThanksCoinPsychologicalSafetyGain,
+            ThanksCoinBridgeGain = request.ThanksCoinBridgeGain,
+            ThanksCoinPopularityBias = request.ThanksCoinPopularityBias,
+            ThanksCoinDiversityBonus = request.ThanksCoinDiversityBonus,
+            ThanksCoinChallengeBonus = request.ThanksCoinChallengeBonus,
             CurrentStep = 0,
             Status = SimulationStatus.Created,
             Phase = SimulationPhase.Forming,
@@ -191,6 +201,16 @@ public static class SimulationFactory
             TrustCapacityPenalty = request.TrustCapacityPenalty,
             DistrustPenalty = request.DistrustPenalty,
             ConstructiveCriticismBonus = request.ConstructiveCriticismBonus,
+            EnableThanksCoin = request.EnableThanksCoin,
+            ThanksCoinRate = request.ThanksCoinRate,
+            ThanksCoinRespectGain = request.ThanksCoinRespectGain,
+            ThanksCoinTrustGain = request.ThanksCoinTrustGain,
+            ThanksCoinReconfigurationGain = request.ThanksCoinReconfigurationGain,
+            ThanksCoinPsychologicalSafetyGain = request.ThanksCoinPsychologicalSafetyGain,
+            ThanksCoinBridgeGain = request.ThanksCoinBridgeGain,
+            ThanksCoinPopularityBias = request.ThanksCoinPopularityBias,
+            ThanksCoinDiversityBonus = request.ThanksCoinDiversityBonus,
+            ThanksCoinChallengeBonus = request.ThanksCoinChallengeBonus,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -256,6 +276,16 @@ public static class SimulationFactory
             TrustCapacityPenalty = scenario.TrustCapacityPenalty,
             DistrustPenalty = scenario.DistrustPenalty,
             ConstructiveCriticismBonus = scenario.ConstructiveCriticismBonus,
+            EnableThanksCoin = scenario.EnableThanksCoin,
+            ThanksCoinRate = scenario.ThanksCoinRate,
+            ThanksCoinRespectGain = scenario.ThanksCoinRespectGain,
+            ThanksCoinTrustGain = scenario.ThanksCoinTrustGain,
+            ThanksCoinReconfigurationGain = scenario.ThanksCoinReconfigurationGain,
+            ThanksCoinPsychologicalSafetyGain = scenario.ThanksCoinPsychologicalSafetyGain,
+            ThanksCoinBridgeGain = scenario.ThanksCoinBridgeGain,
+            ThanksCoinPopularityBias = scenario.ThanksCoinPopularityBias,
+            ThanksCoinDiversityBonus = scenario.ThanksCoinDiversityBonus,
+            ThanksCoinChallengeBonus = scenario.ThanksCoinChallengeBonus,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -317,6 +347,16 @@ public static class SimulationFactory
             TrustCapacityPenalty = request.TrustCapacityPenalty,
             DistrustPenalty = request.DistrustPenalty,
             ConstructiveCriticismBonus = request.ConstructiveCriticismBonus,
+            EnableThanksCoin = request.EnableThanksCoin,
+            ThanksCoinRate = request.ThanksCoinRate,
+            ThanksCoinRespectGain = request.ThanksCoinRespectGain,
+            ThanksCoinTrustGain = request.ThanksCoinTrustGain,
+            ThanksCoinReconfigurationGain = request.ThanksCoinReconfigurationGain,
+            ThanksCoinPsychologicalSafetyGain = request.ThanksCoinPsychologicalSafetyGain,
+            ThanksCoinBridgeGain = request.ThanksCoinBridgeGain,
+            ThanksCoinPopularityBias = request.ThanksCoinPopularityBias,
+            ThanksCoinDiversityBonus = request.ThanksCoinDiversityBonus,
+            ThanksCoinChallengeBonus = request.ThanksCoinChallengeBonus,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
@@ -371,7 +411,17 @@ public static class SimulationFactory
             TrustCapacity = experiment.TrustCapacity,
             TrustCapacityPenalty = experiment.TrustCapacityPenalty,
             DistrustPenalty = experiment.DistrustPenalty,
-            ConstructiveCriticismBonus = experiment.ConstructiveCriticismBonus
+            ConstructiveCriticismBonus = experiment.ConstructiveCriticismBonus,
+            EnableThanksCoin = experiment.EnableThanksCoin,
+            ThanksCoinRate = experiment.ThanksCoinRate,
+            ThanksCoinRespectGain = experiment.ThanksCoinRespectGain,
+            ThanksCoinTrustGain = experiment.ThanksCoinTrustGain,
+            ThanksCoinReconfigurationGain = experiment.ThanksCoinReconfigurationGain,
+            ThanksCoinPsychologicalSafetyGain = experiment.ThanksCoinPsychologicalSafetyGain,
+            ThanksCoinBridgeGain = experiment.ThanksCoinBridgeGain,
+            ThanksCoinPopularityBias = experiment.ThanksCoinPopularityBias,
+            ThanksCoinDiversityBonus = experiment.ThanksCoinDiversityBonus,
+            ThanksCoinChallengeBonus = experiment.ThanksCoinChallengeBonus
         });
 
         project.ExperimentId = experiment.Id;

@@ -113,6 +113,47 @@ public static class TrustDynamicsDefaults
     public const double ConstructiveCriticismBonus = 0.01;
 }
 
+public static class ThanksCoinDefaults
+{
+    public const bool EnableThanksCoin = false;
+    public const double ThanksCoinRate = 0.20;
+    public const double ThanksCoinRespectGain = 0.03;
+    public const double ThanksCoinTrustGain = 0.01;
+    public const double ThanksCoinReconfigurationGain = 0.03;
+    public const double ThanksCoinPsychologicalSafetyGain = 0.02;
+    public const double ThanksCoinBridgeGain = 0.03;
+    public const double ThanksCoinPopularityBias = 0.30;
+    public const double ThanksCoinDiversityBonus = 0.30;
+    public const double ThanksCoinChallengeBonus = 0.20;
+}
+
+public static class MutualRespectDefaults
+{
+    public const double Base = 0.30;
+    public const double GrowthRate = 0.04;
+    public const double DecayRate = 0.002;
+    public const double DiversitySensitivity = 0.40;
+    public const double ChallengeSensitivity = 0.40;
+    public const double BridgeSensitivity = 0.40;
+    public const double PopularityPenalty = 0.30;
+}
+
+public static class ThanksCoinTypes
+{
+    public const string Help = "Help";
+    public const string Idea = "Idea";
+    public const string Challenge = "Challenge";
+    public const string Bridge = "Bridge";
+
+    public static readonly string[] All =
+    [
+        Help,
+        Idea,
+        Challenge,
+        Bridge
+    ];
+}
+
 public static class ShockTypes
 {
     public const string None = "None";
@@ -187,6 +228,24 @@ public static class BoundaryParameterNames
     public const string DistrustPenalty = "DistrustPenalty";
     public const string ConstructiveCriticismBonus = "ConstructiveCriticismBonus";
 
+    public const string ThanksCoinRate = "ThanksCoinRate";
+    public const string ThanksCoinRespectGain = "ThanksCoinRespectGain";
+    public const string ThanksCoinTrustGain = "ThanksCoinTrustGain";
+    public const string ThanksCoinReconfigurationGain = "ThanksCoinReconfigurationGain";
+    public const string ThanksCoinPsychologicalSafetyGain = "ThanksCoinPsychologicalSafetyGain";
+    public const string ThanksCoinBridgeGain = "ThanksCoinBridgeGain";
+    public const string ThanksCoinPopularityBias = "ThanksCoinPopularityBias";
+    public const string ThanksCoinDiversityBonus = "ThanksCoinDiversityBonus";
+    public const string ThanksCoinChallengeBonus = "ThanksCoinChallengeBonus";
+
+    public const string MutualRespectBase = "MutualRespectBase";
+    public const string MutualRespectGrowthRate = "MutualRespectGrowthRate";
+    public const string MutualRespectDecayRate = "MutualRespectDecayRate";
+    public const string MutualRespectDiversitySensitivity = "MutualRespectDiversitySensitivity";
+    public const string MutualRespectChallengeSensitivity = "MutualRespectChallengeSensitivity";
+    public const string MutualRespectBridgeSensitivity = "MutualRespectBridgeSensitivity";
+    public const string MutualRespectPopularityPenalty = "MutualRespectPopularityPenalty";
+
     public const string ChallengeLevel = "ChallengeLevel";
     public const string RequiredKnowledgeDiversity = "RequiredKnowledgeDiversity";
     public const string RequiredCrossDomainExposure = "RequiredCrossDomainExposure";
@@ -232,6 +291,30 @@ public static class BoundaryParameterNames
         ConstructiveCriticismBonus
     ];
 
+    public static readonly string[] ThanksCoin =
+    [
+        ThanksCoinRate,
+        ThanksCoinRespectGain,
+        ThanksCoinTrustGain,
+        ThanksCoinReconfigurationGain,
+        ThanksCoinPsychologicalSafetyGain,
+        ThanksCoinBridgeGain,
+        ThanksCoinPopularityBias,
+        ThanksCoinDiversityBonus,
+        ThanksCoinChallengeBonus
+    ];
+
+    public static readonly string[] MutualRespect =
+    [
+        MutualRespectBase,
+        MutualRespectGrowthRate,
+        MutualRespectDecayRate,
+        MutualRespectDiversitySensitivity,
+        MutualRespectChallengeSensitivity,
+        MutualRespectBridgeSensitivity,
+        MutualRespectPopularityPenalty
+    ];
+
     public static readonly string[] Challenge =
     [
         ChallengeLevel,
@@ -246,6 +329,8 @@ public static class BoundaryParameterNames
         ..KnowledgeAndRewiring,
         ..Serendipity,
         ..TrustDynamics,
+        ..ThanksCoin,
+        ..MutualRespect,
         ..Challenge
     ];
 
@@ -255,6 +340,8 @@ public static class BoundaryParameterNames
         ("知識・再配線", KnowledgeAndRewiring),
         ("セレンディピティ", Serendipity),
         ("信頼ダイナミクス", TrustDynamics),
+        ("Thanks Coin / 相互敬意", ThanksCoin),
+        ("相互敬意", MutualRespect),
         ("Challenge", Challenge)
     ];
 
@@ -284,6 +371,22 @@ public static class BoundaryParameterNames
         TrustCapacityPenalty => "信頼容量ペナルティ",
         DistrustPenalty => "不信ペナルティ",
         ConstructiveCriticismBonus => "建設的批判ボーナス",
+        ThanksCoinRate => "Thanks Coin発生率",
+        ThanksCoinRespectGain => "敬意増加量",
+        ThanksCoinTrustGain => "信頼増加量",
+        ThanksCoinReconfigurationGain => "知識再構成増加量",
+        ThanksCoinPsychologicalSafetyGain => "心理的安全性増加量",
+        ThanksCoinBridgeGain => "橋渡し増加量",
+        ThanksCoinPopularityBias => "人気集中バイアス",
+        ThanksCoinDiversityBonus => "多様性ボーナス",
+        ThanksCoinChallengeBonus => "建設的異論ボーナス",
+        MutualRespectBase => "相互敬意ベース",
+        MutualRespectGrowthRate => "相互敬意成長率",
+        MutualRespectDecayRate => "相互敬意減衰率",
+        MutualRespectDiversitySensitivity => "異質性尊重感度",
+        MutualRespectChallengeSensitivity => "異論尊重感度",
+        MutualRespectBridgeSensitivity => "橋渡し尊重感度",
+        MutualRespectPopularityPenalty => "人気集中ペナルティ",
         ChallengeLevel => "Challengeレベル",
         RequiredKnowledgeDiversity => "必要知識多様性",
         RequiredCrossDomainExposure => "必要異分野接触度",
@@ -371,6 +474,54 @@ public static class BoundaryParameterNames
                 return true;
             case ConstructiveCriticismBonus:
                 experiment.ConstructiveCriticismBonus = value;
+                return true;
+            case ThanksCoinRate:
+                experiment.ThanksCoinRate = value;
+                return true;
+            case ThanksCoinRespectGain:
+                experiment.ThanksCoinRespectGain = value;
+                return true;
+            case ThanksCoinTrustGain:
+                experiment.ThanksCoinTrustGain = value;
+                return true;
+            case ThanksCoinReconfigurationGain:
+                experiment.ThanksCoinReconfigurationGain = value;
+                return true;
+            case ThanksCoinPsychologicalSafetyGain:
+                experiment.ThanksCoinPsychologicalSafetyGain = value;
+                return true;
+            case ThanksCoinBridgeGain:
+                experiment.ThanksCoinBridgeGain = value;
+                return true;
+            case ThanksCoinPopularityBias:
+                experiment.ThanksCoinPopularityBias = value;
+                return true;
+            case ThanksCoinDiversityBonus:
+                experiment.ThanksCoinDiversityBonus = value;
+                return true;
+            case ThanksCoinChallengeBonus:
+                experiment.ThanksCoinChallengeBonus = value;
+                return true;
+            case MutualRespectBase:
+                experiment.MutualRespectBase = value;
+                return true;
+            case MutualRespectGrowthRate:
+                experiment.MutualRespectGrowthRate = value;
+                return true;
+            case MutualRespectDecayRate:
+                experiment.MutualRespectDecayRate = value;
+                return true;
+            case MutualRespectDiversitySensitivity:
+                experiment.MutualRespectDiversitySensitivity = value;
+                return true;
+            case MutualRespectChallengeSensitivity:
+                experiment.MutualRespectChallengeSensitivity = value;
+                return true;
+            case MutualRespectBridgeSensitivity:
+                experiment.MutualRespectBridgeSensitivity = value;
+                return true;
+            case MutualRespectPopularityPenalty:
+                experiment.MutualRespectPopularityPenalty = value;
                 return true;
             case ChallengeLevel:
                 experiment.ChallengeLevel = value;
@@ -465,6 +616,54 @@ public static class BoundaryParameterNames
             case ConstructiveCriticismBonus:
                 scenario.ConstructiveCriticismBonus = value;
                 return true;
+            case ThanksCoinRate:
+                scenario.ThanksCoinRate = value;
+                return true;
+            case ThanksCoinRespectGain:
+                scenario.ThanksCoinRespectGain = value;
+                return true;
+            case ThanksCoinTrustGain:
+                scenario.ThanksCoinTrustGain = value;
+                return true;
+            case ThanksCoinReconfigurationGain:
+                scenario.ThanksCoinReconfigurationGain = value;
+                return true;
+            case ThanksCoinPsychologicalSafetyGain:
+                scenario.ThanksCoinPsychologicalSafetyGain = value;
+                return true;
+            case ThanksCoinBridgeGain:
+                scenario.ThanksCoinBridgeGain = value;
+                return true;
+            case ThanksCoinPopularityBias:
+                scenario.ThanksCoinPopularityBias = value;
+                return true;
+            case ThanksCoinDiversityBonus:
+                scenario.ThanksCoinDiversityBonus = value;
+                return true;
+            case ThanksCoinChallengeBonus:
+                scenario.ThanksCoinChallengeBonus = value;
+                return true;
+            case MutualRespectBase:
+                scenario.MutualRespectBase = value;
+                return true;
+            case MutualRespectGrowthRate:
+                scenario.MutualRespectGrowthRate = value;
+                return true;
+            case MutualRespectDecayRate:
+                scenario.MutualRespectDecayRate = value;
+                return true;
+            case MutualRespectDiversitySensitivity:
+                scenario.MutualRespectDiversitySensitivity = value;
+                return true;
+            case MutualRespectChallengeSensitivity:
+                scenario.MutualRespectChallengeSensitivity = value;
+                return true;
+            case MutualRespectBridgeSensitivity:
+                scenario.MutualRespectBridgeSensitivity = value;
+                return true;
+            case MutualRespectPopularityPenalty:
+                scenario.MutualRespectPopularityPenalty = value;
+                return true;
             case ChallengeLevel:
                 scenario.ChallengeLevel = value;
                 return true;
@@ -557,6 +756,54 @@ public static class BoundaryParameterNames
                 return true;
             case ConstructiveCriticismBonus:
                 simulationProject.ConstructiveCriticismBonus = value;
+                return true;
+            case ThanksCoinRate:
+                simulationProject.ThanksCoinRate = value;
+                return true;
+            case ThanksCoinRespectGain:
+                simulationProject.ThanksCoinRespectGain = value;
+                return true;
+            case ThanksCoinTrustGain:
+                simulationProject.ThanksCoinTrustGain = value;
+                return true;
+            case ThanksCoinReconfigurationGain:
+                simulationProject.ThanksCoinReconfigurationGain = value;
+                return true;
+            case ThanksCoinPsychologicalSafetyGain:
+                simulationProject.ThanksCoinPsychologicalSafetyGain = value;
+                return true;
+            case ThanksCoinBridgeGain:
+                simulationProject.ThanksCoinBridgeGain = value;
+                return true;
+            case ThanksCoinPopularityBias:
+                simulationProject.ThanksCoinPopularityBias = value;
+                return true;
+            case ThanksCoinDiversityBonus:
+                simulationProject.ThanksCoinDiversityBonus = value;
+                return true;
+            case ThanksCoinChallengeBonus:
+                simulationProject.ThanksCoinChallengeBonus = value;
+                return true;
+            case MutualRespectBase:
+                simulationProject.MutualRespectBase = value;
+                return true;
+            case MutualRespectGrowthRate:
+                simulationProject.MutualRespectGrowthRate = value;
+                return true;
+            case MutualRespectDecayRate:
+                simulationProject.MutualRespectDecayRate = value;
+                return true;
+            case MutualRespectDiversitySensitivity:
+                simulationProject.MutualRespectDiversitySensitivity = value;
+                return true;
+            case MutualRespectChallengeSensitivity:
+                simulationProject.MutualRespectChallengeSensitivity = value;
+                return true;
+            case MutualRespectBridgeSensitivity:
+                simulationProject.MutualRespectBridgeSensitivity = value;
+                return true;
+            case MutualRespectPopularityPenalty:
+                simulationProject.MutualRespectPopularityPenalty = value;
                 return true;
             case ChallengeLevel:
                 simulationProject.ChallengeLevel = value;

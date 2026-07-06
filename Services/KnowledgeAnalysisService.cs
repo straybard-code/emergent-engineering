@@ -103,10 +103,20 @@ public static class KnowledgeAnalysisService
         double psychologicalSafetyLevel,
         bool challengeActive,
         double knowledgeRecombinationScore,
-        double constructiveCriticismBonus = 0)
+        double constructiveCriticismBonus = 0,
+        double averageRespect = 0,
+        double respectDensity = 0,
+        double challengeAcceptanceScore = 0,
+        double thanksChallengeRate = 0,
+        double thanksBridgeRate = 0)
     {
         var constructiveCriticizeRate = CalculateConstructiveCriticismRate(actions.CriticizeRate, psychologicalSafetyLevel);
         var psychologicalSafetyReconfigurationBonus = psychologicalSafetyLevel * knowledgeRecombinationScore * 0.10;
+        var respectReconfigurationBoost = CalculateRespectReconfigurationBoost(
+            averageRespect,
+            respectDensity,
+            thanksChallengeRate,
+            thanksBridgeRate);
         var rawScore =
             (knowledgeRewiringScore * 0.35)
             + (knowledgeRecombinationScore * 0.30)
@@ -116,9 +126,88 @@ public static class KnowledgeAnalysisService
             + (actions.SupportOtherRate * 0.10)
             + (challengeActive ? constructiveCriticizeRate * 0.05 : 0)
             + (psychologicalSafetyLevel >= 0.7 ? constructiveCriticizeRate * Math.Clamp(constructiveCriticismBonus, 0, 1) : 0)
-            + psychologicalSafetyReconfigurationBonus;
+            + psychologicalSafetyReconfigurationBonus
+            + respectReconfigurationBoost
+            + (Clamp01(challengeAcceptanceScore) * 0.08);
 
         return Clamp01(Math.Round(rawScore, 4));
+    }
+
+    public static double CalculateRespectReconfigurationBoost(
+        double averageRespect,
+        double respectDensity,
+        double thanksChallengeRate,
+        double thanksBridgeRate)
+    {
+        return Clamp01(Math.Round(
+            (Clamp01(averageRespect) * 0.20)
+            + (Clamp01(respectDensity) * 0.10)
+            + (Clamp01(thanksChallengeRate) * 0.20)
+            + (Clamp01(thanksBridgeRate) * 0.20),
+            4));
+    }
+
+    public static double CalculateChallengeAcceptanceScore(
+        double psychologicalSafetyLevel,
+        double averageRespect,
+        double thanksChallengeRate,
+        double constructiveCriticismBonus)
+    {
+        return Clamp01(Math.Round(
+            (Clamp01(psychologicalSafetyLevel) * 0.35)
+            + (Clamp01(averageRespect) * 0.30)
+            + (Clamp01(thanksChallengeRate) * 0.25)
+            + (Clamp01(constructiveCriticismBonus) * 0.10),
+            4));
+    }
+
+    public static double CalculateThanksChallengeEffect(int challengeCount, int agentCount)
+    {
+        return agentCount <= 0 ? 0 : Clamp01(Math.Round(challengeCount / (double)agentCount, 4));
+    }
+
+    public static double CalculateThanksBridgeEffect(int bridgeCount, int agentCount)
+    {
+        return agentCount <= 0 ? 0 : Clamp01(Math.Round(bridgeCount / (double)agentCount, 4));
+    }
+
+    public static double CalculateDiversityRespectEffect(
+        double diversityBonus,
+        double thanksChallengeRate,
+        double thanksBridgeRate)
+    {
+        return Clamp01(Math.Round(
+            Clamp01(diversityBonus) * (Clamp01(thanksChallengeRate) + Clamp01(thanksBridgeRate)) * 0.30,
+            4));
+    }
+
+    public static double CalculateRespectEmergenceComponent(
+        double averageRespect,
+        double respectDensity,
+        double challengeAcceptanceScore,
+        double thanksChallengeRate,
+        double thanksBridgeRate,
+        double diversityRespectEffect)
+    {
+        return Clamp01(Math.Round(
+            (Clamp01(averageRespect) * 0.10)
+            + (Clamp01(respectDensity) * 0.10)
+            + (Clamp01(challengeAcceptanceScore) * 0.15)
+            + (Clamp01(thanksChallengeRate) * 0.15)
+            + (Clamp01(thanksBridgeRate) * 0.15)
+            + (Clamp01(diversityRespectEffect) * 0.20),
+            4));
+    }
+
+    public static double CalculatePopularityTrapPenalty(double thanksConcentration, double averageRespect)
+    {
+        if (thanksConcentration < 0.60)
+        {
+            return 0;
+        }
+
+        var penalty = (thanksConcentration >= 0.75 ? 0.20 : 0.10) + (Clamp01(averageRespect) > 0.80 ? 0.05 : 0);
+        return Math.Round(penalty, 4);
     }
 
     public static double CalculateChallengeResolutionScore(
@@ -382,6 +471,35 @@ public static class KnowledgeAnalysisService
                 PsychologicalSafetyRecombinationBonus = GetDouble(root, "psychologicalSafetyRecombinationBonus", 0),
                 PsychologicalSafetySerendipityBonus = GetDouble(root, "psychologicalSafetySerendipityBonus", 0),
                 PsychologicalSafetyEmergenceBonus = GetDouble(root, "psychologicalSafetyEmergenceBonus", 0),
+                ChallengeAcceptanceScore = GetDouble(root, "challengeAcceptanceScore", 0),
+                RespectReconfigurationBoost = GetDouble(root, "respectReconfigurationBoost", 0),
+                ThanksChallengeEffect = GetDouble(root, "thanksChallengeEffect", 0),
+                ThanksBridgeEffect = GetDouble(root, "thanksBridgeEffect", 0),
+                DiversityRespectEffect = GetDouble(root, "diversityRespectEffect", 0),
+                RespectEmergenceComponent = GetDouble(root, "respectEmergenceComponent", 0),
+                PopularityTrapPenalty = GetDouble(root, "popularityTrapPenalty", 0),
+                PopularityTrapDetected = GetBool(root, "popularityTrapDetected"),
+                ThanksCoinToReconfigurationContribution = GetDouble(root, "thanksCoinToReconfigurationContribution", 0),
+                ThanksCoinToSerendipityContribution = GetDouble(root, "thanksCoinToSerendipityContribution", 0),
+                ThanksCoinToEmergenceContribution = GetDouble(root, "thanksCoinToEmergenceContribution", 0),
+                RespectJson = GetString(root, "respectJson", ""),
+                AverageRespect = GetDouble(root, "averageRespect", 0),
+                RespectDensity = GetDouble(root, "respectDensity", 0),
+                RespectStrongLinks = GetInt(root, "respectStrongLinks", 0),
+                RespectWeakLinks = GetInt(root, "respectWeakLinks", 0),
+                RespectConcentration = GetDouble(root, "respectConcentration", 0),
+                ThanksCoinOccurred = GetBool(root, "thanksCoinOccurred"),
+                ThanksCoinCount = GetInt(root, "thanksCoinCount", 0),
+                ThanksCoinHelpCount = GetInt(root, "thanksCoinHelpCount", 0),
+                ThanksCoinIdeaCount = GetInt(root, "thanksCoinIdeaCount", 0),
+                ThanksCoinChallengeCount = GetInt(root, "thanksCoinChallengeCount", 0),
+                ThanksCoinBridgeCount = GetInt(root, "thanksCoinBridgeCount", 0),
+                ThanksCoinRespectDelta = GetDouble(root, "thanksCoinRespectDelta", 0, -1, 1),
+                ThanksCoinTrustDelta = GetDouble(root, "thanksCoinTrustDelta", 0, -1, 1),
+                ThanksCoinReconfigurationDelta = GetDouble(root, "thanksCoinReconfigurationDelta", 0, -1, 1),
+                ThanksCoinSerendipityDelta = GetDouble(root, "thanksCoinSerendipityDelta", 0, -1, 1),
+                ThanksCoinBridgeDelta = GetDouble(root, "thanksCoinBridgeDelta", 0, -1, 1),
+                ThanksConcentration = GetDouble(root, "thanksConcentration", 0),
                 AverageTrustGrowthRateEffective = GetDouble(root, "averageTrustGrowthRateEffective", 0),
                 AverageTrustDecayApplied = GetDouble(root, "averageTrustDecayApplied", 0),
                 TrustCapacityPenaltyAppliedCount = GetInt(root, "trustCapacityPenaltyAppliedCount", 0),
@@ -436,6 +554,35 @@ public static class KnowledgeAnalysisService
                 PsychologicalSafetyRecombinationBonus = 0,
                 PsychologicalSafetySerendipityBonus = 0,
                 PsychologicalSafetyEmergenceBonus = 0,
+                ChallengeAcceptanceScore = 0,
+                RespectReconfigurationBoost = 0,
+                ThanksChallengeEffect = 0,
+                ThanksBridgeEffect = 0,
+                DiversityRespectEffect = 0,
+                RespectEmergenceComponent = 0,
+                PopularityTrapPenalty = 0,
+                PopularityTrapDetected = false,
+                ThanksCoinToReconfigurationContribution = 0,
+                ThanksCoinToSerendipityContribution = 0,
+                ThanksCoinToEmergenceContribution = 0,
+                RespectJson = "",
+                AverageRespect = 0,
+                RespectDensity = 0,
+                RespectStrongLinks = 0,
+                RespectWeakLinks = 0,
+                RespectConcentration = 0,
+                ThanksCoinOccurred = false,
+                ThanksCoinCount = 0,
+                ThanksCoinHelpCount = 0,
+                ThanksCoinIdeaCount = 0,
+                ThanksCoinChallengeCount = 0,
+                ThanksCoinBridgeCount = 0,
+                ThanksCoinRespectDelta = 0,
+                ThanksCoinTrustDelta = 0,
+                ThanksCoinReconfigurationDelta = 0,
+                ThanksCoinSerendipityDelta = 0,
+                ThanksCoinBridgeDelta = 0,
+                ThanksConcentration = 0,
                 AverageTrustGrowthRateEffective = 0,
                 AverageTrustDecayApplied = 0,
                 TrustCapacityPenaltyAppliedCount = 0,
@@ -537,6 +684,35 @@ public sealed class KnowledgeTimelinePoint
     public double PsychologicalSafetyRecombinationBonus { get; set; }
     public double PsychologicalSafetySerendipityBonus { get; set; }
     public double PsychologicalSafetyEmergenceBonus { get; set; }
+    public double ChallengeAcceptanceScore { get; set; }
+    public double RespectReconfigurationBoost { get; set; }
+    public double ThanksChallengeEffect { get; set; }
+    public double ThanksBridgeEffect { get; set; }
+    public double DiversityRespectEffect { get; set; }
+    public double RespectEmergenceComponent { get; set; }
+    public double PopularityTrapPenalty { get; set; }
+    public bool PopularityTrapDetected { get; set; }
+    public double ThanksCoinToReconfigurationContribution { get; set; }
+    public double ThanksCoinToSerendipityContribution { get; set; }
+    public double ThanksCoinToEmergenceContribution { get; set; }
+    public string RespectJson { get; set; } = "";
+    public double AverageRespect { get; set; }
+    public double RespectDensity { get; set; }
+    public int RespectStrongLinks { get; set; }
+    public int RespectWeakLinks { get; set; }
+    public double RespectConcentration { get; set; }
+    public bool ThanksCoinOccurred { get; set; }
+    public int ThanksCoinCount { get; set; }
+    public int ThanksCoinHelpCount { get; set; }
+    public int ThanksCoinIdeaCount { get; set; }
+    public int ThanksCoinChallengeCount { get; set; }
+    public int ThanksCoinBridgeCount { get; set; }
+    public double ThanksCoinRespectDelta { get; set; }
+    public double ThanksCoinTrustDelta { get; set; }
+    public double ThanksCoinReconfigurationDelta { get; set; }
+    public double ThanksCoinSerendipityDelta { get; set; }
+    public double ThanksCoinBridgeDelta { get; set; }
+    public double ThanksConcentration { get; set; }
     public double AverageTrustGrowthRateEffective { get; set; }
     public double AverageTrustDecayApplied { get; set; }
     public int TrustCapacityPenaltyAppliedCount { get; set; }

@@ -63,6 +63,46 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("EnableThanksCoin")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<double>("ThanksCoinRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.20);
+
+                    b.Property<double>("ThanksCoinRespectGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("ThanksCoinTrustGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.01);
+
+                    b.Property<double>("ThanksCoinReconfigurationGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("ThanksCoinPsychologicalSafetyGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.02);
+
+                    b.Property<double>("ThanksCoinBridgeGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("ThanksCoinPopularityBias")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("ThanksCoinDiversityBonus")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("ThanksCoinChallengeBonus")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.20);
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -164,6 +204,46 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("TrustSaturationStrength")
                         .HasColumnType("float")
                         .HasDefaultValue(0.7);
+
+                    b.Property<bool>("EnableThanksCoin")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<double>("ThanksCoinRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.20);
+
+                    b.Property<double>("ThanksCoinRespectGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("ThanksCoinTrustGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.01);
+
+                    b.Property<double>("ThanksCoinReconfigurationGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("ThanksCoinPsychologicalSafetyGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.02);
+
+                    b.Property<double>("ThanksCoinBridgeGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("ThanksCoinPopularityBias")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("ThanksCoinDiversityBonus")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("ThanksCoinChallengeBonus")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.20);
 
                     b.Property<string>("ChallengeDescription")
                         .IsRequired()
@@ -907,6 +987,46 @@ namespace EmergentEngineering.Migrations
                     b.Property<bool>("EnableTrustDynamics")
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
+
+                    b.Property<bool>("EnableThanksCoin")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<double>("ThanksCoinRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.20);
+
+                    b.Property<double>("ThanksCoinRespectGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("ThanksCoinTrustGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.01);
+
+                    b.Property<double>("ThanksCoinReconfigurationGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("ThanksCoinPsychologicalSafetyGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.02);
+
+                    b.Property<double>("ThanksCoinBridgeGain")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.03);
+
+                    b.Property<double>("ThanksCoinPopularityBias")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("ThanksCoinDiversityBonus")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("ThanksCoinChallengeBonus")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.20);
 
                     b.Property<double>("EffectiveTrustThreshold")
                         .HasColumnType("float")

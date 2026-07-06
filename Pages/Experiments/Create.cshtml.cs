@@ -161,7 +161,17 @@ public sealed class CreateModel(AppDbContext db) : PageModel
             TrustCapacity = scenario.TrustCapacity,
             TrustCapacityPenalty = scenario.TrustCapacityPenalty,
             DistrustPenalty = scenario.DistrustPenalty,
-            ConstructiveCriticismBonus = scenario.ConstructiveCriticismBonus
+            ConstructiveCriticismBonus = scenario.ConstructiveCriticismBonus,
+            EnableThanksCoin = scenario.EnableThanksCoin,
+            ThanksCoinRate = scenario.ThanksCoinRate,
+            ThanksCoinRespectGain = scenario.ThanksCoinRespectGain,
+            ThanksCoinTrustGain = scenario.ThanksCoinTrustGain,
+            ThanksCoinReconfigurationGain = scenario.ThanksCoinReconfigurationGain,
+            ThanksCoinPsychologicalSafetyGain = scenario.ThanksCoinPsychologicalSafetyGain,
+            ThanksCoinBridgeGain = scenario.ThanksCoinBridgeGain,
+            ThanksCoinPopularityBias = scenario.ThanksCoinPopularityBias,
+            ThanksCoinDiversityBonus = scenario.ThanksCoinDiversityBonus,
+            ThanksCoinChallengeBonus = scenario.ThanksCoinChallengeBonus
         };
     }
 

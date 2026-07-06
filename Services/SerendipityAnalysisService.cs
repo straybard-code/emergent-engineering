@@ -39,7 +39,12 @@ public static class SerendipityAnalysisService
         double psychologicalSafetyLevel,
         double criticizeRate,
         double competitionLevel,
-        double workAloneRate)
+        double workAloneRate,
+        double averageRespect = 0,
+        double respectDensity = 0,
+        double challengeAcceptanceScore = 0,
+        double thanksChallengeRate = 0,
+        double thanksBridgeRate = 0)
     {
         var challengeGapPositive = Clamp01(Math.Max(challengeGap, 0));
         var baseScore =
@@ -53,7 +58,12 @@ public static class SerendipityAnalysisService
             (baseScore * 0.85)
             + (psychologicalSafetyLevel * 0.05)
             + (Math.Clamp(proposeIdeaRate, 0, 1) * 0.05)
-            + (constructiveCriticismRate * 0.05);
+            + (constructiveCriticismRate * 0.05)
+            + (Clamp01(averageRespect) * 0.05)
+            + (Clamp01(respectDensity) * 0.03)
+            + (Clamp01(challengeAcceptanceScore) * 0.04)
+            + (Clamp01(thanksChallengeRate) * 0.03)
+            + (Clamp01(thanksBridgeRate) * 0.04);
 
         if (challengeActive)
         {
@@ -78,7 +88,12 @@ public static class SerendipityAnalysisService
         ActionDistributionSummary actions,
         double psychologicalSafetyLevel,
         double knowledgeRecombinationRate,
-        double constructiveCriticismBonus = 0)
+        double constructiveCriticismBonus = 0,
+        double averageRespect = 0,
+        double respectDensity = 0,
+        double challengeAcceptanceScore = 0,
+        double thanksChallengeRate = 0,
+        double thanksBridgeRate = 0)
     {
         var constructiveCriticizeRate = KnowledgeAnalysisService.CalculateConstructiveCriticismRate(actions.CriticizeRate, psychologicalSafetyLevel);
         var baseScore =
@@ -95,7 +110,12 @@ public static class SerendipityAnalysisService
             + (actions.AskHelpRate * 0.07)
             + (constructiveCriticizeRate * 0.10)
             + (psychologicalSafetyLevel * 0.05)
-            + (psychologicalSafetyLevel >= 0.7 ? actions.CriticizeRate * Math.Clamp(constructiveCriticismBonus, 0, 1) : 0);
+            + (psychologicalSafetyLevel >= 0.7 ? actions.CriticizeRate * Math.Clamp(constructiveCriticismBonus, 0, 1) : 0)
+            + (Clamp01(averageRespect) * 0.05)
+            + (Clamp01(respectDensity) * 0.03)
+            + (Clamp01(challengeAcceptanceScore) * 0.04)
+            + (Clamp01(thanksChallengeRate) * 0.03)
+            + (Clamp01(thanksBridgeRate) * 0.04);
 
         return Clamp01(Math.Round(score, 4));
     }

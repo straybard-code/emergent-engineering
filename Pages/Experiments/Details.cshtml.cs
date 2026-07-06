@@ -48,6 +48,26 @@ public sealed class DetailsModel(
     public double AverageTrustDecayAppliedMean { get; private set; }
     public double AverageTrustCapacityPenaltyMean { get; private set; }
     public double AverageStrongTrustConcentrationMean { get; private set; }
+    public double AverageRespectMean { get; private set; }
+    public double AverageRespectDensityMean { get; private set; }
+    public double AverageRespectConcentrationMean { get; private set; }
+    public double AverageThanksCoinRateMean { get; private set; }
+    public double AverageThanksHelpRateMean { get; private set; }
+    public double AverageThanksIdeaRateMean { get; private set; }
+    public double AverageThanksChallengeRateMean { get; private set; }
+    public double AverageThanksBridgeRateMean { get; private set; }
+    public double AverageThanksConcentrationMean { get; private set; }
+    public double AverageThanksDiversityIndexMean { get; private set; }
+    public double AverageThanksToEmergenceContributionMean { get; private set; }
+    public double AverageChallengeAcceptanceScoreMean { get; private set; }
+    public double AverageRespectReconfigurationBoostMean { get; private set; }
+    public double AverageRespectEmergenceComponentMean { get; private set; }
+    public double AverageThanksCoinToReconfigurationContributionMean { get; private set; }
+    public double AverageThanksCoinToSerendipityContributionMean { get; private set; }
+    public double AverageThanksCoinToEmergenceContributionMean { get; private set; }
+    public double PopularityTrapRunCount { get; private set; }
+    public double EmergentChallengeThanksRateMean { get; private set; }
+    public double LearningChallengeThanksRateMean { get; private set; }
     public double AverageKnowledgeStockMean { get; private set; }
     public double AverageKnowledgeDiversityMean { get; private set; }
     public double AverageKnowledgeRewiringScoreMean { get; private set; }
@@ -119,6 +139,30 @@ public sealed class DetailsModel(
         AverageTrustDecayAppliedMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageTrustDecayApplied), 3);
         AverageTrustCapacityPenaltyMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageTrustCapacityPenalty), 3);
         AverageStrongTrustConcentrationMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.StrongTrustConcentration), 3);
+        AverageRespectMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageRespect), 3);
+        AverageRespectDensityMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.RespectDensity), 3);
+        AverageRespectConcentrationMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.RespectConcentration), 3);
+        AverageThanksCoinRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksCoinRate), 3);
+        AverageThanksHelpRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksHelpRate), 3);
+        AverageThanksIdeaRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksIdeaRate), 3);
+        AverageThanksChallengeRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksChallengeRate), 3);
+        AverageThanksBridgeRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksBridgeRate), 3);
+        AverageThanksConcentrationMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksConcentration), 3);
+        AverageThanksDiversityIndexMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksDiversityIndex), 3);
+        AverageThanksToEmergenceContributionMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksToEmergenceContribution), 3);
+        AverageChallengeAcceptanceScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageChallengeAcceptanceScore), 3);
+        AverageRespectReconfigurationBoostMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageRespectReconfigurationBoost), 3);
+        AverageRespectEmergenceComponentMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageRespectEmergenceComponent), 3);
+        AverageThanksCoinToReconfigurationContributionMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageThanksCoinToReconfigurationContribution), 3);
+        AverageThanksCoinToSerendipityContributionMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageThanksCoinToSerendipityContribution), 3);
+        AverageThanksCoinToEmergenceContributionMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageThanksCoinToEmergenceContribution), 3);
+        PopularityTrapRunCount = RunFingerprints.Count(item => item.PopularityTrapRate >= 0.40);
+        EmergentChallengeThanksRateMean = RunFingerprints.Count == 0
+            ? 0
+            : Math.Round(RunFingerprints.Where(item => string.Equals(item.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase)).Select(item => item.ThanksChallengeRate).DefaultIfEmpty(0).Average(), 3);
+        LearningChallengeThanksRateMean = RunFingerprints.Count == 0
+            ? 0
+            : Math.Round(RunFingerprints.Where(item => string.Equals(item.FinalPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase)).Select(item => item.ThanksChallengeRate).DefaultIfEmpty(0).Average(), 3);
         TrustCapacityExceededRunCount = RunFingerprints.Count(item => item.TrustCapacityExceededRate > 0);
         OvertrustedCompleteNetworkRunCount = RunFingerprints.Count(item => string.Equals(item.TrustNetworkType, "過信完全ネットワーク型", StringComparison.OrdinalIgnoreCase));
         SelectiveTrustNetworkRunCount = RunFingerprints.Count(item => string.Equals(item.TrustNetworkType, "選択的信頼ネットワーク型", StringComparison.OrdinalIgnoreCase));

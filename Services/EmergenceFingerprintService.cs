@@ -49,6 +49,27 @@ public static class EmergenceFingerprintService
             ? 0
             : Math.Round(knowledgeTimeline.Count(item => item.TrustCapacityPenaltyAppliedCount > 0) / (double)knowledgeTimeline.Count, 4);
         var strongTrustConcentration = CalculateStrongTrustConcentration(project);
+        var averageRespect = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.AverageRespect), 4);
+        var respectDensity = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectDensity), 4);
+        var respectStrongLinks = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectStrongLinks), 4);
+        var respectWeakLinks = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectWeakLinks), 4);
+        var respectConcentration = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectConcentration), 4);
+        var averageChallengeAcceptanceScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ChallengeAcceptanceScore), 4);
+        var averageRespectReconfigurationBoost = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectReconfigurationBoost), 4);
+        var averageRespectEmergenceComponent = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectEmergenceComponent), 4);
+        var averageThanksCoinToReconfigurationContribution = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ThanksCoinToReconfigurationContribution), 4);
+        var averageThanksCoinToSerendipityContribution = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ThanksCoinToSerendipityContribution), 4);
+        var averageThanksCoinToEmergenceContribution = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ThanksCoinToEmergenceContribution), 4);
+        var popularityTrapRate = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Count(item => item.PopularityTrapDetected) / (double)knowledgeTimeline.Count, 4);
+        var totalThanksCount = knowledgeTimeline.Sum(item => item.ThanksCoinCount);
+        var thanksCoinRate = knowledgeTimeline.Count == 0 ? 0 : Math.Round(totalThanksCount / (double)knowledgeTimeline.Count, 4);
+        var thanksHelpRate = totalThanksCount == 0 ? 0 : Math.Round(knowledgeTimeline.Sum(item => item.ThanksCoinHelpCount) / (double)totalThanksCount, 4);
+        var thanksIdeaRate = totalThanksCount == 0 ? 0 : Math.Round(knowledgeTimeline.Sum(item => item.ThanksCoinIdeaCount) / (double)totalThanksCount, 4);
+        var thanksChallengeRate = totalThanksCount == 0 ? 0 : Math.Round(knowledgeTimeline.Sum(item => item.ThanksCoinChallengeCount) / (double)totalThanksCount, 4);
+        var thanksBridgeRate = totalThanksCount == 0 ? 0 : Math.Round(knowledgeTimeline.Sum(item => item.ThanksCoinBridgeCount) / (double)totalThanksCount, 4);
+        var thanksDiversityIndex = Math.Round(1 - new[] { thanksHelpRate, thanksIdeaRate, thanksChallengeRate, thanksBridgeRate }.Sum(value => value * value), 4);
+        var thanksConcentration = Math.Round(new[] { thanksHelpRate, thanksIdeaRate, thanksChallengeRate, thanksBridgeRate }.DefaultIfEmpty(0).Max(), 4);
+        var thanksToEmergenceContribution = Math.Round((averageRespect * 0.30) + (thanksChallengeRate * 0.35) + (thanksBridgeRate * 0.35), 4);
         var serendipityOccurredCount = knowledgeTimeline.Count(item => item.SerendipityOccurred);
         var serendipityRate = knowledgeTimeline.Count == 0
             ? 0
@@ -118,6 +139,26 @@ public static class EmergenceFingerprintService
             AverageTrustCapacityPenalty = averageTrustCapacityPenalty,
             TrustCapacityExceededRate = trustCapacityExceededRate,
             StrongTrustConcentration = strongTrustConcentration,
+            AverageRespect = averageRespect,
+            RespectDensity = respectDensity,
+            RespectStrongLinks = respectStrongLinks,
+            RespectWeakLinks = respectWeakLinks,
+            RespectConcentration = respectConcentration,
+            AverageChallengeAcceptanceScore = averageChallengeAcceptanceScore,
+            AverageRespectReconfigurationBoost = averageRespectReconfigurationBoost,
+            AverageRespectEmergenceComponent = averageRespectEmergenceComponent,
+            ThanksCoinRate = thanksCoinRate,
+            ThanksHelpRate = thanksHelpRate,
+            ThanksIdeaRate = thanksIdeaRate,
+            ThanksChallengeRate = thanksChallengeRate,
+            ThanksBridgeRate = thanksBridgeRate,
+            ThanksDiversityIndex = thanksDiversityIndex,
+            ThanksConcentration = thanksConcentration,
+            ThanksToEmergenceContribution = thanksToEmergenceContribution,
+            AverageThanksCoinToReconfigurationContribution = averageThanksCoinToReconfigurationContribution,
+            AverageThanksCoinToSerendipityContribution = averageThanksCoinToSerendipityContribution,
+            AverageThanksCoinToEmergenceContribution = averageThanksCoinToEmergenceContribution,
+            PopularityTrapRate = popularityTrapRate,
             SerendipityOccurredCount = serendipityOccurredCount,
             SerendipityRate = serendipityRate,
             SerendipityToEmergenceLinkCount = serendipityToEmergenceLinkCount,
@@ -142,8 +183,57 @@ public static class EmergenceFingerprintService
         return fingerprint;
     }
 
-    public static string Classify(EmergenceFingerprint fingerprint)
+        public static string Classify(EmergenceFingerprint fingerprint)
     {
+        if (fingerprint.AverageRespect >= 0.50
+            && fingerprint.ThanksChallengeRate > 0.10
+            && fingerprint.ThanksBridgeRate > 0.10
+            && string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return "敬意駆動創発型";
+        }
+
+        if (fingerprint.AverageRespect >= 0.40
+            && fingerprint.AverageChallengeAcceptanceScore >= 0.55
+            && fingerprint.ThanksChallengeRate >= 0.05
+            && fingerprint.ThanksBridgeRate >= 0.05
+            && string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return "敬意駆動創発型";
+        }
+
+        if (fingerprint.ThanksConcentration > 0.60
+            && fingerprint.AverageRespect >= 0.50
+            && fingerprint.SerendipityRate == 0
+            && (string.Equals(fingerprint.FinalPhase, SimulationPhase.Stable, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(fingerprint.FinalPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase)))
+        {
+            return "人気投票停滞型";
+        }
+
+        if (fingerprint.ThanksConcentration >= 0.60
+            && fingerprint.PopularityTrapRate >= 0.40
+            && !string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase)
+            && (string.Equals(fingerprint.FinalPhase, SimulationPhase.Stable, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(fingerprint.FinalPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase)))
+        {
+            return "人気投票停滞型";
+        }
+
+        if (fingerprint.AverageRespect < 0.30
+            && string.Equals(fingerprint.FinalPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase)
+            && fingerprint.AverageKnowledgeReconfigurationScore < 0.40)
+        {
+            return "低敬意学習型";
+        }
+
+        if (fingerprint.AverageRespect >= 0.40
+            && fingerprint.AverageChallengeAcceptanceScore >= 0.55
+            && string.Equals(fingerprint.FinalPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return "敬意ある学習型";
+        }
         if (fingerprint.SerendipityToEmergenceRate >= 0.20
             && string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
         {
@@ -382,6 +472,26 @@ public sealed class EmergenceFingerprint
     public double AverageTrustCapacityPenalty { get; init; }
     public double TrustCapacityExceededRate { get; init; }
     public double StrongTrustConcentration { get; init; }
+    public double AverageRespect { get; init; }
+    public double RespectDensity { get; init; }
+    public double RespectStrongLinks { get; init; }
+    public double RespectWeakLinks { get; init; }
+    public double RespectConcentration { get; init; }
+    public double AverageChallengeAcceptanceScore { get; init; }
+    public double AverageRespectReconfigurationBoost { get; init; }
+    public double AverageRespectEmergenceComponent { get; init; }
+    public double ThanksCoinRate { get; init; }
+    public double ThanksHelpRate { get; init; }
+    public double ThanksIdeaRate { get; init; }
+    public double ThanksChallengeRate { get; init; }
+    public double ThanksBridgeRate { get; init; }
+    public double ThanksDiversityIndex { get; init; }
+    public double ThanksConcentration { get; init; }
+    public double ThanksToEmergenceContribution { get; init; }
+    public double AverageThanksCoinToReconfigurationContribution { get; init; }
+    public double AverageThanksCoinToSerendipityContribution { get; init; }
+    public double AverageThanksCoinToEmergenceContribution { get; init; }
+    public double PopularityTrapRate { get; init; }
     public bool ShockOccurred { get; init; }
     public string ShockType { get; init; } = ShockTypes.None;
     public double CrossDomainExposure { get; init; }

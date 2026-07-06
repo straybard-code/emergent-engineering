@@ -306,6 +306,9 @@ The Phase Diagram UI shows:
 - simple emergent-region and pre-emergent-region extraction
 - point-by-point result table with links to the generated experiments
 - Adaptive Sweep buttons for boundary, high-pipeline, and emergent regions
+- Phase Diagram execution can resume from saved points, skip completed cells, and continue from incomplete cells
+- the list and details pages recalculate a stale `Running` status when the diagram is reopened
+- the details page shows a `再開` button for interrupted diagrams, and hides it once every point has finished
 
 Recommended use:
 
@@ -1949,6 +1952,37 @@ Research hypothesis:
 
 > Emergence is not explained by a single parameter.  
 > It appears when trust network formation, knowledge reconfiguration, serendipity, and phase stability align across a usable region of the parameter space.
+
+## Thanks Coin / Mutual Respect
+
+The simulation now includes a `Thanks Coin` layer for modeling mutual respect separately from trust.
+
+Meaning:
+
+- `Trust`: "I can rely on this person"
+- `Respect`: "This person has a viewpoint worth learning from"
+- `Help` Thanks: reinforces trust a little
+- `Idea` Thanks: reinforces knowledge reconfiguration
+- `Challenge` Thanks: reinforces psychological safety and constructive criticism
+- `Bridge` Thanks: reinforces cross-domain exposure, serendipity, and rewiring
+
+Behavior:
+
+- popularity-heavy Thanks distributions can become a "popularity trap"
+- diversity-heavy Thanks distributions encourage weak ties, bridge links, and recombination
+- challenge-oriented and bridge-oriented Thanks tend to support emergence more than simple approval loops
+- mutual respect is now wired into challenge acceptance, knowledge reconfiguration, serendipity, and emergent score
+- `ChallengeAcceptanceScore` is the bridge from respect to knowledge reconfiguration
+- the intended causal chain is:
+  `Thanks Coin -> Mutual Respect -> Challenge Acceptance -> Knowledge Reconfiguration -> Serendipity -> EmergentScore`
+
+Migration:
+
+- `20260704110000_AddThanksCoinParameters`
+
+Research hypothesis:
+
+> Emergence is promoted not only by high trust, but also by a culture that values different viewpoints, constructive disagreement, and bridge-building across domains.
 
 ## Notes
 
