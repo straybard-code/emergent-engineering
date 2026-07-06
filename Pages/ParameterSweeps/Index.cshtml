@@ -38,6 +38,13 @@
     <a class="btn btn-primary" asp-page="/ParameterSweeps/Create">新規スイープ</a>
 </div>
 
+@if (!string.IsNullOrWhiteSpace(Model.SweepMessage))
+{
+    <div class="alert alert-info">@Model.SweepMessage</div>
+}
+
+<div class="text-muted small mb-3">実行中のまま停止している場合のみ使用してください。</div>
+
 @if (Model.Sweeps.Count == 0)
 {
     <div class="empty-state">
@@ -71,7 +78,20 @@ else
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2 flex-wrap">
                             <a class="btn btn-sm btn-outline-primary" asp-page="/ParameterSweeps/Details" asp-route-id="@sweep.Id">詳細</a>
-                            <a class="btn btn-sm btn-outline-danger" asp-page="/ParameterSweeps/Delete" asp-route-id="@sweep.Id">削除</a>
+                            @if (string.Equals(sweep.Status, "Running", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" form="mark-failed-sweep-@sweep.Id">失敗扱いにする</button>
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger"
+                                        form="force-delete-sweep-@sweep.Id">
+                                    強制削除
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" disabled>削除不可</button>
+                            }
+                            else
+                            {
+                                <a class="btn btn-sm btn-outline-danger" asp-page="/ParameterSweeps/Delete" asp-route-id="@sweep.Id">削除</a>
+                            }
                         </div>
                     </td>
                 </tr>
@@ -79,4 +99,17 @@ else
             </tbody>
         </table>
     </div>
+
+    @foreach (var sweep in Model.Sweeps.Where(item => string.Equals(item.Status, "Running", StringComparison.OrdinalIgnoreCase)))
+    {
+        <form id="mark-failed-sweep-@sweep.Id" method="post" asp-page-handler="MarkFailed">
+            <input type="hidden" name="id" value="@sweep.Id" />
+        </form>
+        <form id="force-delete-sweep-@sweep.Id"
+              method="post"
+              asp-page-handler="ForceDelete"
+              onsubmit="return confirm('実行中のデータを強制削除します。関連するStep、Action、TrustSnapshotも削除されます。よろしいですか？');">
+            <input type="hidden" name="id" value="@sweep.Id" />
+        </form>
+    }
 }

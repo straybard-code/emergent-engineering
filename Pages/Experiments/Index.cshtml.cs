@@ -55,6 +55,31 @@ public sealed class IndexModel(AppDbContext db, ExperimentCleanupService cleanup
         return RedirectToPage();
     }
 
+    public async Task<IActionResult> OnPostMarkFailedAsync(int id)
+    {
+        var updated = await cleanupService.MarkExperimentAsFailedAsync(id);
+        CleanupMessage = updated
+            ? "Experimentを失敗扱いにしました。"
+            : "Experimentが見つかりませんでした。";
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostForceDeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        var result = await cleanupService.ForceDeleteExperimentAsync(
+            id,
+            async (sweepId, innerCancellationToken) =>
+            {
+                await parameterSweepRunner.RecalculateSweepStatusAsync(sweepId, innerCancellationToken);
+            },
+            cancellationToken);
+
+        CleanupMessage = result.DeletedExperiments > 0
+            ? result.ToJapaneseMessage()
+            : "削除対象のExperimentがありませんでした。";
+        return RedirectToPage();
+    }
+
     public static ExperimentStatusCategory GetStatusCategory(string? status) => status switch
     {
         "Created" => ExperimentStatusCategory.Pending,

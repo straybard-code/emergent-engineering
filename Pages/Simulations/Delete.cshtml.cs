@@ -1,4 +1,4 @@
-using EmergentEngineering.Data;
+﻿using EmergentEngineering.Data;
 using EmergentEngineering.Models;
 using EmergentEngineering.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -30,9 +30,15 @@ public sealed class DeleteModel(AppDbContext db) : PageModel
 
     public async Task<IActionResult> OnPostAsync(int id)
     {
-        var project = await db.SimulationProjects.AsNoTracking().FirstOrDefaultAsync(item => item.Id == id);
+        var project = await db.SimulationProjects.FirstOrDefaultAsync(item => item.Id == id);
         if (project is null)
         {
+            return RedirectToPage("/Index");
+        }
+
+        if (string.Equals(project.Status, SimulationStatus.Running, StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["SimulationMessage"] = "実行中のSimulationは通常削除できません。失敗扱いにするか強制削除してください。";
             return RedirectToPage("/Index");
         }
 

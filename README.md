@@ -532,6 +532,17 @@ If an experiment was started by mistake:
 
 This keeps the current MVP simple while still allowing cleanup of accidental data.
 
+### Recovery for stuck running executions
+
+If a Simulation / Experiment / Parameter Sweep is left in `Running` because execution stopped unexpectedly, the UI now provides two recovery actions:
+
+- mark the item as `Failed`
+- force delete the item together with related `SimulationSteps`, `AgentActions`, and `TrustSnapshots`
+
+Normal delete actions still keep the running-state guard. `Scenario` rows are never deleted. For `ParameterSweep`, force delete removes the sweep and its sweep-result rows, while any orphaned experiments are left untouched in this MVP.
+
+This is intended for DB-capacity incidents, interrupted jobs, or other cases where a run cannot be recovered normally.
+
 ## API endpoints
 
 - `GET /api/simulations`

@@ -27,12 +27,14 @@ public static class SimulationStatus
     public const string Created = "Created";
     public const string Running = "Running";
     public const string Completed = "Completed";
+    public const string Failed = "Failed";
 }
 
 public static class ExperimentStatus
 {
     public const string Created = "Created";
     public const string Running = "Running";
+    public const string Failed = "Failed";
     public const string StopRequested = "StopRequested";
     public const string Stopped = "Stopped";
     public const string Completed = "Completed";

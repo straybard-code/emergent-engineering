@@ -8,7 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EmergentEngineering.Pages.Experiments;
 
-public sealed class DetailsModel(AppDbContext db) : PageModel
+public sealed class DetailsModel(
+    AppDbContext db,
+    ExperimentCleanupService cleanupService,
+    ParameterSweepRunner parameterSweepRunner) : PageModel
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -30,6 +33,10 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
     public List<ExperimentThresholdSweepPoint> ThresholdSweepSummary { get; private set; } = [];
     public double AverageTrustOverall { get; private set; }
     public double AverageComponentCountOverall { get; private set; }
+    public int CompletedSimulationCount { get; private set; }
+    public int RunningSimulationCount { get; private set; }
+    public int PendingSimulationCount { get; private set; }
+    public int FailedSimulationCount { get; private set; }
     public double FingerprintAverageTrustMean { get; private set; }
     public double FingerprintEffectiveDensityMean { get; private set; }
     public double FingerprintPhaseTransitionCountMean { get; private set; }
@@ -79,8 +86,16 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
             .OrderBy(run => run.RunNo)
             .ToListAsync();
 
+        var simulationProjects = await db.SimulationProjects
+            .Where(item => item.ExperimentId == id)
+            .ToListAsync();
+
         AverageTrustOverall = Runs.Count == 0 ? 0 : Math.Round(Runs.Average(run => run.AverageTrust), 2);
         AverageComponentCountOverall = Runs.Count == 0 ? 0 : Math.Round(Runs.Average(run => run.ComponentCount), 2);
+        CompletedSimulationCount = simulationProjects.Count(item => string.Equals(item.Status, SimulationStatus.Completed, StringComparison.OrdinalIgnoreCase) || item.CurrentStep >= item.TotalSteps);
+        RunningSimulationCount = simulationProjects.Count(item => string.Equals(item.Status, SimulationStatus.Running, StringComparison.OrdinalIgnoreCase) && item.CurrentStep < item.TotalSteps);
+        PendingSimulationCount = simulationProjects.Count(item => string.Equals(item.Status, SimulationStatus.Created, StringComparison.OrdinalIgnoreCase));
+        FailedSimulationCount = simulationProjects.Count(item => string.Equals(item.Status, SimulationStatus.Failed, StringComparison.OrdinalIgnoreCase));
 
         PhaseDistribution = GetPhaseDistribution(Runs);
         PhaseTransitions = await GetPhaseTransitionsAsync(id);
@@ -150,6 +165,31 @@ public sealed class DetailsModel(AppDbContext db) : PageModel
         }
 
         return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostMarkFailedAsync(int id)
+    {
+        var updated = await cleanupService.MarkExperimentAsFailedAsync(id);
+        ExperimentMessage = updated
+            ? "Experimentを失敗扱いにしました。"
+            : "Experimentが見つかりませんでした。";
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostForceDeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        var result = await cleanupService.ForceDeleteExperimentAsync(
+            id,
+            async (sweepId, innerCancellationToken) =>
+            {
+                await parameterSweepRunner.RecalculateSweepStatusAsync(sweepId, innerCancellationToken);
+            },
+            cancellationToken);
+
+        TempData["CleanupMessage"] = result.DeletedExperiments > 0
+            ? result.ToJapaneseMessage()
+            : "削除対象のExperimentがありませんでした。";
+        return RedirectToPage("/Experiments/Index");
     }
 
     public async Task<IActionResult> OnPostDeleteRunAsync(int id, int runId)

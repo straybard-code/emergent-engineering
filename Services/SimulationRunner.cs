@@ -28,8 +28,20 @@ public sealed class SimulationRunner(
             .Include(item => item.Agents.OrderBy(agent => agent.Id))
             .FirstOrDefaultAsync(item => item.Id == simulationId, cancellationToken);
 
-        if (project is null || project.CurrentStep >= project.TotalSteps)
+        if (project is null)
         {
+            return null;
+        }
+
+        if (project.CurrentStep >= project.TotalSteps)
+        {
+            if (!string.Equals(project.Status, SimulationStatus.Failed, StringComparison.OrdinalIgnoreCase))
+            {
+                project.CurrentStep = Math.Max(project.CurrentStep, project.TotalSteps);
+                project.Status = SimulationStatus.Completed;
+                await db.SaveChangesAsync(cancellationToken);
+            }
+
             return null;
         }
 
@@ -283,7 +295,38 @@ public sealed class SimulationRunner(
     public async Task<SimulationProject?> RunAllAsync(int simulationId, string persistenceMode, CancellationToken cancellationToken = default)
     {
         var normalizedMode = NormalizePersistenceMode(persistenceMode);
-        SimulationProject? project;
+        var project = await db.SimulationProjects.FirstOrDefaultAsync(item => item.Id == simulationId, cancellationToken);
+        if (project is null)
+        {
+            return null;
+        }
+
+        if (project.CurrentStep >= project.TotalSteps)
+        {
+            if (!string.Equals(project.Status, SimulationStatus.Failed, StringComparison.OrdinalIgnoreCase))
+            {
+                project.CurrentStep = Math.Max(project.CurrentStep, project.TotalSteps);
+                project.Status = SimulationStatus.Completed;
+                await db.SaveChangesAsync(cancellationToken);
+            }
+
+            await SaveMetricsAsync(simulationId, cancellationToken);
+
+            if (!string.Equals(normalizedMode, FullPersistenceMode, StringComparison.OrdinalIgnoreCase))
+            {
+                var completedProject = await db.SimulationProjects.FirstOrDefaultAsync(item => item.Id == simulationId, cancellationToken);
+                var finalStepNo = completedProject?.CurrentStep ?? 0;
+                if (finalStepNo > 0)
+                {
+                    await PrunePersistedHistoryAsync(simulationId, finalStepNo, normalizedMode, true, cancellationToken);
+                }
+            }
+
+            return await db.SimulationProjects
+                .Include(item => item.Metrics)
+                .FirstOrDefaultAsync(item => item.Id == simulationId, cancellationToken);
+        }
+
         do
         {
             var step = await RunOneStepAsync(simulationId, cancellationToken);

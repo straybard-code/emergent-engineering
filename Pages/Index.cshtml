@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model IndexModel
 @{
     ViewData["Title"] = "Simulations";
@@ -22,23 +22,40 @@
         "Created" => "Created",
         "Running" => "Running",
         "Completed" => "Completed",
+        "Failed" => "Failed",
         _ => status ?? "-"
+    };
+
+    private static string GetStatusBadgeClass(string? status) => status switch
+    {
+        "Running" => "status-badge status-running",
+        "Completed" => "status-badge status-completed",
+        "Failed" => "status-badge status-failed",
+        "Created" => "status-badge status-pending",
+        _ => "status-badge status-pending"
     };
 }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h1 class="h2 mb-1">Simulation Projects</h1>
-        <p class="text-muted mb-0">目的、境界条件、KPI に従って AI エージェントの組織形成過程を記録します。</p>
+        <p class="text-muted mb-0">複数の Simulation を一覧し、Phase と Trust の変化を確認します。</p>
     </div>
     <a class="btn btn-primary" asp-page="/Simulations/Create">新規 Simulation</a>
 </div>
+
+@if (!string.IsNullOrWhiteSpace(Model.SimulationMessage))
+{
+    <div class="alert alert-info">@Model.SimulationMessage</div>
+}
+
+<div class="text-muted small mb-3">実行中のまま停止している場合のみ使用してください。</div>
 
 @if (Model.Projects.Count == 0)
 {
     <div class="empty-state">
         <h2 class="h5">Simulation はまだありません</h2>
-        <p>まず 1 件作成して、step ごとの発言、Trust、Phase の変化を確認してください。</p>
+        <p>1つ作成して、Step ごとの変化や Phase を確認してみましょう。</p>
         <a class="btn btn-primary" asp-page="/Simulations/Create">作成する</a>
     </div>
 }
@@ -65,7 +82,7 @@ else
                         <strong>@project.Name</strong>
                         <div class="text-muted small">@project.Purpose</div>
                     </td>
-                    <td><span class="badge text-bg-secondary">@FormatStatus(project.Status)</span></td>
+                    <td><span class="@GetStatusBadgeClass(project.Status)">@FormatStatus(project.Status)</span></td>
                     <td><span class="phase-pill">@FormatPhase(project.Phase)</span></td>
                     <td>@project.CurrentStep / @project.TotalSteps</td>
                     <td>@project.AgentCount</td>
@@ -73,7 +90,24 @@ else
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2 flex-wrap">
                             <a class="btn btn-sm btn-outline-primary" asp-page="/Simulations/Details" asp-route-id="@project.Id">詳細</a>
-                            <a class="btn btn-sm btn-outline-danger" asp-page="/Simulations/Delete" asp-route-id="@project.Id">削除</a>
+                            @if (string.Equals(project.Status, EmergentEngineering.Models.SimulationStatus.Running, StringComparison.OrdinalIgnoreCase))
+                            {
+                                <form method="post" asp-page-handler="MarkFailed">
+                                    <input type="hidden" name="id" value="@project.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">失敗扱いにする</button>
+                                </form>
+                                <form method="post"
+                                      asp-page-handler="ForceDelete"
+                                      onsubmit="return confirm('実行中のデータを強制削除します。関連するStep、Action、TrustSnapshotも削除されます。よろしいですか？');">
+                                    <input type="hidden" name="id" value="@project.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">強制削除</button>
+                                </form>
+                                <button type="button" class="btn btn-sm btn-outline-danger" disabled>削除不可</button>
+                            }
+                            else
+                            {
+                                <a class="btn btn-sm btn-outline-danger" asp-page="/Simulations/Delete" asp-route-id="@project.Id">削除</a>
+                            }
                         </div>
                     </td>
                 </tr>

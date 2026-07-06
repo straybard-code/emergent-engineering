@@ -12,7 +12,8 @@ namespace EmergentEngineering.Pages.ParameterSweeps;
 public sealed class DetailsModel(
     AppDbContext db,
     ParameterSweepRunner sweepRunner,
-    ExperimentInterpretationService interpretationService) : PageModel
+    ExperimentInterpretationService interpretationService,
+    ExperimentCleanupService cleanupService) : PageModel
 {
     [TempData]
     public string? SweepMessage { get; set; }
@@ -81,6 +82,24 @@ public sealed class DetailsModel(
         }
 
         return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostMarkFailedAsync(int id)
+    {
+        var updated = await cleanupService.MarkParameterSweepAsFailedAsync(id);
+        SweepMessage = updated
+            ? "Parameter Sweepを失敗扱いにしました。"
+            : "Parameter Sweepが見つかりませんでした。";
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostForceDeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        var result = await cleanupService.ForceDeleteParameterSweepAsync(id, cancellationToken);
+        SweepMessage = result.DeletedParameterSweeps > 0
+            ? result.ToJapaneseMessage()
+            : "削除対象のParameter Sweepがありませんでした。";
+        return RedirectToPage("/ParameterSweeps/Index");
     }
 
     private async Task<bool> LoadPageDataAsync(int id, bool recalcRunningStatus = true)

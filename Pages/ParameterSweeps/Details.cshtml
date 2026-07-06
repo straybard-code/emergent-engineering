@@ -41,8 +41,24 @@
             <form method="post" asp-page-handler="Stop" asp-route-id="@Model.Sweep.Id">
                 <button type="submit" class="btn btn-outline-warning">スイープ停止</button>
             </form>
+            <form method="post" asp-page-handler="MarkFailed" asp-route-id="@Model.Sweep.Id">
+                <button type="submit" class="btn btn-outline-secondary">失敗扱いにする</button>
+            </form>
+            <form method="post"
+                  asp-page-handler="ForceDelete"
+                  asp-route-id="@Model.Sweep.Id"
+                  onsubmit="return confirm('実行中のデータを強制削除します。関連するStep、Action、TrustSnapshotも削除されます。よろしいですか？');">
+                <button type="submit" class="btn btn-outline-danger">強制削除</button>
+            </form>
         }
-        <a class="btn btn-outline-danger" asp-page="/ParameterSweeps/Delete" asp-route-id="@Model.Sweep.Id">削除</a>
+        @if (Model.Sweep.Status == EmergentEngineering.Models.ParameterSweepStatus.Running)
+        {
+            <button type="button" class="btn btn-outline-danger" disabled>削除不可</button>
+        }
+        else
+        {
+            <a class="btn btn-outline-danger" asp-page="/ParameterSweeps/Delete" asp-route-id="@Model.Sweep.Id">削除</a>
+        }
     </div>
 </div>
 
@@ -56,6 +72,7 @@
     <div class="alert alert-primary">
         <strong>スイープを実行中です。完了までしばらくお待ちください。</strong><br />
         <span class="small text-muted">画面を再読み込みすると進捗が更新されます。</span>
+        <div class="small text-muted mt-1">実行中のまま停止している場合のみ使用してください。</div>
     </div>
 }
 

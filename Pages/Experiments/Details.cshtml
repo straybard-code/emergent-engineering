@@ -22,6 +22,7 @@
     {
         "Created" => "Created（作成済み）",
         "Running" => "Running（実行中）",
+        "Failed" => "Failed（失敗）",
         "StopRequested" => "StopRequested（停止要求）",
         "Stopped" => "Stopped（停止済み）",
         "Completed" => "Completed（完了）",
@@ -74,6 +75,15 @@
             <form method="post" asp-page-handler="Stop" asp-route-id="@Model.Experiment.Id">
                 <button type="submit" class="btn btn-outline-warning">実験停止</button>
             </form>
+            <form method="post" asp-page-handler="MarkFailed" asp-route-id="@Model.Experiment.Id">
+                <button type="submit" class="btn btn-outline-secondary">失敗扱いにする</button>
+            </form>
+            <form method="post"
+                  asp-page-handler="ForceDelete"
+                  asp-route-id="@Model.Experiment.Id"
+                  onsubmit="return confirm('実行中のデータを強制削除します。関連するStep、Action、TrustSnapshotも削除されます。よろしいですか？');">
+                <button type="submit" class="btn btn-outline-danger">強制削除</button>
+            </form>
         }
         @if (IndexModel.IsDeletionBlocked(Model.Experiment.Status))
         {
@@ -88,6 +98,7 @@
 @if (IndexModel.IsDeletionBlocked(Model.Experiment.Status))
 {
     <div class="text-muted small mb-3">実行中のExperimentは削除できません。</div>
+    <div class="text-muted small mb-3">実行中のまま停止している場合のみ使用してください。</div>
 }
 
 @if (!string.IsNullOrWhiteSpace(Model.ExperimentMessage))
@@ -144,6 +155,36 @@
     <div>
         <h2 class="h6">Run Count</h2>
         <p>@Model.Experiment.RunCount</p>
+    </div>
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">実行状況</h2>
+    <div class="row g-3">
+        <div class="col-md-6 col-xl-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-muted">完了 / RunCount</div>
+                <div class="fs-5">@Model.CompletedSimulationCount / @Model.Experiment.RunCount</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-muted">実行中Run数</div>
+                <div class="fs-5">@Model.RunningSimulationCount</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-muted">未実行Run数</div>
+                <div class="fs-5">@Model.PendingSimulationCount</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-muted">Failed Run数</div>
+                <div class="fs-5">@Model.FailedSimulationCount</div>
+            </div>
+        </div>
     </div>
 </section>
 

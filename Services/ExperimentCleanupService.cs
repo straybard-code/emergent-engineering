@@ -15,6 +15,86 @@ public sealed class ExperimentCleanupService(AppDbContext db)
         IReadOnlyCollection<int> experimentIds,
         Func<int, CancellationToken, Task>? recalculateSweepStatusAsync,
         CancellationToken cancellationToken = default)
+        => await DeleteExperimentsCoreAsync(
+            experimentIds,
+            recalculateSweepStatusAsync,
+            forceDelete: false,
+            cancellationToken);
+
+    public Task<ExperimentCleanupResult> ForceDeleteExperimentsAsync(
+        IReadOnlyCollection<int> experimentIds,
+        Func<int, CancellationToken, Task>? recalculateSweepStatusAsync = null,
+        CancellationToken cancellationToken = default)
+        => DeleteExperimentsCoreAsync(experimentIds, recalculateSweepStatusAsync, forceDelete: true, cancellationToken);
+
+    public Task<ExperimentCleanupResult> ForceDeleteExperimentAsync(
+        int experimentId,
+        Func<int, CancellationToken, Task>? recalculateSweepStatusAsync = null,
+        CancellationToken cancellationToken = default)
+        => ForceDeleteExperimentsAsync([experimentId], recalculateSweepStatusAsync, cancellationToken);
+
+    public async Task<bool> MarkExperimentAsFailedAsync(int experimentId, CancellationToken cancellationToken = default)
+    {
+        var experiment = await db.Experiments
+            .FirstOrDefaultAsync(item => item.Id == experimentId, cancellationToken);
+
+        if (experiment is null)
+        {
+            return false;
+        }
+
+        experiment.Status = ExperimentStatus.Failed;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> MarkSimulationAsFailedAsync(int simulationProjectId, CancellationToken cancellationToken = default)
+    {
+        var project = await db.SimulationProjects
+            .FirstOrDefaultAsync(item => item.Id == simulationProjectId, cancellationToken);
+
+        if (project is null)
+        {
+            return false;
+        }
+
+        project.Status = SimulationStatus.Failed;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> MarkParameterSweepAsFailedAsync(int parameterSweepId, CancellationToken cancellationToken = default)
+    {
+        var sweep = await db.ParameterSweeps
+            .FirstOrDefaultAsync(item => item.Id == parameterSweepId, cancellationToken);
+
+        if (sweep is null)
+        {
+            return false;
+        }
+
+        sweep.Status = ParameterSweepStatus.Failed;
+        sweep.CompletedAt = null;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public Task<ExperimentCleanupResult> ForceDeleteSimulationAsync(
+        int simulationProjectId,
+        Func<int, CancellationToken, Task>? recalculateSweepStatusAsync = null,
+        CancellationToken cancellationToken = default)
+        => DeleteSimulationAsync(simulationProjectId, recalculateSweepStatusAsync, cancellationToken);
+
+    public Task<ExperimentCleanupResult> ForceDeleteParameterSweepAsync(
+        int parameterSweepId,
+        CancellationToken cancellationToken = default)
+        => DeleteParameterSweepAsync(parameterSweepId, cancellationToken);
+
+    private async Task<ExperimentCleanupResult> DeleteExperimentsCoreAsync(
+        IReadOnlyCollection<int> experimentIds,
+        Func<int, CancellationToken, Task>? recalculateSweepStatusAsync,
+        bool forceDelete,
+        CancellationToken cancellationToken)
     {
         var targetExperimentIds = experimentIds
             .Where(item => item > 0)
@@ -31,10 +111,12 @@ public sealed class ExperimentCleanupService(AppDbContext db)
             .Select(item => new { item.Id, item.Status })
             .ToListAsync(cancellationToken);
 
-        var deletableExperimentIds = matchedExperiments
-            .Where(item => !IsDeleteBlocked(item.Status))
-            .Select(item => item.Id)
-            .ToList();
+        var deletableExperimentIds = forceDelete
+            ? matchedExperiments.Select(item => item.Id).ToList()
+            : matchedExperiments
+                .Where(item => !IsDeleteBlocked(item.Status))
+                .Select(item => item.Id)
+                .ToList();
 
         var skippedRunningExperiments = matchedExperiments.Count - deletableExperimentIds.Count;
         if (deletableExperimentIds.Count == 0)
@@ -167,6 +249,166 @@ public sealed class ExperimentCleanupService(AppDbContext db)
         }
     }
 
+    private async Task<ExperimentCleanupResult> DeleteSimulationAsync(
+        int simulationProjectId,
+        Func<int, CancellationToken, Task>? recalculateSweepStatusAsync,
+        CancellationToken cancellationToken)
+    {
+        var project = await db.SimulationProjects
+            .Where(item => item.Id == simulationProjectId)
+            .Select(item => new { item.Id, item.ExperimentId })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (project is null)
+        {
+            return new ExperimentCleanupResult();
+        }
+
+        List<int> experimentIds = project.ExperimentId.HasValue
+            ? new List<int> { project.ExperimentId.Value }
+            : new List<int>();
+
+        List<int> affectedSweepIds = project.ExperimentId.HasValue
+            ? await db.ParameterSweepRuns
+                .Where(run => run.ExperimentId == project.ExperimentId.Value)
+                .Select(run => run.ParameterSweepId)
+                .Distinct()
+                .ToListAsync(cancellationToken)
+            : new List<int>();
+
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var childSimulationProjectIds = new[] { simulationProjectId };
+            var result = new ExperimentCleanupResult
+            {
+                DeletedSimulationProjects = 1,
+                DeletedSimulationSteps = await db.SimulationSteps.CountAsync(step => childSimulationProjectIds.Contains(step.SimulationProjectId), cancellationToken),
+                DeletedAgentActions = await db.AgentActions.CountAsync(action => childSimulationProjectIds.Contains(action.SimulationProjectId), cancellationToken),
+                DeletedTrustSnapshots = await db.TrustSnapshots.CountAsync(snapshot => childSimulationProjectIds.Contains(snapshot.SimulationProjectId), cancellationToken),
+                DeletedSimulationMetrics = await db.SimulationMetrics.CountAsync(metrics => childSimulationProjectIds.Contains(metrics.SimulationProjectId), cancellationToken),
+                DeletedAgents = await db.Agents.CountAsync(agent => childSimulationProjectIds.Contains(agent.SimulationProjectId), cancellationToken),
+                DeletedExperimentRuns = await db.ExperimentRuns.CountAsync(run => childSimulationProjectIds.Contains(run.SimulationProjectId), cancellationToken),
+                DeletedParameterSweepRuns = project.ExperimentId.HasValue
+                    ? await db.ParameterSweepRuns.CountAsync(run => run.ExperimentId == project.ExperimentId.Value, cancellationToken)
+                    : 0
+            };
+
+            if (result.DeletedAgentActions > 0)
+            {
+                await db.AgentActions
+                    .Where(action => childSimulationProjectIds.Contains(action.SimulationProjectId))
+                    .ExecuteDeleteAsync(cancellationToken);
+            }
+
+            if (result.DeletedTrustSnapshots > 0)
+            {
+                await db.TrustSnapshots
+                    .Where(snapshot => childSimulationProjectIds.Contains(snapshot.SimulationProjectId))
+                    .ExecuteDeleteAsync(cancellationToken);
+            }
+
+            if (result.DeletedSimulationSteps > 0)
+            {
+                await db.SimulationSteps
+                    .Where(step => childSimulationProjectIds.Contains(step.SimulationProjectId))
+                    .ExecuteDeleteAsync(cancellationToken);
+            }
+
+            if (result.DeletedSimulationMetrics > 0)
+            {
+                await db.SimulationMetrics
+                    .Where(metrics => childSimulationProjectIds.Contains(metrics.SimulationProjectId))
+                    .ExecuteDeleteAsync(cancellationToken);
+            }
+
+            if (result.DeletedAgents > 0)
+            {
+                await db.Agents
+                    .Where(agent => childSimulationProjectIds.Contains(agent.SimulationProjectId))
+                    .ExecuteDeleteAsync(cancellationToken);
+            }
+
+            if (result.DeletedExperimentRuns > 0)
+            {
+                await db.ExperimentRuns
+                    .Where(run => childSimulationProjectIds.Contains(run.SimulationProjectId))
+                    .ExecuteDeleteAsync(cancellationToken);
+            }
+
+            if (result.DeletedParameterSweepRuns > 0 && project.ExperimentId.HasValue)
+            {
+                await db.ParameterSweepRuns
+                    .Where(run => run.ExperimentId == project.ExperimentId.Value)
+                    .ExecuteDeleteAsync(cancellationToken);
+            }
+
+            await db.SimulationProjects
+                .Where(item => item.Id == simulationProjectId)
+                .ExecuteDeleteAsync(cancellationToken);
+
+            if (recalculateSweepStatusAsync is not null)
+            {
+                foreach (var sweepId in affectedSweepIds)
+                {
+                    await recalculateSweepStatusAsync(sweepId, cancellationToken);
+                }
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+            return result;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    private async Task<ExperimentCleanupResult> DeleteParameterSweepAsync(
+        int parameterSweepId,
+        CancellationToken cancellationToken)
+    {
+        var sweep = await db.ParameterSweeps
+            .Where(item => item.Id == parameterSweepId)
+            .Select(item => new { item.Id })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (sweep is null)
+        {
+            return new ExperimentCleanupResult();
+        }
+
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var result = new ExperimentCleanupResult
+            {
+                DeletedParameterSweeps = 1,
+                DeletedParameterSweepRuns = await db.ParameterSweepRuns.CountAsync(run => run.ParameterSweepId == parameterSweepId, cancellationToken)
+            };
+
+            if (result.DeletedParameterSweepRuns > 0)
+            {
+                await db.ParameterSweepRuns
+                    .Where(run => run.ParameterSweepId == parameterSweepId)
+                    .ExecuteDeleteAsync(cancellationToken);
+            }
+
+            await db.ParameterSweeps
+                .Where(item => item.Id == parameterSweepId)
+                .ExecuteDeleteAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+            return result;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
     private static bool IsDeleteBlocked(string? status)
     {
         return string.Equals(status, ExperimentStatus.Running, StringComparison.OrdinalIgnoreCase)
@@ -185,6 +427,7 @@ public sealed class ExperimentCleanupResult
     public int DeletedAgents { get; init; }
     public int DeletedExperimentRuns { get; init; }
     public int DeletedParameterSweepRuns { get; init; }
+    public int DeletedParameterSweeps { get; init; }
     public int SkippedRunningExperiments { get; init; }
 
     public string ToJapaneseMessage()
@@ -199,6 +442,7 @@ public sealed class ExperimentCleanupResult
         AppendPart(parts, "Metric", DeletedSimulationMetrics);
         AppendPart(parts, "Run", DeletedExperimentRuns);
         AppendPart(parts, "ParameterSweep結果", DeletedParameterSweepRuns);
+        AppendPart(parts, "ParameterSweep", DeletedParameterSweeps);
 
         if (parts.Count == 0)
         {

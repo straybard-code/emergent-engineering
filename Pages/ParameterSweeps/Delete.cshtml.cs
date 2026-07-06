@@ -1,4 +1,5 @@
-using EmergentEngineering.Data;
+﻿using EmergentEngineering.Data;
+using EmergentEngineering.Models;
 using EmergentEngineering.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,7 +9,7 @@ namespace EmergentEngineering.Pages.ParameterSweeps;
 
 public sealed class DeleteModel(AppDbContext db) : PageModel
 {
-    public EmergentEngineering.Models.ParameterSweep? Sweep { get; private set; }
+    public ParameterSweep? Sweep { get; private set; }
     public int SweepRunCount { get; private set; }
     public int ExperimentCount { get; private set; }
 
@@ -30,6 +31,12 @@ public sealed class DeleteModel(AppDbContext db) : PageModel
         if (sweep is null)
         {
             return RedirectToPage("/ParameterSweeps/Index");
+        }
+
+        if (string.Equals(sweep.Status, ParameterSweepStatus.Running, StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["SweepMessage"] = "実行中のParameter Sweepは通常削除できません。失敗扱いにするか強制削除してください。";
+            return RedirectToPage("/ParameterSweeps/Details", new { id });
         }
 
         var runs = await db.ParameterSweepRuns

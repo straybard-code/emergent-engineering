@@ -8,7 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EmergentEngineering.Pages.Simulations;
 
-public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : PageModel
+public sealed class DetailsModel(
+    AppDbContext db,
+    ISimulationRunner runner,
+    ExperimentCleanupService cleanupService,
+    ParameterSweepRunner sweepRunner) : PageModel
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private const double SvgCenterX = 350;
@@ -37,6 +41,8 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
     public string MostCommonPhaseTransitionPattern { get; private set; } = "-";
     public int? SelectedAgentId { get; private set; }
     public bool IsCompleted => Project is not null && Project.CurrentStep >= Project.TotalSteps;
+    [TempData]
+    public string? SimulationMessage { get; set; }
     public int PhaseTransitionCount => PhaseTransitionInsights.Count;
     public int? FirstPhaseTransitionStep => PhaseTransitionInsights.Count == 0 ? null : PhaseTransitionInsights.Min(item => item.StepNo);
     public int? LastPhaseTransitionStep => PhaseTransitionInsights.Count == 0 ? null : PhaseTransitionInsights.Max(item => item.StepNo);
@@ -59,6 +65,31 @@ public sealed class DetailsModel(AppDbContext db, ISimulationRunner runner) : Pa
     {
         await runner.RunAllAsync(id);
         return RedirectToPage(new { id, view = "logs" });
+    }
+
+    public async Task<IActionResult> OnPostMarkFailedAsync(int id)
+    {
+        var updated = await cleanupService.MarkSimulationAsFailedAsync(id);
+        SimulationMessage = updated
+            ? "Simulationを失敗扱いにしました。"
+            : "Simulationが見つかりませんでした。";
+        return RedirectToPage(new { id, view = "logs" });
+    }
+
+    public async Task<IActionResult> OnPostForceDeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        var result = await cleanupService.ForceDeleteSimulationAsync(
+            id,
+            async (sweepId, innerCancellationToken) =>
+            {
+                await sweepRunner.RecalculateSweepStatusAsync(sweepId, innerCancellationToken);
+            },
+            cancellationToken);
+
+        SimulationMessage = result.DeletedSimulationProjects > 0
+            ? result.ToJapaneseMessage()
+            : "削除対象のSimulationがありませんでした。";
+        return RedirectToPage("/Index");
     }
 
     private async Task LoadAsync(int id, int? agentId)

@@ -47,6 +47,8 @@
     <div class="alert alert-info">@Model.CleanupMessage</div>
 }
 
+<div class="text-muted small mb-3">実行中のまま停止している場合のみ使用してください。</div>
+
 <section class="experiment-status-summary mb-4">
     <span class="status-badge status-running">実行中: @Model.RunningCount</span>
     <span class="status-badge status-completed">完了: @Model.CompletedCount</span>
@@ -112,8 +114,14 @@ else
                         <td class="text-end">
                             <div class="d-flex justify-content-end gap-2 flex-wrap">
                                 <a class="btn btn-sm btn-outline-primary" asp-page="/Experiments/Details" asp-route-id="@experiment.Id">詳細</a>
-                                @if (IsDeleteBlocked(experiment.Status))
+                                @if (string.Equals(experiment.Status, EmergentEngineering.Models.ExperimentStatus.Running, StringComparison.OrdinalIgnoreCase))
                                 {
+                                    <button type="submit" class="btn btn-sm btn-outline-warning" form="mark-failed-experiment-@experiment.Id">失敗扱いにする</button>
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger"
+                                            form="force-delete-experiment-@experiment.Id">
+                                        強制削除
+                                    </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger" disabled>削除不可</button>
                                 }
                                 else
@@ -128,6 +136,19 @@ else
             </table>
         </div>
     </form>
+
+    @foreach (var experiment in Model.Experiments.Where(item => string.Equals(item.Status, EmergentEngineering.Models.ExperimentStatus.Running, StringComparison.OrdinalIgnoreCase)))
+    {
+        <form id="mark-failed-experiment-@experiment.Id" method="post" asp-page-handler="MarkFailed">
+            <input type="hidden" name="id" value="@experiment.Id" />
+        </form>
+        <form id="force-delete-experiment-@experiment.Id"
+              method="post"
+              asp-page-handler="ForceDelete"
+              onsubmit="return confirm('実行中のデータを強制削除します。関連するStep、Action、TrustSnapshotも削除されます。よろしいですか？');">
+            <input type="hidden" name="id" value="@experiment.Id" />
+        </form>
+    }
 }
 
 @section Scripts {
