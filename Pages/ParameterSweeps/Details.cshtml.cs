@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text;
 using EmergentEngineering.Data;
 using EmergentEngineering.Models;
 using EmergentEngineering.Services;
@@ -8,7 +9,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EmergentEngineering.Pages.ParameterSweeps;
 
-public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunner) : PageModel
+public sealed class DetailsModel(
+    AppDbContext db,
+    ParameterSweepRunner sweepRunner,
+    ExperimentInterpretationService interpretationService) : PageModel
 {
     [TempData]
     public string? SweepMessage { get; set; }
@@ -35,16 +39,59 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
     public List<PipelineStageSummaryRow> PipelineStageSummaries { get; private set; } = [];
     public string RecommendedInterpretation { get; private set; } = "--";
     public string PrimaryConclusionMessage { get; private set; } = "--";
+    public string AnalysisComment { get; private set; } = "--";
+    public List<TransitionCandidateRow> TransitionCandidateRows { get; private set; } = [];
+    public List<BottleneckAnalysisRow> BottleneckAnalysisRows { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        Sweep = await db.ParameterSweeps.FirstOrDefaultAsync(item => item.Id == id);
-        if (Sweep is null)
+        if (!await LoadPageDataAsync(id))
         {
             return RedirectToPage("/ParameterSweeps/Index");
         }
 
-        if (Sweep.Status == ParameterSweepStatus.Running)
+        return Page();
+    }
+
+    public async Task<IActionResult> OnGetDownloadCsvAsync(int id)
+    {
+        if (!await LoadPageDataAsync(id, recalcRunningStatus: false))
+        {
+            return RedirectToPage("/ParameterSweeps/Index");
+        }
+
+        var csv = interpretationService.BuildParameterSweepCsv(AnalysisPoints);
+        var bytes = new UTF8Encoding(true).GetBytes(csv);
+        return File(bytes, "text/csv; charset=utf-8", $"parameter-sweep-{id}.csv");
+    }
+
+    public async Task<IActionResult> OnPostStopAsync(int id)
+    {
+        var sweep = await db.ParameterSweeps.FirstOrDefaultAsync(item => item.Id == id);
+        if (sweep is null)
+        {
+            return RedirectToPage("/ParameterSweeps/Index");
+        }
+
+        if (sweep.Status == ParameterSweepStatus.Running)
+        {
+            sweep.Status = ParameterSweepStatus.StopRequested;
+            await db.SaveChangesAsync();
+            SweepMessage = "停止要求を受け付けました。現在実行中のパラメータ値が終わった後に停止します。";
+        }
+
+        return RedirectToPage(new { id });
+    }
+
+    private async Task<bool> LoadPageDataAsync(int id, bool recalcRunningStatus = true)
+    {
+        Sweep = await db.ParameterSweeps.FirstOrDefaultAsync(item => item.Id == id);
+        if (Sweep is null)
+        {
+            return false;
+        }
+
+        if (recalcRunningStatus && Sweep.Status == ParameterSweepStatus.Running)
         {
             try
             {
@@ -54,10 +101,11 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
             {
                 // Keep the stored status if recalculation fails.
             }
+
             Sweep = await db.ParameterSweeps.FirstOrDefaultAsync(item => item.Id == id);
             if (Sweep is null)
             {
-                return RedirectToPage("/ParameterSweeps/Index");
+                return false;
             }
         }
 
@@ -97,25 +145,15 @@ public sealed class DetailsModel(AppDbContext db, ParameterSweepRunner sweepRunn
         BuildSensitivityRanking();
         BuildDashboardSummary();
 
-        return Page();
-    }
+        var interpretation = interpretationService.BuildParameterSweepInterpretation(AnalysisPoints);
+        SummaryCards = interpretation.SummaryCards;
+        RecommendedInterpretation = interpretation.RecommendedRegion;
+        AnalysisComment = interpretation.AutoComment;
+        PrimaryConclusionMessage = interpretation.PrimaryConclusion;
+        TransitionCandidateRows = interpretation.TransitionCandidates;
+        BottleneckAnalysisRows = interpretation.BottleneckRows;
 
-    public async Task<IActionResult> OnPostStopAsync(int id)
-    {
-        var sweep = await db.ParameterSweeps.FirstOrDefaultAsync(item => item.Id == id);
-        if (sweep is null)
-        {
-            return RedirectToPage("/ParameterSweeps/Index");
-        }
-
-        if (sweep.Status == ParameterSweepStatus.Running)
-        {
-            sweep.Status = ParameterSweepStatus.StopRequested;
-            await db.SaveChangesAsync();
-            SweepMessage = "停止要求を受け付けました。現在実行中のパラメータ値が終わった後に停止します。";
-        }
-
-        return RedirectToPage(new { id });
+        return true;
     }
 
     public string FormatStatus(string? status) => status switch

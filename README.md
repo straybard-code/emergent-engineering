@@ -1,4 +1,4 @@
-# Emergence Engineering Lab
+﻿# Emergence Engineering Lab
 
 Emergence Engineering Lab is a research MVP for observing how multi-agent organizations form under different goals, cultural constraints, KPIs, trust dynamics, and agent diversity settings. It now supports both single simulation runs and repeated experiments built from the same condition set.
 
@@ -267,9 +267,76 @@ Stored fields include:
 - `RequiredCrossDomainExposure`
 - `RequiredRewiringScore`
 
+### PhaseDiagram
+
+A `PhaseDiagram` is a two-parameter exploration feature for mapping phase regions in a 2D condition space.
+
+It stores:
+
+- `BaseScenarioId`
+- `XParameterName`, `XStartValue`, `XEndValue`, `XStepValue`
+- `YParameterName`, `YStartValue`, `YEndValue`, `YStepValue`
+- `RunsPerPoint`
+- `AgentCount`
+- `TotalSteps`
+- `LlmProvider`
+- `LlmModel`
+- `Status`
+
+Each grid point is persisted as a `PhaseDiagramPoint` and summarizes:
+
+- `DominantPhase`
+- `EmergentRate`
+- `AverageTrust`
+- `AverageEffectiveDensity`
+- `AverageKnowledgeDiversity`
+- `AverageKnowledgeRecombinationScore`
+- `AverageKnowledgeReconfigurationScore`
+- `AverageSerendipityRate`
+- `AveragePipelineCompletionScore`
+- `DominantBottleneck`
+
+The Phase Diagram UI shows:
+
+- Dominant phase heatmap with phase-colored cells
+- Emergent rate heatmap with green intensity
+- Pipeline completion heatmap with blue intensity
+- Bottleneck map with bottleneck-specific colors
+- phase boundary candidates detected from neighboring grid cells
+- simple emergent-region and pre-emergent-region extraction
+- point-by-point result table with links to the generated experiments
+- Adaptive Sweep buttons for boundary, high-pipeline, and emergent regions
+
+Recommended use:
+
+- use Fast execution scale first
+- keep the grid at 100 points or fewer
+- explore a broad region with `Mock`
+- then narrow around interesting coordinates and re-run with finer steps or `OpenAI`
+
+Recommended presets:
+
+- `TrustGrowthRate × KnowledgeDiversity`
+- `EffectiveTrustThreshold × SerendipityThreshold`
+- `CrossDomainExposure × RewiringSensitivity`
+- `Colloid Stability Template`
+
+This feature is implemented as a research MVP for organizational emergence, but the same 2D phase-map structure can later be reused for colloids, crystallization, supercooling, gelation, and other systems with phase transitions.
+
+Adaptive Sweep takes an existing phase diagram as the parent and automatically creates a child diagram that re-explores a narrower region around a phase boundary, a high-pipeline region, or an emergent region. This supports the research workflow:
+
+- coarse sweep
+- boundary detection
+- fine sweep around the interesting region
+- more precise phase diagram
+
+The adaptive child keeps the same base scenario, X/Y parameter names, LLM settings, agent count, and total steps, but narrows the start/end range and halves the step size, while keeping the grid at 100 points or fewer.
+
 Each parameter value produces one `Experiment`, and the sweep stores a compact result summary in `ParameterSweepRun`.
 
 Sweep status is recalculated from stored data when you open the sweep list or details page. If all parameter values have finished, all related experiments are completed, and the run counts are sufficient, the sweep becomes `Completed`. If an error occurs during execution, the sweep is marked `Failed`. A stale `Running` status can therefore be corrected by reopening the sweep pages, and once a sweep reaches `Completed` it stays `Completed` instead of being rewritten back to `Running`.
+
+When you start a Parameter Sweep from the UI, the sweep status is updated to `Running` immediately before execution continues, so the details page can show that the job has already started. While it is running, the details page shows a short in-progress message and the execute button is replaced by a visible running state.
 
 Use `TrustGrowthRate` when you want to inspect the trust-to-emergence curve directly. A typical sweep is:
 
@@ -314,6 +381,14 @@ Available presets:
 
 `Publication` is intentionally heavy and should be used with care. For Parameter Sweep, `Fast` or `Standard` is recommended.
 
+Storage guidance:
+
+- `Full` 保存: 単体 Simulation 向け
+- `Summary` 保存: 通常 Experiment 向け
+- `Minimal` 保存: Parameter Sweep 向け
+
+SQL Server Express / LocalDB は DB 容量が限られるため、`SimulationSteps`、`TrustSnapshots`、`AgentActions` は大きくなりやすいことに注意してください。`PRIMARY` filegroup full が出た場合は、古い実験データの削除、DB サイズ拡張、または保存モードの見直しが必要です。
+
 Research hypothesis:
 
 > Emergence may not rise as a simple monotonic increase in average trust.  
@@ -357,6 +432,9 @@ Even under the same condition set, agent interaction trajectories can diverge. R
 - Parameter sweep list: `/ParameterSweeps`
 - New parameter sweep: `/ParameterSweeps/Create`
 - Parameter sweep details: `/ParameterSweeps/Details/{id}`
+- Phase diagram list: `/PhaseDiagrams`
+- New phase diagram: `/PhaseDiagrams/Create`
+- Phase diagram details: `/PhaseDiagrams/Details/{id}`
 - Experiment list: `/Experiments`
 - New experiment: `/Experiments/Create`
 - Experiment details: `/Experiments/Details/{id}`
@@ -1589,6 +1667,7 @@ Migrations are included under `Migrations/`, including:
 - explicit LLM provider/model columns on `Experiments` and `SimulationProjects`
 - knowledge / shock / rewiring columns on `Experiments`, `Scenarios`, and `SimulationProjects` via `20260703081000_AddKnowledgeAndShockParameters`
 - serendipity-layer columns on `Experiments`, `Scenarios`, and `SimulationProjects` via `20260703083000_AddSerendipityParameters`
+- phase-diagram tables via `20260704090000_AddPhaseDiagrams`
 
 For future schema changes:
 
@@ -1839,8 +1918,26 @@ If you are using an existing database, apply the new migration so these columns 
 
 - `dotnet ef database update`
 
+## Interpretation support for sweeps and phase diagrams
+
+Parameter Sweep and Phase Diagram detail pages now include a lightweight interpretation layer that helps researchers read the results faster:
+
+- summary cards for the main maxima
+- recommended regions and danger regions
+- automatic transition candidate detection from adjacent values or cells
+- bottleneck analysis for runs or cells that do not reach emergence
+- CSV export of the visible aggregated data
+
+The interpretation service is rule-based. It does not store extra data in the database.
+
+Research hypothesis:
+
+> Emergence is not explained by a single parameter.  
+> It appears when trust network formation, knowledge reconfiguration, serendipity, and phase stability align across a usable region of the parameter space.
+
 ## Notes
 
 - This pass was implemented without build verification, startup verification, `dotnet run`, test execution, or migration apply.
 - If compile errors remain, they are most likely around Razor typing, manual migration drift, or EF relationship alignment and should be fixed from the reported build output.
+
 

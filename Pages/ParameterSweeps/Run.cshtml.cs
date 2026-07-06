@@ -5,13 +5,14 @@ using EmergentEngineering.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EmergentEngineering.Pages.ParameterSweeps;
 
 public sealed class RunModel(
     AppDbContext db,
-    IExperimentExecutionService experimentExecutionService,
-    ParameterSweepRunner sweepRunner) : PageModel
+    ParameterSweepRunner sweepRunner,
+    IServiceScopeFactory scopeFactory) : PageModel
 {
     [TempData]
     public string? SweepMessage { get; set; }
@@ -50,85 +51,12 @@ public sealed class RunModel(
 
         try
         {
-            var scenario = await db.Scenarios.FirstOrDefaultAsync(item => item.Id == sweep.ScenarioId);
-            if (scenario is null)
-            {
-                sweep.Status = ParameterSweepStatus.Failed;
-                await db.SaveChangesAsync();
-                TempData["SweepMessage"] = "基準シナリオが見つからないため、スイープを開始できませんでした。";
-                return RedirectToPage("/ParameterSweeps/Details", new { id });
-            }
-
             sweep.Status = ParameterSweepStatus.Running;
             sweep.CompletedAt = null;
             await db.SaveChangesAsync();
 
-            await DeleteExistingResultsAsync(sweep.Id);
-
-            foreach (var parameterValue in BuildParameterValues(sweep.StartValue, sweep.EndValue, sweep.StepValue))
-            {
-                var latestStatus = await db.ParameterSweeps
-                    .AsNoTracking()
-                    .Where(item => item.Id == sweep.Id)
-                    .Select(item => item.Status)
-                    .FirstAsync();
-
-                if (latestStatus == ParameterSweepStatus.StopRequested)
-                {
-                    sweep.Status = ParameterSweepStatus.Stopped;
-                    await db.SaveChangesAsync();
-                    TempData["SweepMessage"] = "停止要求を受け付けたため、現在のパラメータ値の処理境界でスイープを停止しました。";
-                    return RedirectToPage("/ParameterSweeps/Details", new { id = sweep.Id });
-                }
-
-                var parameterLabel = BoundaryParameterNames.GetLabel(sweep.TargetParameter);
-                var experiment = SimulationFactory.CreateExperimentFromScenario(
-                    scenario,
-                    $"{sweep.Name} {parameterLabel}={parameterValue:0.000}",
-                    $"{sweep.Description} / {parameterLabel}={parameterValue:0.000}",
-                    sweep.RunCountPerValue,
-                    sweep.AgentCount,
-                    sweep.TotalSteps,
-                    sweep.LlmProvider,
-                    sweep.LlmModel);
-
-                if (!BoundaryParameterNames.TryApply(experiment, sweep.TargetParameter, parameterValue))
-                {
-                    throw new InvalidOperationException($"Unsupported target parameter: {sweep.TargetParameter}");
-                }
-
-                db.Experiments.Add(experiment);
-                await db.SaveChangesAsync();
-
-                await experimentExecutionService.RunExperimentAsync(experiment.Id);
-
-                var experimentRuns = await db.ExperimentRuns
-                    .Where(item => item.ExperimentId == experiment.Id)
-                    .OrderBy(item => item.RunNo)
-                    .ToListAsync();
-
-                var finalPhaseSummary = BuildPhaseSummary(experimentRuns);
-                var averageTrust = experimentRuns.Count == 0 ? 0 : Math.Round(experimentRuns.Average(item => item.AverageTrust), 2);
-                var averageAbsTrust = await CalculateAverageAbsTrustAsync(experiment.Id);
-
-                db.ParameterSweepRuns.Add(new ParameterSweepRun
-                {
-                    ParameterSweepId = sweep.Id,
-                    ParameterValue = parameterValue,
-                    ExperimentId = experiment.Id,
-                    RunCount = sweep.RunCountPerValue,
-                    FinalPhaseSummaryJson = JsonSerializer.Serialize(finalPhaseSummary),
-                    AverageTrust = averageTrust,
-                    AverageAbsTrust = averageAbsTrust,
-                    CreatedAt = DateTime.UtcNow
-                });
-
-                await db.SaveChangesAsync();
-            }
-
-            sweep.Status = ParameterSweepStatus.Completed;
-            sweep.CompletedAt = DateTime.UtcNow;
-            await db.SaveChangesAsync();
+            SweepMessage = "スイープを開始しました。完了までしばらくお待ちください。";
+            _ = Task.Run(() => ExecuteSweepBackgroundAsync(sweep.Id));
             return RedirectToPage("/ParameterSweeps/Details", new { id = sweep.Id });
         }
         catch
@@ -154,9 +82,116 @@ public sealed class RunModel(
         }
     }
 
-    private async Task DeleteExistingResultsAsync(int parameterSweepId)
+    private async Task ExecuteSweepBackgroundAsync(int sweepId)
     {
-        var existingRuns = await db.ParameterSweepRuns
+        using var scope = scopeFactory.CreateScope();
+        var scopedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var scopedExperimentExecutionService = scope.ServiceProvider.GetRequiredService<IExperimentExecutionService>();
+        var scopedParameterApplier = scope.ServiceProvider.GetRequiredService<SimulationParameterApplier>();
+
+        var sweep = await scopedDb.ParameterSweeps.FirstOrDefaultAsync(item => item.Id == sweepId);
+        if (sweep is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var scenario = await scopedDb.Scenarios.FirstOrDefaultAsync(item => item.Id == sweep.ScenarioId);
+            if (scenario is null)
+            {
+                sweep.Status = ParameterSweepStatus.Failed;
+                await scopedDb.SaveChangesAsync();
+                return;
+            }
+
+            await DeleteExistingResultsAsync(scopedDb, sweep.Id);
+
+            foreach (var parameterValue in BuildParameterValues(sweep.StartValue, sweep.EndValue, sweep.StepValue))
+            {
+                var latestStatus = await scopedDb.ParameterSweeps
+                    .AsNoTracking()
+                    .Where(item => item.Id == sweep.Id)
+                    .Select(item => item.Status)
+                    .FirstAsync();
+
+                if (latestStatus == ParameterSweepStatus.StopRequested)
+                {
+                    sweep.Status = ParameterSweepStatus.Stopped;
+                    await scopedDb.SaveChangesAsync();
+                    return;
+                }
+
+                var parameterLabel = BoundaryParameterNames.GetLabel(sweep.TargetParameter);
+                var experiment = SimulationFactory.CreateExperimentFromScenario(
+                    scenario,
+                    $"{sweep.Name} {parameterLabel}={parameterValue:0.000}",
+                    $"{sweep.Description} / {parameterLabel}={parameterValue:0.000}",
+                    sweep.RunCountPerValue,
+                    sweep.AgentCount,
+                    sweep.TotalSteps,
+                    sweep.LlmProvider,
+                    sweep.LlmModel);
+
+                if (!scopedParameterApplier.ApplyParameter(experiment, sweep.TargetParameter, parameterValue))
+                {
+                    throw new InvalidOperationException($"Unsupported target parameter: {sweep.TargetParameter}");
+                }
+
+                scopedDb.Experiments.Add(experiment);
+                await scopedDb.SaveChangesAsync();
+
+                await scopedExperimentExecutionService.RunExperimentAsync(experiment.Id, "Minimal");
+
+                var experimentRuns = await scopedDb.ExperimentRuns
+                    .Where(item => item.ExperimentId == experiment.Id)
+                    .OrderBy(item => item.RunNo)
+                    .ToListAsync();
+
+                var finalPhaseSummary = BuildPhaseSummary(experimentRuns);
+                var averageTrust = experimentRuns.Count == 0 ? 0 : Math.Round(experimentRuns.Average(item => item.AverageTrust), 2);
+                var averageAbsTrust = await CalculateAverageAbsTrustAsync(scopedDb, experiment.Id);
+
+                scopedDb.ParameterSweepRuns.Add(new ParameterSweepRun
+                {
+                    ParameterSweepId = sweep.Id,
+                    ParameterValue = parameterValue,
+                    ExperimentId = experiment.Id,
+                    RunCount = sweep.RunCountPerValue,
+                    FinalPhaseSummaryJson = JsonSerializer.Serialize(finalPhaseSummary),
+                    AverageTrust = averageTrust,
+                    AverageAbsTrust = averageAbsTrust,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                await scopedDb.SaveChangesAsync();
+            }
+
+            sweep.Status = ParameterSweepStatus.Completed;
+            sweep.CompletedAt = DateTime.UtcNow;
+            await scopedDb.SaveChangesAsync();
+        }
+        catch
+        {
+            sweep.Status = ParameterSweepStatus.Failed;
+            await scopedDb.SaveChangesAsync();
+        }
+        finally
+        {
+            try
+            {
+                await scopedDb.Entry(sweep).ReloadAsync();
+            }
+            catch
+            {
+                // ignore reload failures
+            }
+        }
+    }
+
+    private static async Task DeleteExistingResultsAsync(AppDbContext scopedDb, int parameterSweepId)
+    {
+        var existingRuns = await scopedDb.ParameterSweepRuns
             .Where(item => item.ParameterSweepId == parameterSweepId)
             .ToListAsync();
 
@@ -167,19 +202,19 @@ public sealed class RunModel(
 
         foreach (var experimentId in experimentIds)
         {
-            await SimulationDataDeletion.DeleteExperimentAsync(db, experimentId);
+            await SimulationDataDeletion.DeleteExperimentAsync(scopedDb, experimentId);
         }
 
         if (existingRuns.Count > 0)
         {
-            db.ParameterSweepRuns.RemoveRange(existingRuns);
-            await db.SaveChangesAsync();
+            scopedDb.ParameterSweepRuns.RemoveRange(existingRuns);
+            await scopedDb.SaveChangesAsync();
         }
     }
 
-    private async Task<double> CalculateAverageAbsTrustAsync(int experimentId)
+    private static async Task<double> CalculateAverageAbsTrustAsync(AppDbContext scopedDb, int experimentId)
     {
-        var projects = await db.SimulationProjects
+        var projects = await scopedDb.SimulationProjects
             .Where(item => item.ExperimentId == experimentId)
             .Select(item => new { item.Id, item.CurrentStep })
             .ToListAsync();
@@ -190,7 +225,7 @@ public sealed class RunModel(
         }
 
         var projectIds = projects.Select(item => item.Id).ToList();
-        var snapshots = await db.TrustSnapshots
+        var snapshots = await scopedDb.TrustSnapshots
             .Where(item => projectIds.Contains(item.SimulationProjectId))
             .ToListAsync();
 
@@ -208,7 +243,7 @@ public sealed class RunModel(
                 continue;
             }
 
-            var trustMaps = await db.Agents
+            var trustMaps = await scopedDb.Agents
                 .Where(item => item.SimulationProjectId == project.Id)
                 .Select(item => item.TrustJson)
                 .ToListAsync();

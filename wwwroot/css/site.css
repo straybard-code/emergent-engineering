@@ -582,6 +582,211 @@ tr.impact-node-weak > * {
   padding: 0.85rem 1rem;
 }
 
+.phase-diagram-shell {
+  overflow-x: auto;
+}
+
+.adaptive-action-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.phase-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.phase-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.phase-diagram-scroll {
+  overflow-x: auto;
+}
+
+.phase-diagram-table {
+  width: max-content;
+  min-width: 100%;
+}
+
+.phase-diagram-table th,
+.phase-diagram-table td {
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.phase-diagram-table thead th,
+.phase-diagram-table tbody th {
+  background: #f8fafc;
+  color: #374151;
+  font-weight: 700;
+}
+
+.phase-diagram-cell {
+  min-width: 64px;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 6px;
+}
+
+.phase-boundary-cell {
+  box-shadow: inset 0 0 0 2px #111827;
+}
+
+.phase-cell-emergent {
+  background: #eaf7ee;
+  color: #21653a;
+}
+
+.phase-cell-stable {
+  background: #edf4ff;
+  color: #234f90;
+}
+
+.phase-cell-learning {
+  background: #fff8db;
+  color: #8b6800;
+}
+
+.phase-cell-adaptation {
+  background: #fff1df;
+  color: #9a5712;
+}
+
+.phase-cell-silo {
+  background: #fdecec;
+  color: #983636;
+}
+
+.phase-cell-chaos {
+  background: #f4ecff;
+  color: #6b3ea8;
+}
+
+.phase-cell-collapse {
+  background: #2f3640;
+  color: #ffffff;
+}
+
+.phase-cell-forming {
+  background: #f3f4f6;
+  color: #55606d;
+}
+
+.phase-cell-unknown {
+  background: #eceff3;
+  color: #7b8390;
+}
+
+.rate-cell-0 {
+  background: #ffffff;
+  color: #6b7280;
+}
+
+.rate-cell-low {
+  background: #eef8ef;
+  color: #2b6b38;
+}
+
+.rate-cell-mid {
+  background: #d5eed7;
+  color: #21592e;
+}
+
+.rate-cell-high {
+  background: #9fdbab;
+  color: #133d1d;
+}
+
+.rate-cell-max {
+  background: #63c676;
+  color: #102b15;
+}
+
+.pipeline-cell-0 {
+  background: #ffffff;
+  color: #6b7280;
+}
+
+.pipeline-cell-low {
+  background: #eef4ff;
+  color: #305a96;
+}
+
+.pipeline-cell-mid {
+  background: #d9e7ff;
+  color: #23477b;
+}
+
+.pipeline-cell-high {
+  background: #abc8ff;
+  color: #17325c;
+}
+
+.pipeline-cell-max {
+  background: #6f9ff1;
+  color: #102440;
+}
+
+.bottleneck-cell-serendipity {
+  background: #fff0df;
+  color: #9a5712;
+}
+
+.bottleneck-cell-recombination {
+  background: #eef8ef;
+  color: #2b6b38;
+}
+
+.bottleneck-cell-reconfiguration {
+  background: #eaf7ee;
+  color: #21653a;
+}
+
+.bottleneck-cell-learning {
+  background: #fff8db;
+  color: #8b6800;
+}
+
+.bottleneck-cell-adaptation {
+  background: #eef4ff;
+  color: #234f90;
+}
+
+.bottleneck-cell-emergence {
+  background: #f4ecff;
+  color: #6b3ea8;
+}
+
+.bottleneck-cell-unknown {
+  background: #eceff3;
+  color: #7b8390;
+}
+
+.phase-row-emergent > * {
+  background: #f1faf3 !important;
+}
+
+.phase-row-silo > * {
+  background: #fff5f5 !important;
+}
+
+.phase-row-chaos > * {
+  background: #faf5ff !important;
+}
+
 .network-stat-label {
   color: #637083;
   font-size: 0.82rem;

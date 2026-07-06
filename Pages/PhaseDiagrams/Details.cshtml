@@ -1,0 +1,570 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.PhaseDiagrams.DetailsModel
+@{
+    ViewData["Title"] = Model.Diagram?.Name ?? "創発相図詳細";
+}
+
+@if (Model.Diagram is null)
+{
+    <div class="alert alert-warning">相図が見つかりません。</div>
+    return;
+}
+
+<div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+    <div>
+        <a asp-page="/PhaseDiagrams/Index" class="text-decoration-none small">&larr; 相図一覧</a>
+        <h1 class="h2 mt-2 mb-1">@Model.Diagram.Name</h1>
+        <div class="text-muted">@Model.Diagram.Description</div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        @if (Model.Diagram.Status != EmergentEngineering.Models.PhaseDiagramStatus.Running)
+        {
+            <a class="btn btn-primary" asp-page="/PhaseDiagrams/Run" asp-route-id="@Model.Diagram.Id">相図を実行</a>
+        }
+        <a class="btn btn-outline-danger" asp-page="/PhaseDiagrams/Delete" asp-route-id="@Model.Diagram.Id">削除</a>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.DiagramMessage))
+{
+    <div class="alert alert-info">@Model.DiagramMessage</div>
+}
+
+<div class="d-flex gap-2 flex-wrap mb-4">
+    <a class="btn btn-outline-secondary" asp-page-handler="DownloadCsv" asp-route-id="@Model.Diagram.Id">CSV出力</a>
+</div>
+
+<section class="summary-grid mb-4">
+    <div><h2 class="h6">基準シナリオ</h2><p>@Model.ScenarioName</p></div>
+    <div><h2 class="h6">X軸</h2><p>@Model.Diagram.XParameterDisplayName</p></div>
+    <div><h2 class="h6">Y軸</h2><p>@Model.Diagram.YParameterDisplayName</p></div>
+    <div><h2 class="h6">X範囲</h2><p>@Model.Diagram.XStartValue.ToString("0.000") ～ @Model.Diagram.XEndValue.ToString("0.000") / @Model.Diagram.XStepValue.ToString("0.000")</p></div>
+    <div><h2 class="h6">Y範囲</h2><p>@Model.Diagram.YStartValue.ToString("0.000") ～ @Model.Diagram.YEndValue.ToString("0.000") / @Model.Diagram.YStepValue.ToString("0.000")</p></div>
+    <div><h2 class="h6">各点の Run 数</h2><p>@Model.Diagram.RunsPerPoint</p></div>
+    <div><h2 class="h6">Agent 数</h2><p>@Model.Diagram.AgentCount</p></div>
+    <div><h2 class="h6">Step 数</h2><p>@Model.Diagram.TotalSteps</p></div>
+    <div><h2 class="h6">LLM</h2><p>@Model.Diagram.LlmProvider / @Model.Diagram.LlmModel</p></div>
+    <div><h2 class="h6">状態</h2><p>@Model.FormatStatus(Model.Diagram.Status)</p></div>
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">相図サマリー</h2>
+    <p class="text-muted mb-3">相図全体の主要な傾向と、創発に近い領域の有無を要約します。</p>
+    <div class="analysis-summary-grid mb-3">
+        @foreach (var card in Model.SummaryCards)
+        {
+            <article class="summary-card">
+                <div class="summary-card-label">@card.Label</div>
+                <div class="summary-card-value">@card.Value</div>
+            </article>
+        }
+    </div>
+    <div class="summary-card summary-card-wide">
+        <div class="summary-card-label">推奨解釈</div>
+        <div class="summary-card-value summary-card-text">@Model.RecommendedInterpretation</div>
+    </div>
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">自動解釈コメント</h2>
+    <p class="text-muted mb-3">相図の読み取りを補助する短いコメントです。</p>
+    <div class="summary-card summary-card-wide">
+        <div class="summary-card-value summary-card-text">@Model.AnalysisComment</div>
+    </div>
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">相転移候補</h2>
+    <p class="text-muted mb-3">隣接セルの差分から、相転移候補を自動検出します。</p>
+    @if (Model.TransitionCandidateRows.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ相転移候補を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>区間</th>
+                        <th>種類</th>
+                        <th>変化量</th>
+                        <th>解釈</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.TransitionCandidateRows)
+                {
+                    <tr>
+                        <td>@row.Interval</td>
+                        <td><span class="status-badge status-running">@row.Type</span></td>
+                        <td>@row.DeltaText <span class="text-muted">(@row.ImpactLabel)</span></td>
+                        <td>@row.Interpretation</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">ボトルネック分析</h2>
+    <p class="text-muted mb-3">Emergent ではないセルについて、どの条件が不足していたかを集計します。</p>
+    @if (Model.BottleneckAnalysisRows.Count == 0)
+    {
+        <p class="text-muted mb-0">まだボトルネック分析を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>理由</th>
+                        <th>件数</th>
+                        <th>比率</th>
+                        <th>解釈</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.BottleneckAnalysisRows)
+                {
+                    <tr>
+                        <td>@row.Reason</td>
+                        <td>@row.Count</td>
+                        <td>@row.Rate.ToString("0.000")</td>
+                        <td>@row.Interpretation</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">Adaptive Sweep</h2>
+    <p class="text-muted mb-3">相図の結果から、相境界や高Pipeline領域の周辺を細かく再探索できます。</p>
+    <div class="analysis-summary-grid mb-3">
+        <article class="summary-card">
+            <div class="summary-card-label">Adaptive Sweep</div>
+            <div class="summary-card-value">@(Model.Diagram.IsAdaptiveSweep ? "Yes" : "No")</div>
+        </article>
+        <article class="summary-card">
+            <div class="summary-card-label">親相図</div>
+            <div class="summary-card-value">
+                @if (Model.ParentDiagram is not null)
+                {
+                    <a asp-page="/PhaseDiagrams/Details" asp-route-id="@Model.ParentDiagram.Id">@Model.ParentDiagramName</a>
+                }
+                else
+                {
+                    <span class="text-muted">--</span>
+                }
+            </div>
+        </article>
+        <article class="summary-card">
+            <div class="summary-card-label">Adaptive Source Type</div>
+            <div class="summary-card-value">@Model.AdaptiveSourceTypeText</div>
+        </article>
+        <article class="summary-card summary-card-wide">
+            <div class="summary-card-label">Adaptive Reason</div>
+            <div class="summary-card-value summary-card-text">@Model.AdaptiveReasonText</div>
+        </article>
+    </div>
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">次の探索提案</h2>
+    <p class="text-muted mb-3">@Model.NextExplorationMessage</p>
+    <div class="adaptive-action-grid">
+        @if (Model.CanCreateBoundaryAdaptive)
+        {
+            <form method="post" asp-page-handler="CreateAdaptiveFromBoundary" asp-route-id="@Model.Diagram.Id">
+                <button type="submit" class="btn btn-outline-primary w-100">相境界周辺を再探索</button>
+            </form>
+        }
+        else
+        {
+            <form method="post" asp-page-handler="CreateAdaptiveFromBoundary" asp-route-id="@Model.Diagram.Id">
+                <button type="submit" class="btn btn-outline-primary w-100" disabled>相境界周辺を再探索</button>
+            </form>
+        }
+
+        @if (Model.CanCreateHighPipelineAdaptive)
+        {
+            <form method="post" asp-page-handler="CreateAdaptiveFromHighPipeline" asp-route-id="@Model.Diagram.Id">
+                <button type="submit" class="btn btn-outline-primary w-100">高Pipeline領域を再探索</button>
+            </form>
+        }
+        else
+        {
+            <form method="post" asp-page-handler="CreateAdaptiveFromHighPipeline" asp-route-id="@Model.Diagram.Id">
+                <button type="submit" class="btn btn-outline-primary w-100" disabled>高Pipeline領域を再探索</button>
+            </form>
+        }
+
+        @if (Model.CanCreateEmergentAdaptive)
+        {
+            <form method="post" asp-page-handler="CreateAdaptiveFromEmergentRegion" asp-route-id="@Model.Diagram.Id">
+                <button type="submit" class="btn btn-outline-primary w-100">創発領域周辺を再探索</button>
+            </form>
+        }
+        else
+        {
+            <form method="post" asp-page-handler="CreateAdaptiveFromEmergentRegion" asp-route-id="@Model.Diagram.Id">
+                <button type="submit" class="btn btn-outline-primary w-100" disabled>創発領域周辺を再探索</button>
+            </form>
+        }
+    </div>
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">相境界サマリー</h2>
+    <p class="text-muted mb-3">隣接するグリッド点で支配相が変化した箇所を相境界候補として検出します。</p>
+    <div class="analysis-summary-grid mb-3">
+        <article class="summary-card">
+            <div class="summary-card-label">相境界候補数</div>
+            <div class="summary-card-value">@Model.BoundaryCandidateCount</div>
+        </article>
+        <article class="summary-card">
+            <div class="summary-card-label">最多の相境界パターン</div>
+            <div class="summary-card-value">@Model.MostCommonBoundaryPattern</div>
+        </article>
+        <article class="summary-card">
+            <div class="summary-card-label">Emergent を含む相境界数</div>
+            <div class="summary-card-value">@Model.EmergentBoundaryCount</div>
+        </article>
+        <article class="summary-card">
+            <div class="summary-card-label">Stable を含む相境界数</div>
+            <div class="summary-card-value">@Model.StableBoundaryCount</div>
+        </article>
+        <article class="summary-card">
+            <div class="summary-card-label">Silo を含む相境界数</div>
+            <div class="summary-card-value">@Model.SiloBoundaryCount</div>
+        </article>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>X</th>
+                    <th>Y</th>
+                    <th>Neighbor X</th>
+                    <th>Neighbor Y</th>
+                    <th>Direction</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (Model.BoundaryEntries.Count == 0)
+            {
+                <tr>
+                    <td colspan="7" class="text-muted">相境界候補はまだありません。</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var entry in Model.BoundaryEntries)
+                {
+                    <tr>
+                        <td>@Model.FormatBoundaryPhase(entry.FromPhase)</td>
+                        <td>@Model.FormatBoundaryPhase(entry.ToPhase)</td>
+                        <td>@entry.XValue.ToString("0.000")</td>
+                        <td>@entry.YValue.ToString("0.000")</td>
+                        <td>@entry.NeighborXValue.ToString("0.000")</td>
+                        <td>@entry.NeighborYValue.ToString("0.000")</td>
+                        <td>@Model.FormatDirection(entry.Direction)</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">創発領域の簡易条件</h2>
+    <p class="text-muted mb-3">EmergentRate > 0 または DominantPhase == Emergent の点を抽出しています。</p>
+    @if (Model.EmergentRegionSummary.HasData)
+    {
+        <div class="analysis-summary-grid mb-3">
+            <article class="summary-card">
+                <div class="summary-card-label">創発点数</div>
+                <div class="summary-card-value">@Model.EmergentRegionSummary.Count</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-card-label">X範囲</div>
+                <div class="summary-card-value">@Model.FormatRange(Model.EmergentRegionSummary.XMin, Model.EmergentRegionSummary.XMax)</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-card-label">Y範囲</div>
+                <div class="summary-card-value">@Model.FormatRange(Model.EmergentRegionSummary.YMin, Model.EmergentRegionSummary.YMax)</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-card-label">中心</div>
+                <div class="summary-card-value">@Model.FormatCenter(Model.EmergentRegionSummary.AverageX, Model.EmergentRegionSummary.AverageY)</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-card-label">平均 Pipeline Completion</div>
+                <div class="summary-card-value">@Model.FormatNumber(Model.EmergentRegionSummary.AveragePipelineCompletionScore)</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-card-label">最頻 Bottleneck</div>
+                <div class="summary-card-value">@Model.EmergentRegionSummary.MostCommonBottleneck</div>
+            </article>
+        </div>
+        <div class="summary-card summary-card-wide">
+            <div class="summary-card-label">推奨解釈</div>
+            <div class="summary-card-value summary-card-text">@Model.EmergentRegionSummary.Interpretation</div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-light mb-0">@Model.EmergentRegionSummary.EmptyMessage</div>
+    }
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">創発直前領域の簡易条件</h2>
+    <p class="text-muted mb-3">AveragePipelineCompletionScore >= 0.70 の点を抽出しています。</p>
+    @if (Model.PipelineRegionSummary.HasData)
+    {
+        <div class="analysis-summary-grid mb-3">
+            <article class="summary-card">
+                <div class="summary-card-label">該当点数</div>
+                <div class="summary-card-value">@Model.PipelineRegionSummary.Count</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-card-label">X範囲</div>
+                <div class="summary-card-value">@Model.FormatRange(Model.PipelineRegionSummary.XMin, Model.PipelineRegionSummary.XMax)</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-card-label">Y範囲</div>
+                <div class="summary-card-value">@Model.FormatRange(Model.PipelineRegionSummary.YMin, Model.PipelineRegionSummary.YMax)</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-card-label">中心</div>
+                <div class="summary-card-value">@Model.FormatCenter(Model.PipelineRegionSummary.AverageX, Model.PipelineRegionSummary.AverageY)</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-card-label">平均 Pipeline Completion</div>
+                <div class="summary-card-value">@Model.FormatNumber(Model.PipelineRegionSummary.AveragePipelineCompletionScore)</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-card-label">最頻 Bottleneck</div>
+                <div class="summary-card-value">@Model.PipelineRegionSummary.MostCommonBottleneck</div>
+            </article>
+        </div>
+        <div class="summary-card summary-card-wide">
+            <div class="summary-card-label">推奨解釈</div>
+            <div class="summary-card-value summary-card-text">@Model.PipelineRegionSummary.Interpretation</div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-light mb-0">@Model.PipelineRegionSummary.EmptyMessage</div>
+    }
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">凡例</h2>
+    <div class="phase-legend">
+        <span class="phase-legend-chip phase-cell-emergent">Emergent（創発）</span>
+        <span class="phase-legend-chip phase-cell-stable">Stable（安定）</span>
+        <span class="phase-legend-chip phase-cell-learning">Learning（学習）</span>
+        <span class="phase-legend-chip phase-cell-adaptation">Adaptation（適応）</span>
+        <span class="phase-legend-chip phase-cell-silo">Silo（サイロ）</span>
+        <span class="phase-legend-chip phase-cell-chaos">Chaos（混乱）</span>
+        <span class="phase-legend-chip phase-cell-collapse">Collapse（崩壊）</span>
+        <span class="phase-legend-chip phase-cell-forming">Forming（形成）</span>
+    </div>
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">Phase Diagram ヒートマップ</h2>
+    <p class="text-muted small mb-3">セル背景色は支配相を表します。境界セルは枠線で強調しています。</p>
+    <div class="phase-diagram-scroll">
+        <table class="table table-sm phase-diagram-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Y \ X</th>
+                    @foreach (var x in Model.XValues)
+                    {
+                        <th>@x.ToString("0.00")</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var row in Model.DominantPhaseRows)
+            {
+                <tr>
+                    <th>@row.YValue.ToString("0.00")</th>
+                    @foreach (var cell in row.Cells)
+                    {
+                        <td class="phase-diagram-cell @cell.CssClass @(cell.IsBoundary ? "phase-boundary-cell" : "")" title="@cell.Tooltip">@cell.Text</td>
+                    }
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">Emergent Rate ヒートマップ</h2>
+    <p class="text-muted small mb-3">数値が大きいほど濃い緑で表示されます。</p>
+    <div class="phase-diagram-scroll">
+        <table class="table table-sm phase-diagram-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Y \ X</th>
+                    @foreach (var x in Model.XValues)
+                    {
+                        <th>@x.ToString("0.00")</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var row in Model.EmergentRateRows)
+            {
+                <tr>
+                    <th>@row.YValue.ToString("0.00")</th>
+                    @foreach (var cell in row.Cells)
+                    {
+                        <td class="phase-diagram-cell @cell.CssClass @(cell.IsBoundary ? "phase-boundary-cell" : "")" title="@cell.Tooltip">@cell.Text</td>
+                    }
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">Pipeline Completion ヒートマップ</h2>
+    <p class="text-muted small mb-3">数値が大きいほど濃い青で表示されます。</p>
+    <div class="phase-diagram-scroll">
+        <table class="table table-sm phase-diagram-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Y \ X</th>
+                    @foreach (var x in Model.XValues)
+                    {
+                        <th>@x.ToString("0.00")</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var row in Model.PipelineCompletionRows)
+            {
+                <tr>
+                    <th>@row.YValue.ToString("0.00")</th>
+                    @foreach (var cell in row.Cells)
+                    {
+                        <td class="phase-diagram-cell @cell.CssClass @(cell.IsBoundary ? "phase-boundary-cell" : "")" title="@cell.Tooltip">@cell.Text</td>
+                    }
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="log-section phase-diagram-shell mb-4">
+    <h2 class="h5 mb-2">Bottleneck Map</h2>
+    <p class="text-muted small mb-3">支配的なボトルネックを色分けして表示します。</p>
+    <div class="phase-diagram-scroll">
+        <table class="table table-sm phase-diagram-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Y \ X</th>
+                    @foreach (var x in Model.XValues)
+                    {
+                        <th>@x.ToString("0.00")</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var row in Model.BottleneckRows)
+            {
+                <tr>
+                    <th>@row.YValue.ToString("0.00")</th>
+                    @foreach (var cell in row.Cells)
+                    {
+                        <td class="phase-diagram-cell @cell.CssClass @(cell.IsBoundary ? "phase-boundary-cell" : "")" title="@cell.Tooltip">@cell.Text</td>
+                    }
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">点ごとの結果一覧</h2>
+    @if (Model.PointResults.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ相図結果はありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>XValue</th>
+                        <th>YValue</th>
+                        <th>DominantPhase</th>
+                        <th>EmergentRate</th>
+                        <th>StableRate</th>
+                        <th>LearningRate</th>
+                        <th>SiloRate</th>
+                        <th>AverageTrust</th>
+                        <th>AverageEffectiveDensity</th>
+                        <th>AverageKnowledgeDiversity</th>
+                        <th>AverageKnowledgeReconfigurationScore</th>
+                        <th>AverageSerendipityRate</th>
+                        <th>AveragePipelineCompletionScore</th>
+                        <th>DominantBottleneck</th>
+                        <th>Experiment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.PointResults)
+                {
+                    <tr class="@Model.GetPointRowClass(row)">
+                        <td>@row.XValue.ToString("0.000")</td>
+                        <td>@row.YValue.ToString("0.000")</td>
+                        <td>@Model.FormatPhaseDisplay(row.DominantPhase)</td>
+                        <td>@row.EmergentRate.ToString("0.00")</td>
+                        <td>@row.StableRate.ToString("0.00")</td>
+                        <td>@row.LearningRate.ToString("0.00")</td>
+                        <td>@row.SiloRate.ToString("0.00")</td>
+                        <td>@row.AverageTrust.ToString("0.00")</td>
+                        <td>@row.AverageEffectiveDensity.ToString("0.00")</td>
+                        <td>@row.AverageKnowledgeDiversity.ToString("0.00")</td>
+                        <td>@row.AverageKnowledgeReconfigurationScore.ToString("0.00")</td>
+                        <td>@row.AverageSerendipityRate.ToString("0.00")</td>
+                        <td>@row.AveragePipelineCompletionScore.ToString("0.00")</td>
+                        <td>@row.DominantBottleneck</td>
+                        <td>
+                            @if (row.ExperimentId.HasValue)
+                            {
+                                <a asp-page="/Experiments/Details" asp-route-id="@row.ExperimentId.Value">Experiment #@row.ExperimentId.Value</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">--</span>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

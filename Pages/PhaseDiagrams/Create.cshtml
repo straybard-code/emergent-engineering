@@ -1,0 +1,261 @@
+@page
+@model EmergentEngineering.Pages.PhaseDiagrams.CreateModel
+@{
+    ViewData["Title"] = "新規創発相図";
+    ViewData["ExecutionScaleFieldPrefix"] = "Input";
+}
+
+<div class="page-heading">
+    <h1 class="h2">新規創発相図</h1>
+    <p class="text-muted">2つのパラメータを同時に変化させ、どの領域で Learning / Stable / Emergent / Silo が現れるかを観察します。</p>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.AdaptiveNotice))
+{
+    <div class="alert alert-info">
+        <div class="fw-semibold mb-1">Adaptive Sweep</div>
+        <div>@Model.AdaptiveNotice</div>
+        <div class="small text-muted mt-1">Adaptive Source Type: @Model.AdaptiveSourceTypeText / Adaptive Reason: @Model.AdaptiveReasonText</div>
+    </div>
+}
+
+<form method="post" class="simulation-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Name" class="form-label">名前</label>
+        <input asp-for="Input.Name" class="form-control" />
+        <span asp-validation-for="Input.Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Description" class="form-label">説明</label>
+        <textarea asp-for="Input.Description" class="form-control" rows="2"></textarea>
+        <span asp-validation-for="Input.Description" class="text-danger"></span>
+    </div>
+
+    <section class="log-section mb-4" id="phaseDiagramPresetPanel">
+        <h2 class="h5 mb-1">相図プリセット</h2>
+        <p class="text-muted small mb-3">よく使う組み合わせを初期値として読み込みます。適用後も各項目は自由に調整できます。</p>
+        <div class="row g-2 align-items-end">
+            <div class="col-md-8">
+                <label class="form-label" for="phaseDiagramPresetSelect">プリセット</label>
+                <select class="form-select" id="phaseDiagramPresetSelect">
+                    <option value="">選択してください</option>
+                    <option value="trustKnowledge">Trust × Knowledge Diversity</option>
+                    <option value="thresholdSerendipity">Effective Trust Threshold × Serendipity Threshold</option>
+                    <option value="crossDomainRewiring">Cross Domain × Rewiring</option>
+                    <option value="colloidStability">Colloid Stability Template</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="button" class="btn btn-outline-primary w-100" id="phaseDiagramPresetApply">プリセット適用</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="mb-3">
+        <label asp-for="Input.BaseScenarioId" class="form-label">基準シナリオ</label>
+        <select asp-for="Input.BaseScenarioId" class="form-select">
+            <option value="0">選択してください</option>
+            @foreach (var scenario in Model.Scenarios)
+            {
+                <option value="@scenario.Id">@scenario.Name</option>
+            }
+        </select>
+        <span asp-validation-for="Input.BaseScenarioId" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.XParameterName" class="form-label">X軸パラメータ</label>
+            <select asp-for="Input.XParameterName" class="form-select">
+                @foreach (var group in EmergentEngineering.Models.BoundaryParameterNames.Groups)
+                {
+                    <optgroup label="@group.Label">
+                        @foreach (var parameterName in group.Parameters)
+                        {
+                            <option value="@parameterName">@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(parameterName)</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+            <span asp-validation-for="Input.XParameterName" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.YParameterName" class="form-label">Y軸パラメータ</label>
+            <select asp-for="Input.YParameterName" class="form-select">
+                @foreach (var group in EmergentEngineering.Models.BoundaryParameterNames.Groups)
+                {
+                    <optgroup label="@group.Label">
+                        @foreach (var parameterName in group.Parameters)
+                        {
+                            <option value="@parameterName">@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(parameterName)</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+            <span asp-validation-for="Input.YParameterName" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.XStartValue" class="form-label">X開始値</label>
+            <input asp-for="Input.XStartValue" class="form-control" type="number" min="0" max="20" step="0.001" />
+            <span asp-validation-for="Input.XStartValue" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.XEndValue" class="form-label">X終了値</label>
+            <input asp-for="Input.XEndValue" class="form-control" type="number" min="0" max="20" step="0.001" />
+            <span asp-validation-for="Input.XEndValue" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.XStepValue" class="form-label">X刻み幅</label>
+            <input asp-for="Input.XStepValue" class="form-control" type="number" min="0.001" max="20" step="0.001" />
+            <span asp-validation-for="Input.XStepValue" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.YStartValue" class="form-label">Y開始値</label>
+            <input asp-for="Input.YStartValue" class="form-control" type="number" min="0" max="20" step="0.001" />
+            <span asp-validation-for="Input.YStartValue" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.YEndValue" class="form-label">Y終了値</label>
+            <input asp-for="Input.YEndValue" class="form-control" type="number" min="0" max="20" step="0.001" />
+            <span asp-validation-for="Input.YEndValue" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.YStepValue" class="form-label">Y刻み幅</label>
+            <input asp-for="Input.YStepValue" class="form-control" type="number" min="0.001" max="20" step="0.001" />
+            <span asp-validation-for="Input.YStepValue" class="text-danger"></span>
+        </div>
+    </div>
+
+    <partial name="_ExecutionScalePresetPanel" />
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.RunsPerPoint" class="form-label">各点の Run 数</label>
+            <input asp-for="Input.RunsPerPoint" class="form-control" type="number" min="1" max="100" step="1" />
+            <span asp-validation-for="Input.RunsPerPoint" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.AgentCount" class="form-label">Agent 数</label>
+            <input asp-for="Input.AgentCount" class="form-control" type="number" min="2" max="100" step="1" />
+            <span asp-validation-for="Input.AgentCount" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.TotalSteps" class="form-label">Step 数</label>
+            <input asp-for="Input.TotalSteps" class="form-control" type="number" min="1" max="5000" step="1" />
+            <span asp-validation-for="Input.TotalSteps" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.LlmProvider" class="form-label">LLMプロバイダー</label>
+            <select asp-for="Input.LlmProvider" class="form-select">
+                <option value="Mock">Mock（高速・無料）</option>
+                <option value="OpenAI">OpenAI（高精度・有料）</option>
+            </select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.LlmModel" class="form-label">LLMモデル</label>
+            <select asp-for="Input.LlmModel" class="form-select">
+                @foreach (var modelName in EmergentEngineering.Models.LlmDefaults.AvailableModels)
+                {
+                    <option value="@modelName">@modelName</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        推定グリッド点数: <strong>@Model.EstimatedGridPointCount</strong><br />
+        推定実行数: <strong>@Model.EstimatedExecutionCount</strong><br />
+        相図は実行数が多くなります。Fast 設定での実行を推奨します。Publication は非常に重い設定です。
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">保存</button>
+        <a asp-page="/PhaseDiagrams/Index" class="btn btn-outline-secondary">キャンセル</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const presets = {
+                trustKnowledge: {
+                    xParameterName: "TrustGrowthRate",
+                    xStartValue: "0.20",
+                    xEndValue: "0.80",
+                    xStepValue: "0.10",
+                    yParameterName: "KnowledgeDiversity",
+                    yStartValue: "0.30",
+                    yEndValue: "1.00",
+                    yStepValue: "0.10"
+                },
+                thresholdSerendipity: {
+                    xParameterName: "EffectiveTrustThreshold",
+                    xStartValue: "0.10",
+                    xEndValue: "0.60",
+                    xStepValue: "0.10",
+                    yParameterName: "SerendipityThreshold",
+                    yStartValue: "0.20",
+                    yEndValue: "0.70",
+                    yStepValue: "0.10"
+                },
+                crossDomainRewiring: {
+                    xParameterName: "CrossDomainExposure",
+                    xStartValue: "0.10",
+                    xEndValue: "0.90",
+                    xStepValue: "0.10",
+                    yParameterName: "RewiringSensitivity",
+                    yStartValue: "0.10",
+                    yEndValue: "0.90",
+                    yStepValue: "0.10"
+                },
+                colloidStability: {
+                    xParameterName: "KnowledgeDiversity",
+                    xStartValue: "0.10",
+                    xEndValue: "1.00",
+                    xStepValue: "0.10",
+                    yParameterName: "RewiringSensitivity",
+                    yStartValue: "0.10",
+                    yEndValue: "1.00",
+                    yStepValue: "0.10"
+                }
+            };
+
+            function setValue(id, value) {
+                const control = document.getElementById(id);
+                if (!control) {
+                    return;
+                }
+
+                control.value = value;
+                control.dispatchEvent(new Event('input', { bubbles: true }));
+                control.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            document.getElementById('phaseDiagramPresetApply')?.addEventListener('click', () => {
+                const presetKey = document.getElementById('phaseDiagramPresetSelect')?.value;
+                if (!presetKey || !presets[presetKey]) {
+                    return;
+                }
+
+                const preset = presets[presetKey];
+                Object.entries(preset).forEach(([key, value]) => {
+                    const id = `Input_${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+                    setValue(id, value);
+                });
+            });
+        })();
+    </script>
+}

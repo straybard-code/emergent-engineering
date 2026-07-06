@@ -29,16 +29,21 @@ public sealed class ParameterSweepRunner(AppDbContext db)
             .Select(item => new { item.ExperimentId, item.ParameterValue })
             .ToListAsync(cancellationToken);
 
-        if (runs.Count == 0)
-        {
-            if (!string.Equals(sweep.Status, ParameterSweepStatus.Created, StringComparison.OrdinalIgnoreCase))
+            if (runs.Count == 0)
             {
-                sweep.Status = ParameterSweepStatus.Created;
-                await db.SaveChangesAsync(cancellationToken);
-            }
+                if (string.Equals(sweep.Status, ParameterSweepStatus.Running, StringComparison.OrdinalIgnoreCase))
+                {
+                    return sweep;
+                }
 
-            return sweep;
-        }
+                if (!string.Equals(sweep.Status, ParameterSweepStatus.Created, StringComparison.OrdinalIgnoreCase))
+                {
+                    sweep.Status = ParameterSweepStatus.Created;
+                    await db.SaveChangesAsync(cancellationToken);
+                }
+
+                return sweep;
+            }
 
         var runKeys = runs
             .Select(item => NormalizeParameterValue(item.ParameterValue))
@@ -64,7 +69,7 @@ public sealed class ParameterSweepRunner(AppDbContext db)
         var allExperimentsCompleted = experiments.Count == expectedValueKeys.Count
             && experiments.All(item => string.Equals(item.Status, ExperimentStatus.Completed, StringComparison.OrdinalIgnoreCase));
         var allRunCountsMet = experiments.Count > 0
-            && experiments.All(item => runCountByExperimentId.GetValueOrDefault(item.Id) >= sweep.RunCountPerValue);
+            && experiments.All(item => runCountByExperimentId.TryGetValue(item.Id, out var runCount) && runCount >= sweep.RunCountPerValue);
 
         var computedStatus = anyFailed
             ? ParameterSweepStatus.Failed

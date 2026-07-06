@@ -104,12 +104,14 @@ namespace EmergentEngineering.Migrations
                     b.Property<string>("LlmModel")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                        .HasColumnType("nvarchar(120)")
+                        .HasDefaultValue("mock-v1");
 
                     b.Property<string>("LlmProvider")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("Mock");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -221,7 +223,8 @@ namespace EmergentEngineering.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("Created");
 
                     b.Property<int>("TotalSteps")
                         .HasColumnType("int");
@@ -496,6 +499,204 @@ namespace EmergentEngineering.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ParameterSweeps");
+                });
+
+            modelBuilder.Entity("EmergentEngineering.Models.PhaseDiagram", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("AgentCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BaseScenarioId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ParentPhaseDiagramId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AdaptiveReason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("AdaptiveSourceType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("");
+
+                    b.Property<bool>("IsAdaptiveSweep")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("LlmModel")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("LlmProvider")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("RunsPerPoint")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int>("TotalSteps")
+                        .HasColumnType("int");
+
+                    b.Property<string>("XParameterDisplayName")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<string>("XParameterName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<double>("XEndValue")
+                        .HasColumnType("float");
+
+                    b.Property<double>("XStartValue")
+                        .HasColumnType("float");
+
+                    b.Property<double>("XStepValue")
+                        .HasColumnType("float");
+
+                    b.Property<string>("YParameterDisplayName")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<string>("YParameterName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<double>("YEndValue")
+                        .HasColumnType("float");
+
+                    b.Property<double>("YStartValue")
+                        .HasColumnType("float");
+
+                    b.Property<double>("YStepValue")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BaseScenarioId");
+
+                    b.HasIndex("ParentPhaseDiagramId");
+
+                    b.ToTable("PhaseDiagrams");
+                });
+
+            modelBuilder.Entity("EmergentEngineering.Models.PhaseDiagramPoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<double>("AverageEffectiveDensity")
+                        .HasColumnType("float");
+
+                    b.Property<double>("AverageKnowledgeDiversity")
+                        .HasColumnType("float");
+
+                    b.Property<double>("AverageKnowledgeRecombinationScore")
+                        .HasColumnType("float");
+
+                    b.Property<double>("AverageKnowledgeReconfigurationScore")
+                        .HasColumnType("float");
+
+                    b.Property<double>("AveragePipelineCompletionScore")
+                        .HasColumnType("float");
+
+                    b.Property<double>("AverageSerendipityRate")
+                        .HasColumnType("float");
+
+                    b.Property<double>("AverageTrust")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ChaosRate")
+                        .HasColumnType("float");
+
+                    b.Property<double>("CollapseRate")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DominantBottleneck")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("DominantPhase")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<double>("EmergentRate")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("ExperimentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FinalPhaseSummary")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("LearningRate")
+                        .HasColumnType("float");
+
+                    b.Property<int>("PhaseDiagramId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("SiloRate")
+                        .HasColumnType("float");
+
+                    b.Property<double>("StableRate")
+                        .HasColumnType("float");
+
+                    b.Property<double>("XValue")
+                        .HasColumnType("float");
+
+                    b.Property<double>("YValue")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExperimentId");
+
+                    b.HasIndex("PhaseDiagramId", "XValue", "YValue")
+                        .IsUnique();
+
+                    b.ToTable("PhaseDiagramPoints");
                 });
 
             modelBuilder.Entity("EmergentEngineering.Models.ParameterSweepRun", b =>
@@ -1169,6 +1370,23 @@ namespace EmergentEngineering.Migrations
                     b.Navigation("ParameterSweep");
                 });
 
+            modelBuilder.Entity("EmergentEngineering.Models.PhaseDiagramPoint", b =>
+                {
+                    b.HasOne("EmergentEngineering.Models.Experiment", "Experiment")
+                        .WithMany()
+                        .HasForeignKey("ExperimentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("EmergentEngineering.Models.PhaseDiagram", "PhaseDiagram")
+                        .WithMany("Points")
+                        .HasForeignKey("PhaseDiagramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Experiment");
+                    b.Navigation("PhaseDiagram");
+                });
+
             modelBuilder.Entity("EmergentEngineering.Models.SimulationStep", b =>
                 {
                     b.HasOne("EmergentEngineering.Models.SimulationProject", "SimulationProject")
@@ -1212,6 +1430,23 @@ namespace EmergentEngineering.Migrations
                     b.Navigation("Scenario");
                 });
 
+            modelBuilder.Entity("EmergentEngineering.Models.PhaseDiagram", b =>
+                {
+                    b.HasOne("EmergentEngineering.Models.Scenario", "BaseScenario")
+                        .WithMany()
+                        .HasForeignKey("BaseScenarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EmergentEngineering.Models.PhaseDiagram", "ParentPhaseDiagram")
+                        .WithMany()
+                        .HasForeignKey("ParentPhaseDiagramId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("BaseScenario");
+                    b.Navigation("ParentPhaseDiagram");
+                });
+
             modelBuilder.Entity("EmergentEngineering.Models.SimulationProject", b =>
                 {
                     b.HasOne("EmergentEngineering.Models.Experiment", "Experiment")
@@ -1236,6 +1471,11 @@ namespace EmergentEngineering.Migrations
             modelBuilder.Entity("EmergentEngineering.Models.ParameterSweep", b =>
                 {
                     b.Navigation("Runs");
+                });
+
+            modelBuilder.Entity("EmergentEngineering.Models.PhaseDiagram", b =>
+                {
+                    b.Navigation("Points");
                 });
 
             modelBuilder.Entity("EmergentEngineering.Models.Scenario", b =>

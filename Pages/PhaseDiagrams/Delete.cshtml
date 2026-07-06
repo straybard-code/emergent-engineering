@@ -1,0 +1,29 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.PhaseDiagrams.DeleteModel
+@{
+    ViewData["Title"] = "相図削除";
+}
+
+@if (Model.Diagram is null)
+{
+    <div class="alert alert-warning">相図が見つかりません。</div>
+    return;
+}
+
+<div class="page-heading">
+    <h1 class="h2">相図削除</h1>
+    <p class="text-muted">この操作は元に戻せません。</p>
+</div>
+
+<section class="summary-grid mb-4">
+    <div><h2 class="h6">名前</h2><p>@Model.Diagram.Name</p></div>
+    <div><h2 class="h6">点数</h2><p>@Model.PointCount</p></div>
+    <div><h2 class="h6">関連 Experiment 数</h2><p>@Model.ExperimentCount</p></div>
+</section>
+
+<form method="post">
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger">削除を確定</button>
+        <a asp-page="/PhaseDiagrams/Details" asp-route-id="@Model.Diagram.Id" class="btn btn-outline-secondary">キャンセル</a>
+    </div>
+</form>

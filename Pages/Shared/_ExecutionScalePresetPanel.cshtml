@@ -95,7 +95,10 @@
                 return document.getElementById(idPrefix + fieldName)
                     || document.querySelector(`[name="${namePrefix}${fieldName}"]`)
                     || (fieldName === 'RunCount'
-                        ? document.getElementById(idPrefix + 'RunCountPerValue') || document.querySelector(`[name="${namePrefix}RunCountPerValue"]`)
+                        ? document.getElementById(idPrefix + 'RunCountPerValue')
+                            || document.querySelector(`[name="${namePrefix}RunCountPerValue"]`)
+                            || document.getElementById(idPrefix + 'RunsPerPoint')
+                            || document.querySelector(`[name="${namePrefix}RunsPerPoint"]`)
                         : null);
             }
 

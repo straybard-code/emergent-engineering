@@ -8,6 +8,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Scenario> Scenarios => Set<Scenario>();
     public DbSet<ParameterSweep> ParameterSweeps => Set<ParameterSweep>();
     public DbSet<ParameterSweepRun> ParameterSweepRuns => Set<ParameterSweepRun>();
+    public DbSet<PhaseDiagram> PhaseDiagrams => Set<PhaseDiagram>();
+    public DbSet<PhaseDiagramPoint> PhaseDiagramPoints => Set<PhaseDiagramPoint>();
     public DbSet<Experiment> Experiments => Set<Experiment>();
     public DbSet<ExperimentRun> ExperimentRuns => Set<ExperimentRun>();
     public DbSet<SimulationMetrics> SimulationMetrics => Set<SimulationMetrics>();
@@ -176,6 +178,44 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         modelBuilder.Entity<ParameterSweepRun>(entity =>
         {
             entity.HasIndex(item => new { item.ParameterSweepId, item.ParameterValue });
+        });
+
+        modelBuilder.Entity<PhaseDiagram>(entity =>
+        {
+            entity.Property(item => item.Name).HasMaxLength(200);
+            entity.Property(item => item.XParameterName).HasMaxLength(120);
+            entity.Property(item => item.XParameterDisplayName).HasMaxLength(160);
+            entity.Property(item => item.YParameterName).HasMaxLength(120);
+            entity.Property(item => item.YParameterDisplayName).HasMaxLength(160);
+            entity.Property(item => item.AdaptiveSourceType).HasMaxLength(40).HasDefaultValue(string.Empty);
+            entity.Property(item => item.AdaptiveReason).HasMaxLength(1000).HasDefaultValue(string.Empty);
+            entity.Property(item => item.IsAdaptiveSweep).HasDefaultValue(false);
+            entity.Property(item => item.LlmProvider).HasMaxLength(40).HasDefaultValue(LlmDefaults.Provider);
+            entity.Property(item => item.LlmModel).HasMaxLength(120).HasDefaultValue(LlmDefaults.MockModel);
+            entity.Property(item => item.Status).HasMaxLength(40).HasDefaultValue(PhaseDiagramStatus.Created);
+            entity.HasOne(item => item.BaseScenario)
+                .WithMany()
+                .HasForeignKey(item => item.BaseScenarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(item => item.ParentPhaseDiagram)
+                .WithMany()
+                .HasForeignKey(item => item.ParentPhaseDiagramId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasMany(item => item.Points)
+                .WithOne(point => point.PhaseDiagram)
+                .HasForeignKey(point => point.PhaseDiagramId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PhaseDiagramPoint>(entity =>
+        {
+            entity.Property(item => item.DominantPhase).HasMaxLength(40);
+            entity.Property(item => item.DominantBottleneck).HasMaxLength(80);
+            entity.HasOne(item => item.Experiment)
+                .WithMany()
+                .HasForeignKey(item => item.ExperimentId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasIndex(item => new { item.PhaseDiagramId, item.XValue, item.YValue }).IsUnique();
         });
 
         modelBuilder.Entity<ExperimentRun>(entity =>

@@ -7,6 +7,9 @@ namespace EmergentEngineering.Services;
 public sealed class ExperimentExecutionService(AppDbContext db, ISimulationRunner runner) : IExperimentExecutionService
 {
     public async Task<Experiment?> RunExperimentAsync(int experimentId, CancellationToken cancellationToken = default)
+        => await RunExperimentAsync(experimentId, "Summary", cancellationToken);
+
+    public async Task<Experiment?> RunExperimentAsync(int experimentId, string persistenceMode, CancellationToken cancellationToken = default)
     {
         var experiment = await db.Experiments.FirstOrDefaultAsync(item => item.Id == experimentId, cancellationToken);
         if (experiment is null)
@@ -47,7 +50,7 @@ public sealed class ExperimentExecutionService(AppDbContext db, ISimulationRunne
             db.SimulationProjects.Add(project);
             await db.SaveChangesAsync(cancellationToken);
 
-            await runner.RunAllAsync(project.Id, cancellationToken);
+            await runner.RunAllAsync(project.Id, persistenceMode, cancellationToken);
 
             project = await db.SimulationProjects
                 .Include(item => item.Metrics)

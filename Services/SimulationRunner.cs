@@ -11,9 +11,15 @@ public sealed class SimulationRunner(
     OpenAiLlmService openAiLlmService) : ISimulationRunner
 {
     private const int PhaseWindowSize = 10;
+    private const int SummaryStepInterval = 5;
+    private const int SummaryTrustSnapshotInterval = 10;
+    private const int RetentionWindowStepCount = 10;
+    private const string FullPersistenceMode = "Full";
+    private const string SummaryPersistenceMode = "Summary";
+    private const string MinimalPersistenceMode = "Minimal";
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
-        WriteIndented = true
+        WriteIndented = false
     };
 
     public async Task<SimulationStep?> RunOneStepAsync(int simulationId, CancellationToken cancellationToken = default)
@@ -272,7 +278,11 @@ public sealed class SimulationRunner(
     }
 
     public async Task<SimulationProject?> RunAllAsync(int simulationId, CancellationToken cancellationToken = default)
+        => await RunAllAsync(simulationId, FullPersistenceMode, cancellationToken);
+
+    public async Task<SimulationProject?> RunAllAsync(int simulationId, string persistenceMode, CancellationToken cancellationToken = default)
     {
+        var normalizedMode = NormalizePersistenceMode(persistenceMode);
         SimulationProject? project;
         do
         {
@@ -283,10 +293,26 @@ public sealed class SimulationRunner(
             }
 
             project = await db.SimulationProjects.FirstOrDefaultAsync(item => item.Id == simulationId, cancellationToken);
+            if (!string.Equals(normalizedMode, FullPersistenceMode, StringComparison.OrdinalIgnoreCase)
+                && project is not null
+                && step.StepNo < project.TotalSteps)
+            {
+                await PrunePersistedHistoryAsync(simulationId, step.StepNo, normalizedMode, false, cancellationToken);
+            }
         }
         while (project is not null && project.CurrentStep < project.TotalSteps);
 
         await SaveMetricsAsync(simulationId, cancellationToken);
+
+        if (!string.Equals(normalizedMode, FullPersistenceMode, StringComparison.OrdinalIgnoreCase))
+        {
+            var completedProject = await db.SimulationProjects.FirstOrDefaultAsync(item => item.Id == simulationId, cancellationToken);
+            var finalStepNo = completedProject?.CurrentStep ?? 0;
+            if (finalStepNo > 0)
+            {
+                await PrunePersistedHistoryAsync(simulationId, finalStepNo, normalizedMode, true, cancellationToken);
+            }
+        }
 
         return await db.SimulationProjects
             .Include(item => item.Metrics)
@@ -884,6 +910,120 @@ public sealed class SimulationRunner(
         }
 
         db.TrustSnapshots.AddRange(snapshots);
+    }
+
+    private async Task PrunePersistedHistoryAsync(
+        int simulationId,
+        int currentStepNo,
+        string persistenceMode,
+        bool finalPass,
+        CancellationToken cancellationToken)
+    {
+        if (string.Equals(persistenceMode, FullPersistenceMode, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var stepNumbers = await db.SimulationSteps
+            .Where(step => step.SimulationProjectId == simulationId)
+            .Select(step => step.StepNo)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        if (stepNumbers.Count == 0)
+        {
+            return;
+        }
+
+        var keepStepNumbers = new HashSet<int>();
+        var keepSnapshotStepNumbers = new HashSet<int>();
+        var retainFromStepNo = Math.Max(1, currentStepNo - RetentionWindowStepCount + 1);
+
+        foreach (var stepNo in stepNumbers)
+        {
+            if (!finalPass && stepNo >= retainFromStepNo)
+            {
+                keepStepNumbers.Add(stepNo);
+                keepSnapshotStepNumbers.Add(stepNo);
+                continue;
+            }
+
+            if (string.Equals(persistenceMode, SummaryPersistenceMode, StringComparison.OrdinalIgnoreCase)
+                && stepNo % SummaryStepInterval == 0)
+            {
+                keepStepNumbers.Add(stepNo);
+            }
+
+            if (string.Equals(persistenceMode, SummaryPersistenceMode, StringComparison.OrdinalIgnoreCase)
+                && stepNo % SummaryTrustSnapshotInterval == 0)
+            {
+                keepSnapshotStepNumbers.Add(stepNo);
+            }
+
+            if (finalPass)
+            {
+                if (string.Equals(persistenceMode, SummaryPersistenceMode, StringComparison.OrdinalIgnoreCase)
+                    && (stepNo % SummaryStepInterval == 0 || stepNo == currentStepNo))
+                {
+                    keepStepNumbers.Add(stepNo);
+                }
+                else if (string.Equals(persistenceMode, MinimalPersistenceMode, StringComparison.OrdinalIgnoreCase)
+                    && stepNo == currentStepNo)
+                {
+                    keepStepNumbers.Add(stepNo);
+                }
+
+                if (string.Equals(persistenceMode, SummaryPersistenceMode, StringComparison.OrdinalIgnoreCase)
+                    && (stepNo % SummaryTrustSnapshotInterval == 0 || stepNo == currentStepNo))
+                {
+                    keepSnapshotStepNumbers.Add(stepNo);
+                }
+                else if (string.Equals(persistenceMode, MinimalPersistenceMode, StringComparison.OrdinalIgnoreCase)
+                    && stepNo == currentStepNo)
+                {
+                    keepSnapshotStepNumbers.Add(stepNo);
+                }
+            }
+        }
+
+        var stepsToDelete = await db.SimulationSteps
+            .Where(step => step.SimulationProjectId == simulationId && !keepStepNumbers.Contains(step.StepNo))
+            .ToListAsync(cancellationToken);
+
+        var actionsToDelete = await db.AgentActions
+            .Where(action => action.SimulationProjectId == simulationId && !keepStepNumbers.Contains(action.StepNo))
+            .ToListAsync(cancellationToken);
+
+        var snapshotsToDelete = await db.TrustSnapshots
+            .Where(snapshot => snapshot.SimulationProjectId == simulationId && !keepSnapshotStepNumbers.Contains(snapshot.StepNo))
+            .ToListAsync(cancellationToken);
+
+        if (stepsToDelete.Count > 0)
+        {
+            db.SimulationSteps.RemoveRange(stepsToDelete);
+        }
+
+        if (actionsToDelete.Count > 0)
+        {
+            db.AgentActions.RemoveRange(actionsToDelete);
+        }
+
+        if (snapshotsToDelete.Count > 0)
+        {
+            db.TrustSnapshots.RemoveRange(snapshotsToDelete);
+        }
+
+        if (stepsToDelete.Count > 0 || actionsToDelete.Count > 0 || snapshotsToDelete.Count > 0)
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    private static string NormalizePersistenceMode(string? persistenceMode)
+    {
+        return string.IsNullOrWhiteSpace(persistenceMode)
+            ? FullPersistenceMode
+            : persistenceMode.Trim();
     }
 
     private static string NormalizeTarget(string value)

@@ -16,7 +16,10 @@ builder.Services.AddScoped<MockLlmService>();
 builder.Services.AddScoped<OpenAiLlmService>();
 builder.Services.AddScoped<ISimulationRunner, SimulationRunner>();
 builder.Services.AddScoped<IExperimentExecutionService, ExperimentExecutionService>();
+builder.Services.AddScoped<SimulationParameterApplier>();
 builder.Services.AddScoped<ParameterSweepRunner>();
+builder.Services.AddScoped<PhaseDiagramRunner>();
+builder.Services.AddScoped<ExperimentInterpretationService>();
 
 var app = builder.Build();
 

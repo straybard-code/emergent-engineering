@@ -27,7 +27,15 @@
         <div class="text-muted">@Model.Sweep.Description</div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-primary" asp-page="/ParameterSweeps/Run" asp-route-id="@Model.Sweep.Id">スイープ実行</a>
+        @if (Model.Sweep.Status == EmergentEngineering.Models.ParameterSweepStatus.Running)
+        {
+            <span class="status-badge status-running align-self-center">実行中</span>
+        }
+        else
+        {
+            <a class="btn btn-primary" asp-page="/ParameterSweeps/Run" asp-route-id="@Model.Sweep.Id">スイープ実行</a>
+        }
+        <a class="btn btn-outline-secondary" asp-page-handler="DownloadCsv" asp-route-id="@Model.Sweep.Id">CSV出力</a>
         @if (Model.Sweep.Status == EmergentEngineering.Models.ParameterSweepStatus.Running)
         {
             <form method="post" asp-page-handler="Stop" asp-route-id="@Model.Sweep.Id">
@@ -41,6 +49,14 @@
 @if (!string.IsNullOrWhiteSpace(Model.SweepMessage))
 {
     <div class="alert alert-info">@Model.SweepMessage</div>
+}
+
+@if (Model.Sweep.Status == EmergentEngineering.Models.ParameterSweepStatus.Running)
+{
+    <div class="alert alert-primary">
+        <strong>スイープを実行中です。完了までしばらくお待ちください。</strong><br />
+        <span class="small text-muted">画面を再読み込みすると進捗が更新されます。</span>
+    </div>
 }
 
 <section class="summary-grid mb-4">
@@ -59,7 +75,7 @@
 </section>
 
 <section class="log-section mb-4">
-    <h2 class="h5 mb-2">実験サマリー</h2>
+    <h2 class="h5 mb-2">解析サマリー</h2>
     <p class="text-muted mb-3">このスイープ実験の主要な結果と、創発に至らなかった主な要因を要約します。</p>
     <div class="alert alert-primary mb-3">
         <strong>主要結論：</strong> @Model.PrimaryConclusionMessage
@@ -73,10 +89,84 @@
             </article>
         }
     </div>
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-2">自動解釈コメント</h2>
+    <p class="text-muted mb-3">スイープ結果の読み取りを補助する短いコメントです。</p>
     <div class="summary-card summary-card-wide">
-        <div class="summary-card-label">推奨解釈</div>
-        <div class="summary-card-value summary-card-text">@Model.RecommendedInterpretation</div>
+        <div class="summary-card-value summary-card-text">@Model.AnalysisComment</div>
     </div>
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">相転移候補</h2>
+    <p class="text-muted">隣接する ParameterValue 間の差分から、相転移候補を自動検出します。</p>
+    @if (Model.TransitionCandidateRows.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ相転移候補を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>区間</th>
+                        <th>種類</th>
+                        <th>変化量</th>
+                        <th>解釈</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.TransitionCandidateRows)
+                {
+                    <tr>
+                        <td>@row.Interval</td>
+                        <td><span class="status-badge status-running">@row.Type</span></td>
+                        <td>@row.DeltaText <span class="text-muted">(@row.ImpactLabel)</span></td>
+                        <td>@row.Interpretation</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">ボトルネック分析</h2>
+    <p class="text-muted">Final Phase が Emergent ではない Run について、どの条件が不足していたかを集計します。</p>
+    @if (Model.BottleneckAnalysisRows.Count == 0)
+    {
+        <p class="text-muted mb-0">まだボトルネック分析を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>理由</th>
+                        <th>件数</th>
+                        <th>比率</th>
+                        <th>解釈</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.BottleneckAnalysisRows)
+                {
+                    <tr>
+                        <td>@row.Reason</td>
+                        <td>@row.Count</td>
+                        <td>@row.Rate.ToString("0.000")</td>
+                        <td>@row.Interpretation</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
 </section>
 
 <section class="log-section mb-4">
@@ -240,15 +330,6 @@
         </div>
         <div class="alert alert-secondary mb-0">@Model.SensitivityConclusion</div>
     }
-</section>
-
-<section class="summary-grid mb-4">
-    <div><h2 class="h6">最大信頼</h2><p>@Model.MaxAverageTrustSummary</p></div>
-    <div><h2 class="h6">最大実効密度</h2><p>@Model.MaxEffectiveDensitySummary</p></div>
-    <div><h2 class="h6">最大創発率</h2><p>@Model.MaxEmergentRateSummary</p></div>
-    <div><h2 class="h6">最大セレンディピティ率</h2><p>@Model.MaxSerendipityRateSummary</p></div>
-    <div><h2 class="h6">最大信頼ジャンプ</h2><p>@Model.MaxTrustJumpSummary</p></div>
-    <div><h2 class="h6">最大創発ジャンプ</h2><p>@Model.MaxEmergenceJumpSummary</p></div>
 </section>
 
 <section class="chart-panel mb-4">

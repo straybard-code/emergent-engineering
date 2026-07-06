@@ -386,6 +386,192 @@ public static class BoundaryParameterNames
                 return false;
         }
     }
+
+    public static bool TryApply(Scenario scenario, string parameterName, double value)
+    {
+        switch (parameterName)
+        {
+            case InformationSharingLevel:
+                scenario.InformationSharingLevel = value;
+                return true;
+            case CooperationLevel:
+                scenario.CooperationLevel = value;
+                return true;
+            case CompetitionLevel:
+                scenario.CompetitionLevel = value;
+                return true;
+            case PsychologicalSafetyLevel:
+                scenario.PsychologicalSafetyLevel = value;
+                return true;
+            case LearningOrientationLevel:
+                scenario.LearningOrientationLevel = value;
+                return true;
+            case CustomerOrientationLevel:
+                scenario.CustomerOrientationLevel = value;
+                return true;
+            case ShortTermResultPressureLevel:
+                scenario.ShortTermResultPressureLevel = value;
+                return true;
+            case EffectiveTrustThreshold:
+                scenario.EffectiveTrustThreshold = value;
+                return true;
+            case KnowledgeStock:
+                scenario.KnowledgeStock = value;
+                return true;
+            case KnowledgeDiversity:
+                scenario.KnowledgeDiversity = value;
+                return true;
+            case ExternalShockLevel:
+                scenario.ExternalShockLevel = value;
+                return true;
+            case CrossDomainExposure:
+                scenario.CrossDomainExposure = value;
+                return true;
+            case RewiringSensitivity:
+                scenario.RewiringSensitivity = value;
+                return true;
+            case ExplorationTendency:
+                scenario.ExplorationTendency = value;
+                return true;
+            case SerendipitySensitivity:
+                scenario.SerendipitySensitivity = value;
+                return true;
+            case KnowledgeRecombinationRate:
+                scenario.KnowledgeRecombinationRate = value;
+                return true;
+            case SerendipityThreshold:
+                scenario.SerendipityThreshold = value;
+                return true;
+            case TrustGrowthRate:
+                scenario.TrustGrowthRate = value;
+                return true;
+            case TrustDecayRate:
+                scenario.TrustDecayRate = value;
+                return true;
+            case TrustSaturationStrength:
+                scenario.TrustSaturationStrength = value;
+                return true;
+            case TrustCapacity:
+                scenario.TrustCapacity = Math.Max(1, (int)Math.Round(value));
+                return true;
+            case TrustCapacityPenalty:
+                scenario.TrustCapacityPenalty = value;
+                return true;
+            case DistrustPenalty:
+                scenario.DistrustPenalty = value;
+                return true;
+            case ConstructiveCriticismBonus:
+                scenario.ConstructiveCriticismBonus = value;
+                return true;
+            case ChallengeLevel:
+                scenario.ChallengeLevel = value;
+                return true;
+            case RequiredKnowledgeDiversity:
+                scenario.RequiredKnowledgeDiversity = value;
+                return true;
+            case RequiredCrossDomainExposure:
+                scenario.RequiredCrossDomainExposure = value;
+                return true;
+            case RequiredRewiringScore:
+                scenario.RequiredRewiringScore = value;
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static bool TryApply(SimulationProject simulationProject, string parameterName, double value)
+    {
+        switch (parameterName)
+        {
+            case InformationSharingLevel:
+                simulationProject.InformationSharingLevel = value;
+                return true;
+            case CooperationLevel:
+                simulationProject.CooperationLevel = value;
+                return true;
+            case CompetitionLevel:
+                simulationProject.CompetitionLevel = value;
+                return true;
+            case PsychologicalSafetyLevel:
+                simulationProject.PsychologicalSafetyLevel = value;
+                return true;
+            case LearningOrientationLevel:
+                simulationProject.LearningOrientationLevel = value;
+                return true;
+            case CustomerOrientationLevel:
+                simulationProject.CustomerOrientationLevel = value;
+                return true;
+            case ShortTermResultPressureLevel:
+                simulationProject.ShortTermResultPressureLevel = value;
+                return true;
+            case EffectiveTrustThreshold:
+                simulationProject.EffectiveTrustThreshold = value;
+                return true;
+            case KnowledgeStock:
+                simulationProject.KnowledgeStock = value;
+                return true;
+            case KnowledgeDiversity:
+                simulationProject.KnowledgeDiversity = value;
+                return true;
+            case ExternalShockLevel:
+                simulationProject.ExternalShockLevel = value;
+                return true;
+            case CrossDomainExposure:
+                simulationProject.CrossDomainExposure = value;
+                return true;
+            case RewiringSensitivity:
+                simulationProject.RewiringSensitivity = value;
+                return true;
+            case ExplorationTendency:
+                simulationProject.ExplorationTendency = value;
+                return true;
+            case SerendipitySensitivity:
+                simulationProject.SerendipitySensitivity = value;
+                return true;
+            case KnowledgeRecombinationRate:
+                simulationProject.KnowledgeRecombinationRate = value;
+                return true;
+            case SerendipityThreshold:
+                simulationProject.SerendipityThreshold = value;
+                return true;
+            case TrustGrowthRate:
+                simulationProject.TrustGrowthRate = value;
+                return true;
+            case TrustDecayRate:
+                simulationProject.TrustDecayRate = value;
+                return true;
+            case TrustSaturationStrength:
+                simulationProject.TrustSaturationStrength = value;
+                return true;
+            case TrustCapacity:
+                simulationProject.TrustCapacity = Math.Max(1, (int)Math.Round(value));
+                return true;
+            case TrustCapacityPenalty:
+                simulationProject.TrustCapacityPenalty = value;
+                return true;
+            case DistrustPenalty:
+                simulationProject.DistrustPenalty = value;
+                return true;
+            case ConstructiveCriticismBonus:
+                simulationProject.ConstructiveCriticismBonus = value;
+                return true;
+            case ChallengeLevel:
+                simulationProject.ChallengeLevel = value;
+                return true;
+            case RequiredKnowledgeDiversity:
+                simulationProject.RequiredKnowledgeDiversity = value;
+                return true;
+            case RequiredCrossDomainExposure:
+                simulationProject.RequiredCrossDomainExposure = value;
+                return true;
+            case RequiredRewiringScore:
+                simulationProject.RequiredRewiringScore = value;
+                return true;
+            default:
+                return false;
+        }
+    }
 }
 
 public static class ParameterSweepStatus
@@ -396,6 +582,14 @@ public static class ParameterSweepStatus
     public const string Failed = "Failed";
     public const string StopRequested = "StopRequested";
     public const string Stopped = "Stopped";
+}
+
+public static class PhaseDiagramStatus
+{
+    public const string Created = "Created";
+    public const string Running = "Running";
+    public const string Completed = "Completed";
+    public const string Failed = "Failed";
 }
 
 public static class SimulationPhase

@@ -1,0 +1,34 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.PhaseDiagrams.RunModel
+@{
+    ViewData["Title"] = "相図実行";
+}
+
+@if (Model.Diagram is null)
+{
+    <div class="alert alert-warning">相図が見つかりません。</div>
+    return;
+}
+
+<div class="page-heading">
+    <h1 class="h2">相図実行</h1>
+    <p class="text-muted">2軸グリッドの各点で複数 Run を実行します。相図は実行数が多くなりやすいため、Fast 設定を推奨します。</p>
+</div>
+
+<section class="summary-grid mb-4">
+    <div><h2 class="h6">名前</h2><p>@Model.Diagram.Name</p></div>
+    <div><h2 class="h6">基準シナリオ</h2><p>@Model.ScenarioName</p></div>
+    <div><h2 class="h6">X軸</h2><p>@Model.Diagram.XParameterDisplayName</p></div>
+    <div><h2 class="h6">Y軸</h2><p>@Model.Diagram.YParameterDisplayName</p></div>
+    <div><h2 class="h6">グリッド点数</h2><p>@Model.GridPointCount</p></div>
+    <div><h2 class="h6">推定実行数</h2><p>@Model.EstimatedExecutionCount</p></div>
+</section>
+
+<div class="alert alert-warning">この実行では複数の Experiment / SimulationProject / Run が生成されます。</div>
+
+<form method="post">
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">相図を実行</button>
+        <a asp-page="/PhaseDiagrams/Details" asp-route-id="@Model.Diagram.Id" class="btn btn-outline-secondary">キャンセル</a>
+    </div>
+</form>
