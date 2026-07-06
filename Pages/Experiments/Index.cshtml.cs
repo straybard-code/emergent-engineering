@@ -1,12 +1,20 @@
-using EmergentEngineering.Data;
+﻿using EmergentEngineering.Data;
 using EmergentEngineering.Models;
+using EmergentEngineering.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmergentEngineering.Pages.Experiments;
 
-public sealed class IndexModel(AppDbContext db) : PageModel
+public sealed class IndexModel(AppDbContext db, ExperimentCleanupService cleanupService, ParameterSweepRunner parameterSweepRunner) : PageModel
 {
+    [BindProperty]
+    public List<int> SelectedExperimentIds { get; set; } = [];
+
+    [TempData]
+    public string? CleanupMessage { get; set; }
+
     public List<Experiment> Experiments { get; private set; } = [];
     public int PendingCount { get; private set; }
     public int RunningCount { get; private set; }
@@ -27,6 +35,26 @@ public sealed class IndexModel(AppDbContext db) : PageModel
         CancelledCount = Experiments.Count(item => GetStatusCategory(item.Status) == ExperimentStatusCategory.Cancelled);
     }
 
+    public async Task<IActionResult> OnPostDeleteSelectedAsync(CancellationToken cancellationToken)
+    {
+        if (SelectedExperimentIds.Count == 0)
+        {
+            CleanupMessage = "削除するExperimentを選択してください。";
+            return RedirectToPage();
+        }
+
+        var result = await cleanupService.DeleteExperimentsAsync(
+            SelectedExperimentIds,
+            async (sweepId, innerCancellationToken) =>
+            {
+                await parameterSweepRunner.RecalculateSweepStatusAsync(sweepId, innerCancellationToken);
+            },
+            cancellationToken);
+
+        CleanupMessage = result.ToJapaneseMessage();
+        return RedirectToPage();
+    }
+
     public static ExperimentStatusCategory GetStatusCategory(string? status) => status switch
     {
         "Created" => ExperimentStatusCategory.Pending,
@@ -38,6 +66,12 @@ public sealed class IndexModel(AppDbContext db) : PageModel
         "Cancelled" => ExperimentStatusCategory.Cancelled,
         _ => ExperimentStatusCategory.Pending
     };
+
+    public static bool IsDeletionBlocked(string? status)
+    {
+        return string.Equals(status, ExperimentStatus.Running, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(status, ExperimentStatus.StopRequested, StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 public enum ExperimentStatusCategory

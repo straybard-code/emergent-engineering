@@ -75,9 +75,20 @@
                 <button type="submit" class="btn btn-outline-warning">実験停止</button>
             </form>
         }
-        <a class="btn btn-outline-danger" asp-page="/Experiments/Delete" asp-route-id="@Model.Experiment.Id">削除</a>
+        @if (IndexModel.IsDeletionBlocked(Model.Experiment.Status))
+        {
+            <button type="button" class="btn btn-outline-danger" disabled>削除不可</button>
+        }
+        else
+        {
+            <a class="btn btn-outline-danger" asp-page="/Experiments/Delete" asp-route-id="@Model.Experiment.Id">削除</a>
+        }
     </div>
 </div>
+@if (IndexModel.IsDeletionBlocked(Model.Experiment.Status))
+{
+    <div class="text-muted small mb-3">実行中のExperimentは削除できません。</div>
+}
 
 @if (!string.IsNullOrWhiteSpace(Model.ExperimentMessage))
 {

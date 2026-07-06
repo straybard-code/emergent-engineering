@@ -491,6 +491,10 @@ The delete confirmation page shows:
 - agent action count
 - trust snapshot count
 
+Experiment list pages also support bulk deletion. You can select multiple `Experiment` rows and remove them together with their related `ExperimentRuns`, `SimulationProjects`, `SimulationSteps`, `AgentActions`, `TrustSnapshots`, `SimulationMetrics`, and `ParameterSweepRuns`.
+
+`Scenario` rows are never deleted by experiment cleanup. If an experiment is still running, it is excluded from bulk deletion and the UI shows that running experiments cannot be deleted.
+
 ### Run delete
 
 Experiment details also supports deleting a single run.

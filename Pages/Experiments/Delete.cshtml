@@ -1,7 +1,7 @@
-@page "{id:int}"
+﻿@page "{id:int}"
 @model EmergentEngineering.Pages.Experiments.DeleteModel
 @{
-    ViewData["Title"] = Model.Experiment?.Name ?? "Experiment Delete";
+    ViewData["Title"] = Model.Experiment?.Name ?? "Experiment 削除";
 }
 
 @if (Model.Experiment is null)
@@ -11,9 +11,9 @@
 }
 
 <div class="page-heading">
-    <a asp-page="/Experiments/Details" asp-route-id="@Model.Experiment.Id" class="text-decoration-none small">&larr; Experiment Details</a>
+    <a asp-page="/Experiments/Details" asp-route-id="@Model.Experiment.Id" class="text-decoration-none small">&larr; Experiment 詳細</a>
     <h1 class="h2 mt-2">Experiment 削除</h1>
-    <p class="text-muted mb-0">この操作は元に戻せません。</p>
+    <p class="text-muted mb-0">この Experiment を削除すると、関連する実行データもまとめて削除されます。</p>
 </div>
 
 <section class="log-section mb-4">
@@ -24,22 +24,43 @@
         <dt class="col-sm-4">Run数</dt>
         <dd class="col-sm-8">@Model.ActualRunCount</dd>
 
-        <dt class="col-sm-4">関連SimulationProject数</dt>
+        <dt class="col-sm-4">Simulation数</dt>
         <dd class="col-sm-8">@Model.SimulationProjectCount</dd>
 
-        <dt class="col-sm-4">AgentActions件数</dt>
+        <dt class="col-sm-4">SimulationStep数</dt>
+        <dd class="col-sm-8">@Model.SimulationStepCount</dd>
+
+        <dt class="col-sm-4">Agent数</dt>
+        <dd class="col-sm-8">@Model.AgentCount</dd>
+
+        <dt class="col-sm-4">AgentAction数</dt>
         <dd class="col-sm-8">@Model.AgentActionCount</dd>
 
-        <dt class="col-sm-4">TrustSnapshots件数</dt>
+        <dt class="col-sm-4">TrustSnapshot数</dt>
         <dd class="col-sm-8">@Model.TrustSnapshotCount</dd>
+
+        <dt class="col-sm-4">ParameterSweepResult数</dt>
+        <dd class="col-sm-8">@Model.ParameterSweepRunCount</dd>
     </dl>
 </section>
 
 <div class="alert alert-danger">
-    Experiment を削除すると、関連する ExperimentRuns と SimulationProjects も削除されます。
+    Experiment を削除すると、関連する ExperimentRuns、SimulationProjects、SimulationSteps、Agents、AgentActions、TrustSnapshots、SimulationMetrics、ParameterSweepRuns も削除されます。Scenarios は削除されません。
 </div>
 
+@if (!Model.CanDelete)
+{
+    <div class="alert alert-warning">実行中のExperimentは削除できません。</div>
+}
+
 <form method="post" class="d-flex gap-2 flex-wrap">
-    <button type="submit" class="btn btn-danger">削除を確定</button>
+    @if (Model.CanDelete)
+    {
+        <button type="submit" class="btn btn-danger">削除を実行</button>
+    }
+    else
+    {
+        <button type="button" class="btn btn-danger" disabled>削除を実行</button>
+    }
     <a asp-page="/Experiments/Details" asp-route-id="@Model.Experiment.Id" class="btn btn-outline-secondary">キャンセル</a>
 </form>

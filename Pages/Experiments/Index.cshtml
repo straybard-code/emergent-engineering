@@ -30,6 +30,8 @@
         ExperimentStatusCategory.Running => "experiment-running",
         _ => ""
     };
+
+    private static bool IsDeleteBlocked(string? status) => IndexModel.IsDeletionBlocked(status);
 }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -39,6 +41,11 @@
     </div>
     <a class="btn btn-primary" asp-page="/Experiments/Create">新規 Experiment</a>
 </div>
+
+@if (!string.IsNullOrWhiteSpace(Model.CleanupMessage))
+{
+    <div class="alert alert-info">@Model.CleanupMessage</div>
+}
 
 <section class="experiment-status-summary mb-4">
     <span class="status-badge status-running">実行中: @Model.RunningCount</span>
@@ -57,41 +64,85 @@
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Run Count</th>
-                    <th>Agents</th>
-                    <th>Steps</th>
-                    <th>Created</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var experiment in Model.Experiments)
-            {
-                <tr class="@GetRowClass(experiment.Status)">
-                    <td>
-                        <strong>@experiment.Name</strong>
-                        <div class="text-muted small">@experiment.Description</div>
-                    </td>
-                    <td><span class="@GetStatusBadgeClass(experiment.Status)">@FormatStatus(experiment.Status)</span></td>
-                    <td>@experiment.RunCount</td>
-                    <td>@experiment.AgentCount</td>
-                    <td>@experiment.TotalSteps</td>
-                    <td>@experiment.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
-                    <td class="text-end">
-                        <div class="d-flex justify-content-end gap-2 flex-wrap">
-                            <a class="btn btn-sm btn-outline-primary" asp-page="/Experiments/Details" asp-route-id="@experiment.Id">詳細</a>
-                            <a class="btn btn-sm btn-outline-danger" asp-page="/Experiments/Delete" asp-route-id="@experiment.Id">削除</a>
-                        </div>
-                    </td>
-                </tr>
+    <form method="post" asp-page-handler="DeleteSelected" onsubmit="return confirm('選択したExperimentと関連するRun、Simulation、Step、Action、TrustSnapshotを削除します。よろしいですか？');">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3 flex-wrap">
+            <div class="text-muted small">実行中のExperimentは削除できません。</div>
+            <button type="submit" class="btn btn-danger">選択したExperimentを削除</button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 2.5rem;">
+                            <input type="checkbox" id="selectAllExperiments" class="form-check-input" aria-label="全選択" />
+                        </th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Run Count</th>
+                        <th>Agents</th>
+                        <th>Steps</th>
+                        <th>Created</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var experiment in Model.Experiments)
+                {
+                    <tr class="@GetRowClass(experiment.Status)">
+                        <td>
+                            @if (IsDeleteBlocked(experiment.Status))
+                            {
+                                <input type="checkbox" class="form-check-input experiment-delete-checkbox" disabled aria-label="削除不可" />
+                            }
+                            else
+                            {
+                                <input type="checkbox" class="form-check-input experiment-delete-checkbox" name="SelectedExperimentIds" value="@experiment.Id" aria-label="@experiment.Name を選択" />
+                            }
+                        </td>
+                        <td>
+                            <strong>@experiment.Name</strong>
+                            <div class="text-muted small">@experiment.Description</div>
+                        </td>
+                        <td><span class="@GetStatusBadgeClass(experiment.Status)">@FormatStatus(experiment.Status)</span></td>
+                        <td>@experiment.RunCount</td>
+                        <td>@experiment.AgentCount</td>
+                        <td>@experiment.TotalSteps</td>
+                        <td>@experiment.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2 flex-wrap">
+                                <a class="btn btn-sm btn-outline-primary" asp-page="/Experiments/Details" asp-route-id="@experiment.Id">詳細</a>
+                                @if (IsDeleteBlocked(experiment.Status))
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger" disabled>削除不可</button>
+                                }
+                                else
+                                {
+                                    <a class="btn btn-sm btn-outline-danger" asp-page="/Experiments/Delete" asp-route-id="@experiment.Id">削除</a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </form>
+}
+
+@section Scripts {
+    <script>
+        (() => {
+            const selectAll = document.getElementById('selectAllExperiments');
+            if (!selectAll) {
+                return;
             }
-            </tbody>
-        </table>
-    </div>
+
+            selectAll.addEventListener('change', () => {
+                document.querySelectorAll('.experiment-delete-checkbox:not(:disabled)').forEach(checkbox => {
+                    checkbox.checked = selectAll.checked;
+                });
+            });
+        })();
+    </script>
 }
