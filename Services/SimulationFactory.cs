@@ -123,6 +123,15 @@ public static class SimulationFactory
             ThanksCoinPopularityBias = request.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = request.ThanksCoinDiversityBonus,
             ThanksCoinChallengeBonus = request.ThanksCoinChallengeBonus,
+            EnableIntellectualRespect = request.EnableIntellectualRespect,
+            IntellectualRespectBase = request.IntellectualRespectBase,
+            IntellectualRespectGrowthRate = request.IntellectualRespectGrowthRate,
+            IntellectualRespectDecayRate = request.IntellectualRespectDecayRate,
+            IntellectualRespectDiversitySensitivity = request.IntellectualRespectDiversitySensitivity,
+            IntellectualRespectChallengeSensitivity = request.IntellectualRespectChallengeSensitivity,
+            IntellectualRespectMentorshipSensitivity = request.IntellectualRespectMentorshipSensitivity,
+            IntellectualRespectEgoPenalty = request.IntellectualRespectEgoPenalty,
+            IntellectualRespectHierarchyPenalty = request.IntellectualRespectHierarchyPenalty,
             CurrentStep = 0,
             Status = SimulationStatus.Created,
             Phase = SimulationPhase.Forming,
@@ -211,6 +220,15 @@ public static class SimulationFactory
             ThanksCoinPopularityBias = request.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = request.ThanksCoinDiversityBonus,
             ThanksCoinChallengeBonus = request.ThanksCoinChallengeBonus,
+            EnableIntellectualRespect = request.EnableIntellectualRespect,
+            IntellectualRespectBase = request.IntellectualRespectBase,
+            IntellectualRespectGrowthRate = request.IntellectualRespectGrowthRate,
+            IntellectualRespectDecayRate = request.IntellectualRespectDecayRate,
+            IntellectualRespectDiversitySensitivity = request.IntellectualRespectDiversitySensitivity,
+            IntellectualRespectChallengeSensitivity = request.IntellectualRespectChallengeSensitivity,
+            IntellectualRespectMentorshipSensitivity = request.IntellectualRespectMentorshipSensitivity,
+            IntellectualRespectEgoPenalty = request.IntellectualRespectEgoPenalty,
+            IntellectualRespectHierarchyPenalty = request.IntellectualRespectHierarchyPenalty,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -286,6 +304,15 @@ public static class SimulationFactory
             ThanksCoinPopularityBias = scenario.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = scenario.ThanksCoinDiversityBonus,
             ThanksCoinChallengeBonus = scenario.ThanksCoinChallengeBonus,
+            EnableIntellectualRespect = scenario.EnableIntellectualRespect,
+            IntellectualRespectBase = scenario.IntellectualRespectBase,
+            IntellectualRespectGrowthRate = scenario.IntellectualRespectGrowthRate,
+            IntellectualRespectDecayRate = scenario.IntellectualRespectDecayRate,
+            IntellectualRespectDiversitySensitivity = scenario.IntellectualRespectDiversitySensitivity,
+            IntellectualRespectChallengeSensitivity = scenario.IntellectualRespectChallengeSensitivity,
+            IntellectualRespectMentorshipSensitivity = scenario.IntellectualRespectMentorshipSensitivity,
+            IntellectualRespectEgoPenalty = scenario.IntellectualRespectEgoPenalty,
+            IntellectualRespectHierarchyPenalty = scenario.IntellectualRespectHierarchyPenalty,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -357,6 +384,15 @@ public static class SimulationFactory
             ThanksCoinPopularityBias = request.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = request.ThanksCoinDiversityBonus,
             ThanksCoinChallengeBonus = request.ThanksCoinChallengeBonus,
+            EnableIntellectualRespect = request.EnableIntellectualRespect,
+            IntellectualRespectBase = request.IntellectualRespectBase,
+            IntellectualRespectGrowthRate = request.IntellectualRespectGrowthRate,
+            IntellectualRespectDecayRate = request.IntellectualRespectDecayRate,
+            IntellectualRespectDiversitySensitivity = request.IntellectualRespectDiversitySensitivity,
+            IntellectualRespectChallengeSensitivity = request.IntellectualRespectChallengeSensitivity,
+            IntellectualRespectMentorshipSensitivity = request.IntellectualRespectMentorshipSensitivity,
+            IntellectualRespectEgoPenalty = request.IntellectualRespectEgoPenalty,
+            IntellectualRespectHierarchyPenalty = request.IntellectualRespectHierarchyPenalty,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
@@ -421,7 +457,16 @@ public static class SimulationFactory
             ThanksCoinBridgeGain = experiment.ThanksCoinBridgeGain,
             ThanksCoinPopularityBias = experiment.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = experiment.ThanksCoinDiversityBonus,
-            ThanksCoinChallengeBonus = experiment.ThanksCoinChallengeBonus
+            ThanksCoinChallengeBonus = experiment.ThanksCoinChallengeBonus,
+            EnableIntellectualRespect = experiment.EnableIntellectualRespect,
+            IntellectualRespectBase = experiment.IntellectualRespectBase,
+            IntellectualRespectGrowthRate = experiment.IntellectualRespectGrowthRate,
+            IntellectualRespectDecayRate = experiment.IntellectualRespectDecayRate,
+            IntellectualRespectDiversitySensitivity = experiment.IntellectualRespectDiversitySensitivity,
+            IntellectualRespectChallengeSensitivity = experiment.IntellectualRespectChallengeSensitivity,
+            IntellectualRespectMentorshipSensitivity = experiment.IntellectualRespectMentorshipSensitivity,
+            IntellectualRespectEgoPenalty = experiment.IntellectualRespectEgoPenalty,
+            IntellectualRespectHierarchyPenalty = experiment.IntellectualRespectHierarchyPenalty
         });
 
         project.ExperimentId = experiment.Id;
@@ -449,6 +494,18 @@ public static class SimulationFactory
             scenario.RequiredCrossDomainExposure = 0;
             scenario.RequiredRewiringScore = 0;
         }
+
+        if (!scenario.EnableIntellectualRespect)
+        {
+            scenario.IntellectualRespectBase = 0;
+            scenario.IntellectualRespectGrowthRate = 0;
+            scenario.IntellectualRespectDecayRate = 0;
+            scenario.IntellectualRespectDiversitySensitivity = 0;
+            scenario.IntellectualRespectChallengeSensitivity = 0;
+            scenario.IntellectualRespectMentorshipSensitivity = 0;
+            scenario.IntellectualRespectEgoPenalty = 0;
+            scenario.IntellectualRespectHierarchyPenalty = 0;
+        }
     }
 
     public static void NormalizeOptionalEventSettings(CreateSimulationRequest request)
@@ -470,6 +527,18 @@ public static class SimulationFactory
             request.RequiredKnowledgeDiversity = 0;
             request.RequiredCrossDomainExposure = 0;
             request.RequiredRewiringScore = 0;
+        }
+
+        if (!request.EnableIntellectualRespect)
+        {
+            request.IntellectualRespectBase = 0;
+            request.IntellectualRespectGrowthRate = 0;
+            request.IntellectualRespectDecayRate = 0;
+            request.IntellectualRespectDiversitySensitivity = 0;
+            request.IntellectualRespectChallengeSensitivity = 0;
+            request.IntellectualRespectMentorshipSensitivity = 0;
+            request.IntellectualRespectEgoPenalty = 0;
+            request.IntellectualRespectHierarchyPenalty = 0;
         }
     }
 
@@ -493,6 +562,18 @@ public static class SimulationFactory
             request.RequiredCrossDomainExposure = 0;
             request.RequiredRewiringScore = 0;
         }
+
+        if (!request.EnableIntellectualRespect)
+        {
+            request.IntellectualRespectBase = 0;
+            request.IntellectualRespectGrowthRate = 0;
+            request.IntellectualRespectDecayRate = 0;
+            request.IntellectualRespectDiversitySensitivity = 0;
+            request.IntellectualRespectChallengeSensitivity = 0;
+            request.IntellectualRespectMentorshipSensitivity = 0;
+            request.IntellectualRespectEgoPenalty = 0;
+            request.IntellectualRespectHierarchyPenalty = 0;
+        }
     }
 
     public static void NormalizeOptionalEventSettings(Experiment experiment)
@@ -515,6 +596,18 @@ public static class SimulationFactory
             experiment.RequiredCrossDomainExposure = 0;
             experiment.RequiredRewiringScore = 0;
         }
+
+        if (!experiment.EnableIntellectualRespect)
+        {
+            experiment.IntellectualRespectBase = 0;
+            experiment.IntellectualRespectGrowthRate = 0;
+            experiment.IntellectualRespectDecayRate = 0;
+            experiment.IntellectualRespectDiversitySensitivity = 0;
+            experiment.IntellectualRespectChallengeSensitivity = 0;
+            experiment.IntellectualRespectMentorshipSensitivity = 0;
+            experiment.IntellectualRespectEgoPenalty = 0;
+            experiment.IntellectualRespectHierarchyPenalty = 0;
+        }
     }
 
     public static void NormalizeOptionalEventSettings(SimulationProject project)
@@ -536,6 +629,18 @@ public static class SimulationFactory
             project.RequiredKnowledgeDiversity = 0;
             project.RequiredCrossDomainExposure = 0;
             project.RequiredRewiringScore = 0;
+        }
+
+        if (!project.EnableIntellectualRespect)
+        {
+            project.IntellectualRespectBase = 0;
+            project.IntellectualRespectGrowthRate = 0;
+            project.IntellectualRespectDecayRate = 0;
+            project.IntellectualRespectDiversitySensitivity = 0;
+            project.IntellectualRespectChallengeSensitivity = 0;
+            project.IntellectualRespectMentorshipSensitivity = 0;
+            project.IntellectualRespectEgoPenalty = 0;
+            project.IntellectualRespectHierarchyPenalty = 0;
         }
     }
 }

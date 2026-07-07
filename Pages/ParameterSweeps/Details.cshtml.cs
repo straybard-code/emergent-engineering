@@ -512,11 +512,21 @@ public sealed class DetailsModel(
             AverageKnowledgeDiversity = RoundAverage(analyses.Select(item => item.AverageKnowledgeDiversity)),
             AverageKnowledgeRecombinationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeRecombinationScore)),
             AverageKnowledgeReconfigurationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeReconfigurationScore)),
+            AverageIntellectualRespect = RoundAverage(analyses.Select(item => item.AverageIntellectualRespect)),
+            IntellectualRespectDensity = RoundAverage(analyses.Select(item => item.IntellectualRespectDensity)),
+            IntellectualRespectDiversityIndex = RoundAverage(analyses.Select(item => item.IntellectualRespectDiversityIndex)),
+            IntellectualRespectConcentration = RoundAverage(analyses.Select(item => item.IntellectualRespectConcentration)),
+            MutualMentorshipScore = RoundAverage(analyses.Select(item => item.MutualMentorshipScore)),
+            IdeaAcceptanceScore = RoundAverage(analyses.Select(item => item.IdeaAcceptanceScore)),
             AverageEmergentScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.EmergentScore ?? 0)),
             AverageStableScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.StableScore ?? 0)),
             AverageLearningScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.LearningScore ?? 0)),
             AverageSiloScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.SiloScore ?? 0)),
             AverageAdaptationScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.AdaptationScore ?? 0)),
+            AverageIntellectualRespectReconfigurationComponent = RoundAverage(analyses.Select(item => item.AverageIntellectualRespectReconfigurationComponent)),
+            AverageIntellectualRespectSerendipityComponent = RoundAverage(analyses.Select(item => item.AverageIntellectualRespectSerendipityComponent)),
+            AverageIntellectualRespectEmergenceComponent = RoundAverage(analyses.Select(item => item.AverageIntellectualRespectEmergenceComponent)),
+            LearnedFromUnexpectedAgentCount = (int)Math.Round(RoundAverage(analyses.Select(item => (double)item.LearnedFromUnexpectedAgentCount)), 0),
             AveragePipelineCompletionScore = RoundAverage(analyses.Select(item => item.AveragePipelineCompletionScore)),
             MostCommonPipelineBottleneck = mostCommonPipelineBottleneck,
             PipelineBottleneckInterpretation = KnowledgeAnalysisService.BuildPipelineBottleneckInterpretation(mostCommonPipelineBottleneck),
@@ -572,6 +582,24 @@ public sealed class DetailsModel(
         var averageRespect = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.AverageRespect), 3);
+        var averageIntellectualRespect = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.AverageIntellectualRespect), 3);
+        var intellectualRespectDensity = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectDensity), 3);
+        var intellectualRespectDiversityIndex = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectDiversityIndex), 3);
+        var intellectualRespectConcentration = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectConcentration), 3);
+        var mutualMentorshipScore = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.MutualMentorshipScore), 3);
+        var ideaAcceptanceScore = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.IdeaAcceptanceScore), 3);
         var averageChallengeAcceptanceScore = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.ChallengeAcceptanceScore), 3);
@@ -581,6 +609,18 @@ public sealed class DetailsModel(
         var averageRespectEmergenceComponent = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.RespectEmergenceComponent), 3);
+        var averageIntellectualRespectReconfigurationComponent = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectReconfigurationComponent), 3);
+        var averageIntellectualRespectSerendipityComponent = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectSerendipityComponent), 3);
+        var averageIntellectualRespectEmergenceComponent = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectEmergenceComponent), 3);
+        var learnedFromUnexpectedAgentCount = knowledgeTimeline.Count == 0
+            ? 0
+            : (int)Math.Round(knowledgeTimeline.Average(item => item.LearnedFromUnexpectedAgentCount), 0);
         var averageLearningScore = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.LearningScore), 3);
@@ -629,9 +669,18 @@ public sealed class DetailsModel(
             AverageKnowledgeRecombinationScore = averageKnowledgeRecombinationScore,
             AverageKnowledgeReconfigurationScore = averageKnowledgeReconfigurationScore,
             AverageRespect = averageRespect,
+            AverageIntellectualRespect = averageIntellectualRespect,
+            IntellectualRespectDensity = intellectualRespectDensity,
+            IntellectualRespectDiversityIndex = intellectualRespectDiversityIndex,
+            IntellectualRespectConcentration = intellectualRespectConcentration,
+            MutualMentorshipScore = mutualMentorshipScore,
+            IdeaAcceptanceScore = ideaAcceptanceScore,
             AverageChallengeAcceptanceScore = averageChallengeAcceptanceScore,
             AverageRespectReconfigurationBoost = averageRespectReconfigurationBoost,
             AverageRespectEmergenceComponent = averageRespectEmergenceComponent,
+            AverageIntellectualRespectReconfigurationComponent = averageIntellectualRespectReconfigurationComponent,
+            AverageIntellectualRespectSerendipityComponent = averageIntellectualRespectSerendipityComponent,
+            AverageIntellectualRespectEmergenceComponent = averageIntellectualRespectEmergenceComponent,
             AverageLearningScore = averageLearningScore,
             AverageAdaptationScore = averageAdaptationScore,
             AverageEmergentScore = averageEmergentScore,
@@ -640,6 +689,7 @@ public sealed class DetailsModel(
             AverageThanksCoinToSerendipityContribution = averageThanksCoinToSerendipityContribution,
             AverageThanksCoinToEmergenceContribution = averageThanksCoinToEmergenceContribution,
             PopularityTrapRate = popularityTrapRate,
+            LearnedFromUnexpectedAgentCount = learnedFromUnexpectedAgentCount,
             MostCommonPipelineBottleneck = mostCommonPipelineBottleneck,
             SerendipityOccurred = knowledgeTimeline.Any(item => item.SerendipityOccurred),
             SerendipityToEmergenceLink = knowledgeTimeline.Any(item => item.SerendipityToEmergenceLink),
@@ -1535,9 +1585,18 @@ public sealed class DetailsModel(
         public double AverageKnowledgeRecombinationScore { get; init; }
         public double AverageKnowledgeReconfigurationScore { get; init; }
         public double AverageRespect { get; init; }
+        public double AverageIntellectualRespect { get; init; }
+        public double IntellectualRespectDensity { get; init; }
+        public double IntellectualRespectDiversityIndex { get; init; }
+        public double IntellectualRespectConcentration { get; init; }
+        public double MutualMentorshipScore { get; init; }
+        public double IdeaAcceptanceScore { get; init; }
         public double AverageChallengeAcceptanceScore { get; init; }
         public double AverageRespectReconfigurationBoost { get; init; }
         public double AverageRespectEmergenceComponent { get; init; }
+        public double AverageIntellectualRespectReconfigurationComponent { get; init; }
+        public double AverageIntellectualRespectSerendipityComponent { get; init; }
+        public double AverageIntellectualRespectEmergenceComponent { get; init; }
         public double AverageLearningScore { get; init; }
         public double AverageAdaptationScore { get; init; }
         public double AverageEmergentScore { get; init; }
@@ -1546,6 +1605,7 @@ public sealed class DetailsModel(
         public double AverageThanksCoinToSerendipityContribution { get; init; }
         public double AverageThanksCoinToEmergenceContribution { get; init; }
         public double PopularityTrapRate { get; init; }
+        public int LearnedFromUnexpectedAgentCount { get; init; }
         public string MostCommonPipelineBottleneck { get; init; } = "--";
         public bool SerendipityOccurred { get; init; }
         public bool SerendipityToEmergenceLink { get; init; }

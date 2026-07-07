@@ -23,6 +23,7 @@ public static class ThanksCoinService
         }
 
         var respectMatrix = LoadRespectMatrix(previousKnowledgePoint?.RespectJson, project, agents);
+        var baselineMetrics = CalculateRespectMetrics(project, agents, respectMatrix);
         var trustMaps = agents.ToDictionary(
             agent => agent.Id,
             agent => TrustJsonUtility.Deserialize(agent.TrustJson));
@@ -48,7 +49,9 @@ public static class ThanksCoinService
             };
         }
 
-        var totalEvents = Math.Max(1, (int)Math.Round(Math.Clamp(project.ThanksCoinRate, 0, 1) * agents.Count));
+        var totalEvents = Math.Max(
+            1,
+            (int)Math.Round(Math.Clamp(project.ThanksCoinRate, 0, 1) * agents.Count * (0.5 + baselineMetrics.AverageRespect)));
         var typeCounts = AllocateTypeCounts(project, actions, totalEvents);
         var eventTypes = ExpandEventTypes(typeCounts);
         var receiverCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -108,17 +111,17 @@ public static class ThanksCoinService
 
                 case ThanksCoinTypes.Idea:
                     ideaCount++;
-                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, sender.Name, receiver.Name, respectGain);
-                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, receiver.Name, sender.Name, respectGain);
-                    reconfigurationDeltaTotal += reconfigurationGain;
+                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, sender.Name, receiver.Name, respectGain * 1.10);
+                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, receiver.Name, sender.Name, respectGain * 1.10);
+                    reconfigurationDeltaTotal += reconfigurationGain * 1.25;
                     break;
 
                 case ThanksCoinTypes.Challenge:
                     challengeCount++;
-                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, sender.Name, receiver.Name, respectGain);
-                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, receiver.Name, sender.Name, respectGain);
-                    psychologicalSafetyDeltaTotal += psychologicalSafetyGain + (challengeBonus * 0.35);
-                    reconfigurationDeltaTotal += reconfigurationGain;
+                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, sender.Name, receiver.Name, respectGain * 1.15);
+                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, receiver.Name, sender.Name, respectGain * 1.15);
+                    psychologicalSafetyDeltaTotal += psychologicalSafetyGain + (challengeBonus * 0.45);
+                    reconfigurationDeltaTotal += reconfigurationGain * 1.40;
                     trustDeltaTotal += ApplyTrustDelta(
                         senderTrustMap,
                         receiver.Name,
@@ -127,13 +130,13 @@ public static class ThanksCoinService
 
                 case ThanksCoinTypes.Bridge:
                     bridgeCount++;
-                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, sender.Name, receiver.Name, respectGain);
-                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, receiver.Name, sender.Name, respectGain);
-                    serendipityDeltaTotal += bridgeGain * 1.10;
+                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, sender.Name, receiver.Name, respectGain * 1.20);
+                    respectDeltaTotal += ApplyRespectDelta(respectMatrix, receiver.Name, sender.Name, respectGain * 1.20);
+                    serendipityDeltaTotal += bridgeGain * 1.25;
                     bridgeDeltaTotal += bridgeGain;
-                    crossDomainExposureDeltaTotal += bridgeGain * 0.70;
-                    rewiringDeltaTotal += bridgeGain * 0.70;
-                    reconfigurationDeltaTotal += reconfigurationGain * 0.40;
+                    crossDomainExposureDeltaTotal += bridgeGain * 0.85;
+                    rewiringDeltaTotal += bridgeGain * 0.85;
+                    reconfigurationDeltaTotal += reconfigurationGain * 0.55;
                     trustDeltaTotal += ApplyTrustDelta(senderTrustMap, receiver.Name, trustGain * 0.25);
                     trustDeltaTotal += ApplyTrustDelta(trustMaps[receiver.Id], sender.Name, trustGain * 0.15);
                     break;
@@ -178,6 +181,7 @@ public static class ThanksCoinService
             RespectStrongLinks = metrics.RespectStrongLinks,
             RespectWeakLinks = metrics.RespectWeakLinks,
             RespectConcentration = metrics.RespectConcentration,
+            RespectDiversityIndex = metrics.RespectDiversityIndex,
             RespectJson = respectJson
         };
     }
@@ -202,7 +206,8 @@ public static class ThanksCoinService
             RespectDensity = metrics.RespectDensity,
             RespectStrongLinks = metrics.RespectStrongLinks,
             RespectWeakLinks = metrics.RespectWeakLinks,
-            RespectConcentration = metrics.RespectConcentration
+            RespectConcentration = metrics.RespectConcentration,
+            RespectDiversityIndex = metrics.RespectDiversityIndex
         };
     }
 
@@ -226,20 +231,20 @@ public static class ThanksCoinService
         int totalEvents)
     {
         var helpWeight = 0.40
-            + (Math.Clamp(project.CooperationLevel, 0, 1) * 0.20)
+            + (Math.Clamp(project.CooperationLevel, 0, 1) * 0.15)
             + (actions.SupportOtherRate * 0.10);
         var ideaWeight = 0.25
-            + (Math.Clamp(project.LearningOrientationLevel, 0, 1) * 0.20)
-            + (actions.ProposeIdeaRate * 0.10);
+            + (Math.Clamp(project.LearningOrientationLevel, 0, 1) * 0.25)
+            + (actions.ProposeIdeaRate * 0.15);
         var challengeWeight = 0.20
-            + (Math.Clamp(project.PsychologicalSafetyLevel, 0, 1) * 0.20)
-            + (Math.Clamp(project.ConstructiveCriticismBonus, 0, 1) * 0.15)
-            + (Math.Clamp(project.ThanksCoinChallengeBonus, 0, 1) * 0.25)
-            + (actions.CriticizeRate * 0.10);
-        var bridgeWeight = 0.15
-            + (Math.Clamp(project.CrossDomainExposure, 0, 1) * 0.20)
-            + (Math.Clamp(project.RewiringSensitivity, 0, 1) * 0.10)
-            + (Math.Clamp(project.ThanksCoinDiversityBonus, 0, 1) * 0.25);
+            + (Math.Clamp(project.PsychologicalSafetyLevel, 0, 1) * 0.25)
+            + (Math.Clamp(project.ConstructiveCriticismBonus, 0, 1) * 0.20)
+            + (Math.Clamp(project.ThanksCoinChallengeBonus, 0, 1) * 0.35)
+            + (actions.CriticizeRate * 0.15);
+        var bridgeWeight = 0.20
+            + (Math.Clamp(project.CrossDomainExposure, 0, 1) * 0.25)
+            + (Math.Clamp(project.RewiringSensitivity, 0, 1) * 0.15)
+            + (Math.Clamp(project.ThanksCoinDiversityBonus, 0, 1) * 0.35);
 
         if (project.PsychologicalSafetyLevel < 0.4)
         {
@@ -312,10 +317,10 @@ public static class ThanksCoinService
                     var value when string.Equals(value, ThanksCoinTypes.Help, StringComparison.OrdinalIgnoreCase)
                         => 0.35 + (trust * 0.45) + (respect * 0.25) + (project.ThanksCoinPopularityBias * inbound * 0.20) + (project.ThanksCoinDiversityBonus * diversity * 0.15),
                     var value when string.Equals(value, ThanksCoinTypes.Idea, StringComparison.OrdinalIgnoreCase)
-                        => 0.25 + (respect * 0.35) + (project.LearningOrientationLevel * 0.25) + (project.ThanksCoinDiversityBonus * 0.20) + (project.ThanksCoinPopularityBias * inbound * 0.10),
+                        => 0.25 + (respect * 0.40) + (project.LearningOrientationLevel * 0.30) + (project.ThanksCoinDiversityBonus * 0.20) + (project.ThanksCoinPopularityBias * inbound * 0.10),
                     var value when string.Equals(value, ThanksCoinTypes.Challenge, StringComparison.OrdinalIgnoreCase)
-                        => 0.20 + (trust * 0.25) + (respect * 0.30) + (project.PsychologicalSafetyLevel * 0.25) + (project.ThanksCoinChallengeBonus * 0.20),
-                    _ => 0.15 + (diversity * 0.45) + ((1 - respect) * 0.15) + (project.CrossDomainExposure * 0.10) + (project.ThanksCoinDiversityBonus * 0.20)
+                        => 0.20 + (trust * 0.20) + (respect * 0.35) + (project.PsychologicalSafetyLevel * 0.30) + (project.ThanksCoinChallengeBonus * 0.25),
+                    _ => 0.15 + (diversity * 0.55) + ((1 - respect) * 0.10) + (project.CrossDomainExposure * 0.15) + (project.ThanksCoinDiversityBonus * 0.25)
                 };
 
                 return new { Candidate = candidate, Score = score };
@@ -461,7 +466,7 @@ public static class ThanksCoinService
     {
         if (agents.Count <= 1)
         {
-            return new RespectMetrics(0, 0, 0, 0, 0);
+            return new RespectMetrics(0, 0, 0, 0, 0, 1);
         }
 
         var totalPairs = 0;
@@ -495,7 +500,8 @@ public static class ThanksCoinService
         var averageRespect = Math.Round(totalRespect / totalPairs, 4);
         var respectDensity = Math.Round(strongLinks / (double)totalPairs, 4);
         var respectConcentration = CalculateRespectConcentration(project, agents, respectMatrix);
-        return new RespectMetrics(averageRespect, respectDensity, strongLinks, weakLinks, respectConcentration);
+        var respectDiversityIndex = Math.Round(1 - respectConcentration, 4);
+        return new RespectMetrics(averageRespect, respectDensity, strongLinks, weakLinks, respectConcentration, respectDiversityIndex);
     }
 
     private static double CalculateRespectConcentration(
@@ -632,7 +638,8 @@ public static class ThanksCoinService
         double RespectDensity,
         int RespectStrongLinks,
         int RespectWeakLinks,
-        double RespectConcentration);
+        double RespectConcentration,
+        double RespectDiversityIndex);
 }
 
 public sealed record ThanksCoinStepResult
@@ -657,5 +664,6 @@ public sealed record ThanksCoinStepResult
     public int RespectStrongLinks { get; init; }
     public int RespectWeakLinks { get; init; }
     public double RespectConcentration { get; init; }
+    public double RespectDiversityIndex { get; init; }
     public string RespectJson { get; init; } = "{}";
 }

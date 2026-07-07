@@ -51,6 +51,17 @@ public sealed class DetailsModel(
     public double AverageRespectMean { get; private set; }
     public double AverageRespectDensityMean { get; private set; }
     public double AverageRespectConcentrationMean { get; private set; }
+    public double AverageIntellectualRespectMean { get; private set; }
+    public double AverageIntellectualRespectDensityMean { get; private set; }
+    public double AverageIntellectualRespectDiversityIndexMean { get; private set; }
+    public double AverageIdeaAcceptanceScoreMean { get; private set; }
+    public double AverageMutualMentorshipScoreMean { get; private set; }
+    public double AverageIntellectualRespectReconfigurationComponentMean { get; private set; }
+    public double AverageIntellectualRespectSerendipityComponentMean { get; private set; }
+    public double AverageIntellectualRespectEmergenceComponentMean { get; private set; }
+    public double AverageEgoPenaltyAppliedMean { get; private set; }
+    public double AverageHierarchyPenaltyAppliedMean { get; private set; }
+    public double AverageLearnedFromUnexpectedAgentCountMean { get; private set; }
     public double AverageThanksCoinRateMean { get; private set; }
     public double AverageThanksHelpRateMean { get; private set; }
     public double AverageThanksIdeaRateMean { get; private set; }
@@ -142,6 +153,17 @@ public sealed class DetailsModel(
         AverageRespectMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageRespect), 3);
         AverageRespectDensityMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.RespectDensity), 3);
         AverageRespectConcentrationMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.RespectConcentration), 3);
+        AverageIntellectualRespectMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageIntellectualRespect), 3);
+        AverageIntellectualRespectDensityMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.IntellectualRespectDensity), 3);
+        AverageIntellectualRespectDiversityIndexMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.IntellectualRespectDiversityIndex), 3);
+        AverageIdeaAcceptanceScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageIdeaAcceptanceScore), 3);
+        AverageMutualMentorshipScoreMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.MutualMentorshipScore), 3);
+        AverageIntellectualRespectReconfigurationComponentMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageIntellectualRespectReconfigurationComponent), 3);
+        AverageIntellectualRespectSerendipityComponentMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageIntellectualRespectSerendipityComponent), 3);
+        AverageIntellectualRespectEmergenceComponentMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageIntellectualRespectEmergenceComponent), 3);
+        AverageEgoPenaltyAppliedMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageEgoPenaltyApplied), 3);
+        AverageHierarchyPenaltyAppliedMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.AverageHierarchyPenaltyApplied), 3);
+        AverageLearnedFromUnexpectedAgentCountMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.LearnedFromUnexpectedAgentCount), 3);
         AverageThanksCoinRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksCoinRate), 3);
         AverageThanksHelpRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksHelpRate), 3);
         AverageThanksIdeaRateMean = RunFingerprints.Count == 0 ? 0 : Math.Round(RunFingerprints.Average(item => item.ThanksIdeaRate), 3);

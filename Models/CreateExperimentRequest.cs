@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmergentEngineering.Models;
 
-public sealed class CreateExperimentRequest : IThanksCoinSettings, IMutualRespectSettings, IValidatableObject
+public sealed class CreateExperimentRequest : IThanksCoinSettings, IMutualRespectSettings, IIntellectualRespectSettings, IValidatableObject
 {
     [Required]
     [StringLength(200)]
@@ -194,6 +194,15 @@ public sealed class CreateExperimentRequest : IThanksCoinSettings, IMutualRespec
 
     [Range(0, 1)]
     public double MutualRespectPopularityPenalty { get; set; } = MutualRespectDefaults.PopularityPenalty;
+    public bool EnableIntellectualRespect { get; set; } = IntellectualRespectDefaults.Enable;
+    public double IntellectualRespectBase { get; set; } = IntellectualRespectDefaults.Base;
+    public double IntellectualRespectGrowthRate { get; set; } = IntellectualRespectDefaults.GrowthRate;
+    public double IntellectualRespectDecayRate { get; set; } = IntellectualRespectDefaults.DecayRate;
+    public double IntellectualRespectDiversitySensitivity { get; set; } = IntellectualRespectDefaults.DiversitySensitivity;
+    public double IntellectualRespectChallengeSensitivity { get; set; } = IntellectualRespectDefaults.ChallengeSensitivity;
+    public double IntellectualRespectMentorshipSensitivity { get; set; } = IntellectualRespectDefaults.MentorshipSensitivity;
+    public double IntellectualRespectEgoPenalty { get; set; } = IntellectualRespectDefaults.EgoPenalty;
+    public double IntellectualRespectHierarchyPenalty { get; set; } = IntellectualRespectDefaults.HierarchyPenalty;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

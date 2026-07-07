@@ -15,9 +15,18 @@ public sealed class ParameterSweepAnalysisPoint
     public double AverageKnowledgeRecombinationScore { get; set; }
     public double AverageKnowledgeReconfigurationScore { get; set; }
     public double AverageRespect { get; set; }
+    public double AverageIntellectualRespect { get; set; }
+    public double IntellectualRespectDensity { get; set; }
+    public double IntellectualRespectDiversityIndex { get; set; }
+    public double IntellectualRespectConcentration { get; set; }
+    public double MutualMentorshipScore { get; set; }
+    public double IdeaAcceptanceScore { get; set; }
     public double AverageChallengeAcceptanceScore { get; set; }
     public double AverageRespectReconfigurationBoost { get; set; }
     public double AverageRespectEmergenceComponent { get; set; }
+    public double AverageIntellectualRespectReconfigurationComponent { get; set; }
+    public double AverageIntellectualRespectSerendipityComponent { get; set; }
+    public double AverageIntellectualRespectEmergenceComponent { get; set; }
     public double AverageEmergentScore { get; set; }
     public double AverageStableScore { get; set; }
     public double AverageLearningScore { get; set; }
@@ -28,6 +37,7 @@ public sealed class ParameterSweepAnalysisPoint
     public double AverageThanksCoinToSerendipityContribution { get; set; }
     public double AverageThanksCoinToEmergenceContribution { get; set; }
     public double PopularityTrapRate { get; set; }
+    public int LearnedFromUnexpectedAgentCount { get; set; }
     public string MostCommonPipelineBottleneck { get; set; } = "--";
     public string PipelineBottleneckInterpretation { get; set; } = "-";
     public int EmergentRunCount { get; set; }

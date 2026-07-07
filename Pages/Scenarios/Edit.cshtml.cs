@@ -95,6 +95,15 @@ public sealed class EditModel(AppDbContext db) : PageModel
         scenario.ThanksCoinPopularityBias = Input.ThanksCoinPopularityBias;
         scenario.ThanksCoinDiversityBonus = Input.ThanksCoinDiversityBonus;
         scenario.ThanksCoinChallengeBonus = Input.ThanksCoinChallengeBonus;
+        scenario.EnableIntellectualRespect = Input.EnableIntellectualRespect;
+        scenario.IntellectualRespectBase = Input.IntellectualRespectBase;
+        scenario.IntellectualRespectGrowthRate = Input.IntellectualRespectGrowthRate;
+        scenario.IntellectualRespectDecayRate = Input.IntellectualRespectDecayRate;
+        scenario.IntellectualRespectDiversitySensitivity = Input.IntellectualRespectDiversitySensitivity;
+        scenario.IntellectualRespectChallengeSensitivity = Input.IntellectualRespectChallengeSensitivity;
+        scenario.IntellectualRespectMentorshipSensitivity = Input.IntellectualRespectMentorshipSensitivity;
+        scenario.IntellectualRespectEgoPenalty = Input.IntellectualRespectEgoPenalty;
+        scenario.IntellectualRespectHierarchyPenalty = Input.IntellectualRespectHierarchyPenalty;
         SimulationFactory.NormalizeOptionalEventSettings(scenario);
         scenario.UpdatedAt = DateTime.UtcNow;
 

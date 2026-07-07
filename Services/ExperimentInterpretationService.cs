@@ -24,6 +24,12 @@ public sealed class ExperimentInterpretationService
         var maxSerendipityRate = ordered.Max(item => item.SerendipityRate);
         var maxKnowledgeReconfiguration = ordered.Max(item => item.AverageKnowledgeReconfigurationScore);
         var maxEmergentScore = ordered.Max(item => item.AverageEmergentScore);
+        var maxIntellectualRespect = ordered.Max(item => item.AverageIntellectualRespect);
+        var maxIdeaAcceptance = ordered.Max(item => item.IdeaAcceptanceScore);
+        var maxMutualMentorship = ordered.Max(item => item.MutualMentorshipScore);
+        var maxIntellectualRespectReconfiguration = ordered.Max(item => item.AverageIntellectualRespectReconfigurationComponent);
+        var maxIntellectualRespectSerendipity = ordered.Max(item => item.AverageIntellectualRespectSerendipityComponent);
+        var maxIntellectualRespectEmergence = ordered.Max(item => item.AverageIntellectualRespectEmergenceComponent);
 
         var bestEmergent = SelectBest(ordered, item => item.EmergentRate);
         var bestStable = SelectBest(ordered, item => item.StableRate);
@@ -32,6 +38,12 @@ public sealed class ExperimentInterpretationService
         var bestDensity = SelectBest(ordered, item => item.EffectiveDensity);
         var bestSerendipity = SelectBest(ordered, item => item.SerendipityRate);
         var bestReconfiguration = SelectBest(ordered, item => item.AverageKnowledgeReconfigurationScore);
+        var bestIntellectualRespect = SelectBest(ordered, item => item.AverageIntellectualRespect);
+        var bestIdeaAcceptance = SelectBest(ordered, item => item.IdeaAcceptanceScore);
+        var bestMutualMentorship = SelectBest(ordered, item => item.MutualMentorshipScore);
+        var bestIntellectualReconfiguration = SelectBest(ordered, item => item.AverageIntellectualRespectReconfigurationComponent);
+        var bestIntellectualSerendipity = SelectBest(ordered, item => item.AverageIntellectualRespectSerendipityComponent);
+        var bestIntellectualEmergence = SelectBest(ordered, item => item.AverageIntellectualRespectEmergenceComponent);
         var bestTrustJump = SelectBestDelta(ordered, item => item.DeltaAverageTrust);
         var bestEmergentJump = SelectBestDelta(ordered, item => item.DeltaEmergentRate);
 
@@ -53,6 +65,12 @@ public sealed class ExperimentInterpretationService
                 new() { Label = "Max EffectiveDensity ParameterValue", Value = FormatPointValue(bestDensity, item => item.EffectiveDensity) },
                 new() { Label = "Max SerendipityRate ParameterValue", Value = FormatPointValue(bestSerendipity, item => item.SerendipityRate) },
                 new() { Label = "Max KnowledgeReconfigurationScore ParameterValue", Value = FormatPointValue(bestReconfiguration, item => item.AverageKnowledgeReconfigurationScore) },
+                new() { Label = "Max AverageIntellectualRespect ParameterValue", Value = FormatPointValue(bestIntellectualRespect, item => item.AverageIntellectualRespect) },
+                new() { Label = "Max IdeaAcceptanceScore ParameterValue", Value = FormatPointValue(bestIdeaAcceptance, item => item.IdeaAcceptanceScore) },
+                new() { Label = "Max MutualMentorshipScore ParameterValue", Value = FormatPointValue(bestMutualMentorship, item => item.MutualMentorshipScore) },
+                new() { Label = "Max IntellectualRespectReconfiguration ParameterValue", Value = FormatPointValue(bestIntellectualReconfiguration, item => item.AverageIntellectualRespectReconfigurationComponent) },
+                new() { Label = "Max IntellectualRespectSerendipity ParameterValue", Value = FormatPointValue(bestIntellectualSerendipity, item => item.AverageIntellectualRespectSerendipityComponent) },
+                new() { Label = "Max IntellectualRespectEmergence ParameterValue", Value = FormatPointValue(bestIntellectualEmergence, item => item.AverageIntellectualRespectEmergenceComponent) },
                 new() { Label = "Max Trust Jump Interval", Value = FormatInterval(bestTrustJump?.PreviousParameterValue, bestTrustJump?.ParameterValue, bestTrustJump?.DeltaAverageTrust) },
                 new() { Label = "Max Emergent Jump Interval", Value = FormatInterval(bestEmergentJump?.PreviousParameterValue, bestEmergentJump?.ParameterValue, bestEmergentJump?.DeltaEmergentRate) },
                 new() { Label = "Recommended Parameter Region", Value = recommendedRegion }
@@ -92,6 +110,15 @@ public sealed class ExperimentInterpretationService
         var maxPipelineCompletion = ordered.Max(item => item.AveragePipelineCompletionScore);
         var maxCompositeScore = ordered.Max(item =>
             (item.AveragePipelineCompletionScore + item.AverageEffectiveDensity + item.AverageKnowledgeReconfigurationScore) / 3.0);
+        var experimentSummaryValues = experimentSummariesByExperimentId?.Values.ToList() ?? [];
+        var averageIntellectualRespect = experimentSummaryValues.Count == 0 ? 0 : Math.Round(experimentSummaryValues.Average(item => item.AverageIntellectualRespect), 4);
+        var averageIntellectualRespectDensity = experimentSummaryValues.Count == 0 ? 0 : Math.Round(experimentSummaryValues.Average(item => item.IntellectualRespectDensity), 4);
+        var averageIntellectualRespectDiversityIndex = experimentSummaryValues.Count == 0 ? 0 : Math.Round(experimentSummaryValues.Average(item => item.IntellectualRespectDiversityIndex), 4);
+        var averageIdeaAcceptanceScore = experimentSummaryValues.Count == 0 ? 0 : Math.Round(experimentSummaryValues.Average(item => item.IdeaAcceptanceScore), 4);
+        var averageMutualMentorshipScore = experimentSummaryValues.Count == 0 ? 0 : Math.Round(experimentSummaryValues.Average(item => item.MutualMentorshipScore), 4);
+        var averageIntellectualRespectReconfiguration = experimentSummaryValues.Count == 0 ? 0 : Math.Round(experimentSummaryValues.Average(item => item.AverageIntellectualRespectReconfigurationComponent), 4);
+        var averageIntellectualRespectSerendipity = experimentSummaryValues.Count == 0 ? 0 : Math.Round(experimentSummaryValues.Average(item => item.AverageIntellectualRespectSerendipityComponent), 4);
+        var averageIntellectualRespectEmergence = experimentSummaryValues.Count == 0 ? 0 : Math.Round(experimentSummaryValues.Average(item => item.AverageIntellectualRespectEmergenceComponent), 4);
 
         var recommendedRegion = BuildRecommendedPhaseRegion(
             ordered,
@@ -111,6 +138,14 @@ public sealed class ExperimentInterpretationService
                 new() { Label = "Max EffectiveDensity Cell", Value = FormatPointCell(maxDensity, item => item.AverageEffectiveDensity) },
                 new() { Label = "Max SerendipityRate Cell", Value = FormatPointCell(maxSerendipity, item => item.AverageSerendipityRate) },
                 new() { Label = "Max KnowledgeReconfigurationScore Cell", Value = FormatPointCell(maxReconfiguration, item => item.AverageKnowledgeReconfigurationScore) },
+                new() { Label = "AverageIntellectualRespect", Value = averageIntellectualRespect.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "AverageIntellectualRespectDensity", Value = averageIntellectualRespectDensity.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "AverageIntellectualRespectDiversityIndex", Value = averageIntellectualRespectDiversityIndex.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "AverageIdeaAcceptanceScore", Value = averageIdeaAcceptanceScore.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "AverageMutualMentorshipScore", Value = averageMutualMentorshipScore.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "AverageIntellectualRespectReconfiguration", Value = averageIntellectualRespectReconfiguration.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "AverageIntellectualRespectSerendipity", Value = averageIntellectualRespectSerendipity.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "AverageIntellectualRespectEmergence", Value = averageIntellectualRespectEmergence.ToString("0.000", CultureInfo.InvariantCulture) },
                 new() { Label = "Recommended Region", Value = recommendedRegion },
                 new() { Label = "Danger Region", Value = dangerRegion }
             ],
@@ -149,9 +184,18 @@ public sealed class ExperimentInterpretationService
                 "AverageKnowledgeDiversity",
                 "AverageKnowledgeRecombinationScore",
                 "AverageKnowledgeReconfigurationScore",
+                "AverageIntellectualRespect",
+                "IntellectualRespectDensity",
+                "IntellectualRespectDiversityIndex",
+                "IdeaAcceptanceScore",
                 "AverageEmergentScore",
                 "AverageStableScore",
-                "AverageLearningScore"
+                "AverageLearningScore",
+                "AverageIntellectualRespectReconfigurationComponent",
+                "AverageIntellectualRespectSerendipityComponent",
+                "AverageIntellectualRespectEmergenceComponent",
+                "MutualMentorshipScore",
+                "LearnedFromUnexpectedAgentCount"
             };
 
         var rows = ordered.Select(point => new[]
@@ -170,9 +214,18 @@ public sealed class ExperimentInterpretationService
             point.AverageKnowledgeDiversity.ToString("0.000", CultureInfo.InvariantCulture),
             point.AverageKnowledgeRecombinationScore.ToString("0.000", CultureInfo.InvariantCulture),
             point.AverageKnowledgeReconfigurationScore.ToString("0.000", CultureInfo.InvariantCulture),
+            point.AverageIntellectualRespect.ToString("0.000", CultureInfo.InvariantCulture),
+            point.IntellectualRespectDensity.ToString("0.000", CultureInfo.InvariantCulture),
+            point.IntellectualRespectDiversityIndex.ToString("0.000", CultureInfo.InvariantCulture),
+            point.IdeaAcceptanceScore.ToString("0.000", CultureInfo.InvariantCulture),
             point.AverageEmergentScore.ToString("0.000", CultureInfo.InvariantCulture),
             point.AverageStableScore.ToString("0.000", CultureInfo.InvariantCulture),
-            point.AverageLearningScore.ToString("0.000", CultureInfo.InvariantCulture)
+            point.AverageLearningScore.ToString("0.000", CultureInfo.InvariantCulture),
+            point.AverageIntellectualRespectReconfigurationComponent.ToString("0.000", CultureInfo.InvariantCulture),
+            point.AverageIntellectualRespectSerendipityComponent.ToString("0.000", CultureInfo.InvariantCulture),
+            point.AverageIntellectualRespectEmergenceComponent.ToString("0.000", CultureInfo.InvariantCulture),
+            point.MutualMentorshipScore.ToString("0.000", CultureInfo.InvariantCulture),
+            point.LearnedFromUnexpectedAgentCount.ToString(CultureInfo.InvariantCulture)
         });
 
         return BuildCsv(headers, rows);
@@ -879,6 +932,12 @@ public sealed class ParameterSweepInterpretationResult
             new() { Label = "Max EffectiveDensity ParameterValue", Value = "--" },
             new() { Label = "Max SerendipityRate ParameterValue", Value = "--" },
             new() { Label = "Max KnowledgeReconfigurationScore ParameterValue", Value = "--" },
+            new() { Label = "Max AverageIntellectualRespect ParameterValue", Value = "--" },
+            new() { Label = "Max IdeaAcceptanceScore ParameterValue", Value = "--" },
+            new() { Label = "Max MutualMentorshipScore ParameterValue", Value = "--" },
+            new() { Label = "Max IntellectualRespectReconfiguration ParameterValue", Value = "--" },
+            new() { Label = "Max IntellectualRespectSerendipity ParameterValue", Value = "--" },
+            new() { Label = "Max IntellectualRespectEmergence ParameterValue", Value = "--" },
             new() { Label = "Max Trust Jump Interval", Value = "--" },
             new() { Label = "Max Emergent Jump Interval", Value = "--" },
             new() { Label = "Recommended Parameter Region", Value = "--" }
@@ -906,6 +965,14 @@ public sealed class PhaseDiagramInterpretationResult
             new() { Label = "Max EffectiveDensity Cell", Value = "--" },
             new() { Label = "Max SerendipityRate Cell", Value = "--" },
             new() { Label = "Max KnowledgeReconfigurationScore Cell", Value = "--" },
+            new() { Label = "AverageIntellectualRespect", Value = "--" },
+            new() { Label = "AverageIntellectualRespectDensity", Value = "--" },
+            new() { Label = "AverageIntellectualRespectDiversityIndex", Value = "--" },
+            new() { Label = "AverageIdeaAcceptanceScore", Value = "--" },
+            new() { Label = "AverageMutualMentorshipScore", Value = "--" },
+            new() { Label = "AverageIntellectualRespectReconfiguration", Value = "--" },
+            new() { Label = "AverageIntellectualRespectSerendipity", Value = "--" },
+            new() { Label = "AverageIntellectualRespectEmergence", Value = "--" },
             new() { Label = "Recommended Region", Value = "--" },
             new() { Label = "Danger Region", Value = "--" }
         ]
@@ -944,9 +1011,25 @@ public sealed class PhaseDiagramExperimentSummary
     public double AverageProposeIdeaRate { get; init; }
     public double AverageCriticizeSupportRatio { get; init; }
     public double AverageRespect { get; init; }
+    public double AverageIntellectualRespect { get; init; }
+    public double IntellectualRespectDensity { get; init; }
+    public double IntellectualRespectDiversityIndex { get; init; }
+    public double IntellectualRespectConcentration { get; init; }
+    public double IdeaAcceptanceScore { get; init; }
     public double AverageChallengeAcceptanceScore { get; init; }
     public double AverageRespectReconfigurationBoost { get; init; }
     public double AverageRespectEmergenceComponent { get; init; }
+    public double AverageIntellectualRespectReconfigurationComponent { get; init; }
+    public double AverageIntellectualRespectSerendipityComponent { get; init; }
+    public double AverageIntellectualRespectEmergenceComponent { get; init; }
+    public double AverageEgoPenaltyApplied { get; init; }
+    public double AverageHierarchyPenaltyApplied { get; init; }
+    public double MutualMentorshipScore { get; init; }
+    public int MentorshipLinkCount { get; init; }
+    public int CrossMentorshipLinkCount { get; init; }
+    public double MentorshipDiversityIndex { get; init; }
+    public double LearningFromOthersScore { get; init; }
+    public int LearnedFromUnexpectedAgentCount { get; init; }
     public double AverageThanksCoinToReconfigurationContribution { get; init; }
     public double AverageThanksCoinToSerendipityContribution { get; init; }
     public double AverageThanksCoinToEmergenceContribution { get; init; }

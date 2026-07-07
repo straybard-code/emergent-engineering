@@ -108,27 +108,36 @@ public static class KnowledgeAnalysisService
         double respectDensity = 0,
         double challengeAcceptanceScore = 0,
         double thanksChallengeRate = 0,
-        double thanksBridgeRate = 0)
+        double thanksBridgeRate = 0,
+        double averageIntellectualRespect = 0,
+        double intellectualRespectDiversityIndex = 0,
+        double mutualMentorshipScore = 0)
     {
         var constructiveCriticizeRate = CalculateConstructiveCriticismRate(actions.CriticizeRate, psychologicalSafetyLevel);
-        var psychologicalSafetyReconfigurationBonus = psychologicalSafetyLevel * knowledgeRecombinationScore * 0.10;
+        var psychologicalSafetyReconfigurationBonus = psychologicalSafetyLevel * knowledgeRecombinationScore * 0.12;
         var respectReconfigurationBoost = CalculateRespectReconfigurationBoost(
             averageRespect,
             respectDensity,
             thanksChallengeRate,
-            thanksBridgeRate);
+            thanksBridgeRate,
+            averageIntellectualRespect,
+            intellectualRespectDiversityIndex,
+            mutualMentorshipScore);
         var rawScore =
-            (knowledgeRewiringScore * 0.35)
-            + (knowledgeRecombinationScore * 0.30)
-            + (challengeLevel * 0.15)
-            + (actions.ProposeIdeaRate * 0.15)
+            (knowledgeRewiringScore * 0.34)
+            + (knowledgeRecombinationScore * 0.28)
+            + (challengeLevel * 0.10)
+            + (actions.ProposeIdeaRate * 0.10)
             + (actions.ShareInfoRate * 0.10)
             + (actions.SupportOtherRate * 0.10)
-            + (challengeActive ? constructiveCriticizeRate * 0.05 : 0)
-            + (psychologicalSafetyLevel >= 0.7 ? constructiveCriticizeRate * Math.Clamp(constructiveCriticismBonus, 0, 1) : 0)
-            + psychologicalSafetyReconfigurationBonus
-            + respectReconfigurationBoost
-            + (Clamp01(challengeAcceptanceScore) * 0.08);
+            + (challengeActive ? constructiveCriticizeRate * 0.06 : 0)
+            + (psychologicalSafetyLevel >= 0.7 ? constructiveCriticizeRate * (Math.Clamp(constructiveCriticismBonus, 0, 1) * 1.10) : 0)
+            + (psychologicalSafetyReconfigurationBonus * 0.95)
+            + (respectReconfigurationBoost * 1.40)
+            + (Clamp01(averageIntellectualRespect) * 0.10)
+            + (Clamp01(intellectualRespectDiversityIndex) * 0.08)
+            + (Clamp01(mutualMentorshipScore) * 0.10)
+            + (Clamp01(challengeAcceptanceScore) * 0.18);
 
         return Clamp01(Math.Round(rawScore, 4));
     }
@@ -137,13 +146,19 @@ public static class KnowledgeAnalysisService
         double averageRespect,
         double respectDensity,
         double thanksChallengeRate,
-        double thanksBridgeRate)
+        double thanksBridgeRate,
+        double averageIntellectualRespect = 0,
+        double intellectualRespectDiversityIndex = 0,
+        double mutualMentorshipScore = 0)
     {
         return Clamp01(Math.Round(
-            (Clamp01(averageRespect) * 0.20)
-            + (Clamp01(respectDensity) * 0.10)
-            + (Clamp01(thanksChallengeRate) * 0.20)
-            + (Clamp01(thanksBridgeRate) * 0.20),
+            (Clamp01(averageRespect) * 0.32)
+            + (Clamp01(respectDensity) * 0.16)
+            + (Clamp01(thanksChallengeRate) * 0.06)
+            + (Clamp01(thanksBridgeRate) * 0.06)
+            + (Clamp01(averageIntellectualRespect) * 0.18)
+            + (Clamp01(intellectualRespectDiversityIndex) * 0.11)
+            + (Clamp01(mutualMentorshipScore) * 0.11),
             4));
     }
 
@@ -151,13 +166,19 @@ public static class KnowledgeAnalysisService
         double psychologicalSafetyLevel,
         double averageRespect,
         double thanksChallengeRate,
-        double constructiveCriticismBonus)
+        double constructiveCriticismBonus,
+        double averageIntellectualRespect = 0,
+        double intellectualRespectDensity = 0,
+        double intellectualRespectChallengeSensitivity = 0)
     {
         return Clamp01(Math.Round(
-            (Clamp01(psychologicalSafetyLevel) * 0.35)
-            + (Clamp01(averageRespect) * 0.30)
-            + (Clamp01(thanksChallengeRate) * 0.25)
-            + (Clamp01(constructiveCriticismBonus) * 0.10),
+            (Clamp01(psychologicalSafetyLevel) * 0.30)
+            + (Clamp01(averageRespect) * 0.25)
+            + (Clamp01(averageIntellectualRespect) * 0.20)
+            + (Clamp01(intellectualRespectDensity) * 0.08)
+            + (Clamp01(intellectualRespectChallengeSensitivity) * 0.12)
+            + (Clamp01(thanksChallengeRate) * 0.08)
+            + (Clamp01(constructiveCriticismBonus) * 0.22),
             4));
     }
 
@@ -174,10 +195,14 @@ public static class KnowledgeAnalysisService
     public static double CalculateDiversityRespectEffect(
         double diversityBonus,
         double thanksChallengeRate,
-        double thanksBridgeRate)
+        double thanksBridgeRate,
+        double intellectualRespectDiversityIndex = 0,
+        double mutualMentorshipScore = 0)
     {
         return Clamp01(Math.Round(
-            Clamp01(diversityBonus) * (Clamp01(thanksChallengeRate) + Clamp01(thanksBridgeRate)) * 0.30,
+            Clamp01(diversityBonus) * (Clamp01(thanksChallengeRate) + Clamp01(thanksBridgeRate)) * 0.25
+            + (Clamp01(intellectualRespectDiversityIndex) * 0.10)
+            + (Clamp01(mutualMentorshipScore) * 0.10),
             4));
     }
 
@@ -187,15 +212,25 @@ public static class KnowledgeAnalysisService
         double challengeAcceptanceScore,
         double thanksChallengeRate,
         double thanksBridgeRate,
-        double diversityRespectEffect)
+        double diversityRespectEffect,
+        double averageIntellectualRespect = 0,
+        double intellectualRespectDensity = 0,
+        double intellectualRespectReconfigurationComponent = 0,
+        double intellectualRespectSerendipityComponent = 0,
+        double mutualMentorshipScore = 0)
     {
         return Clamp01(Math.Round(
-            (Clamp01(averageRespect) * 0.10)
-            + (Clamp01(respectDensity) * 0.10)
-            + (Clamp01(challengeAcceptanceScore) * 0.15)
-            + (Clamp01(thanksChallengeRate) * 0.15)
-            + (Clamp01(thanksBridgeRate) * 0.15)
-            + (Clamp01(diversityRespectEffect) * 0.20),
+            (Clamp01(averageRespect) * 0.12)
+            + (Clamp01(respectDensity) * 0.12)
+            + (Clamp01(challengeAcceptanceScore) * 0.18)
+            + (Clamp01(thanksChallengeRate) * 0.04)
+            + (Clamp01(thanksBridgeRate) * 0.04)
+            + (Clamp01(diversityRespectEffect) * 0.12)
+            + (Clamp01(averageIntellectualRespect) * 0.10)
+            + (Clamp01(intellectualRespectDensity) * 0.08)
+            + (Clamp01(intellectualRespectReconfigurationComponent) * 0.08)
+            + (Clamp01(intellectualRespectSerendipityComponent) * 0.08)
+            + (Clamp01(mutualMentorshipScore) * 0.08),
             4));
     }
 
@@ -206,7 +241,7 @@ public static class KnowledgeAnalysisService
             return 0;
         }
 
-        var penalty = (thanksConcentration >= 0.75 ? 0.20 : 0.10) + (Clamp01(averageRespect) > 0.80 ? 0.05 : 0);
+        var penalty = (thanksConcentration >= 0.75 ? 0.25 : 0.15) + (Clamp01(averageRespect) > 0.80 ? 0.05 : 0);
         return Math.Round(penalty, 4);
     }
 
@@ -479,6 +514,30 @@ public static class KnowledgeAnalysisService
                 RespectEmergenceComponent = GetDouble(root, "respectEmergenceComponent", 0),
                 PopularityTrapPenalty = GetDouble(root, "popularityTrapPenalty", 0),
                 PopularityTrapDetected = GetBool(root, "popularityTrapDetected"),
+                IntellectualRespectJson = GetString(root, "intellectualRespectJson", ""),
+                AverageIntellectualRespect = GetDouble(root, "averageIntellectualRespect", 0),
+                IntellectualRespectDensity = GetDouble(root, "intellectualRespectDensity", 0),
+                IntellectualRespectStrongLinks = GetInt(root, "intellectualRespectStrongLinks", 0),
+                IntellectualRespectWeakLinks = GetInt(root, "intellectualRespectWeakLinks", 0),
+                IntellectualRespectConcentration = GetDouble(root, "intellectualRespectConcentration", 0),
+                IntellectualRespectDiversityIndex = GetDouble(root, "intellectualRespectDiversityIndex", 1),
+                MutualMentorshipScore = GetDouble(root, "mutualMentorshipScore", 0),
+                MentorshipLinkCount = GetInt(root, "mentorshipLinkCount", 0),
+                CrossMentorshipLinkCount = GetInt(root, "crossMentorshipLinkCount", 0),
+                MentorshipDiversityIndex = GetDouble(root, "mentorshipDiversityIndex", 1),
+                LearningFromOthersScore = GetDouble(root, "learningFromOthersScore", 0),
+                LearnedFromUnexpectedAgentCount = GetInt(root, "learnedFromUnexpectedAgentCount", 0),
+                IdeaAcceptanceScore = GetDouble(root, "ideaAcceptanceScore", 0),
+                IntellectualRespectIdeaAcceptanceComponent = GetDouble(root, "intellectualRespectIdeaAcceptanceComponent", 0),
+                IntellectualRespectChallengeAcceptanceComponent = GetDouble(root, "intellectualRespectChallengeAcceptanceComponent", 0),
+                IntellectualRespectReconfigurationComponent = GetDouble(root, "intellectualRespectReconfigurationComponent", 0),
+                IntellectualRespectSerendipityComponent = GetDouble(root, "intellectualRespectSerendipityComponent", 0),
+                IntellectualRespectEmergenceComponent = GetDouble(root, "intellectualRespectEmergenceComponent", 0),
+                EgoPenaltyApplied = GetDouble(root, "egoPenaltyApplied", 0),
+                HierarchyPenaltyApplied = GetDouble(root, "hierarchyPenaltyApplied", 0),
+                ThanksIdeaAsIntellectualRespectSignal = GetDouble(root, "thanksIdeaAsIntellectualRespectSignal", 0),
+                ThanksChallengeAsIntellectualRespectSignal = GetDouble(root, "thanksChallengeAsIntellectualRespectSignal", 0),
+                ThanksBridgeAsMentorshipSignal = GetDouble(root, "thanksBridgeAsMentorshipSignal", 0),
                 ThanksCoinToReconfigurationContribution = GetDouble(root, "thanksCoinToReconfigurationContribution", 0),
                 ThanksCoinToSerendipityContribution = GetDouble(root, "thanksCoinToSerendipityContribution", 0),
                 ThanksCoinToEmergenceContribution = GetDouble(root, "thanksCoinToEmergenceContribution", 0),
@@ -488,6 +547,8 @@ public static class KnowledgeAnalysisService
                 RespectStrongLinks = GetInt(root, "respectStrongLinks", 0),
                 RespectWeakLinks = GetInt(root, "respectWeakLinks", 0),
                 RespectConcentration = GetDouble(root, "respectConcentration", 0),
+                RespectDiversityIndex = GetDouble(root, "respectDiversityIndex", Math.Round(1 - GetDouble(root, "respectConcentration", 0), 4)),
+                ThanksObservationStrength = GetDouble(root, "thanksObservationStrength", 0),
                 ThanksCoinOccurred = GetBool(root, "thanksCoinOccurred"),
                 ThanksCoinCount = GetInt(root, "thanksCoinCount", 0),
                 ThanksCoinHelpCount = GetInt(root, "thanksCoinHelpCount", 0),
@@ -562,6 +623,30 @@ public static class KnowledgeAnalysisService
                 RespectEmergenceComponent = 0,
                 PopularityTrapPenalty = 0,
                 PopularityTrapDetected = false,
+                IntellectualRespectJson = "",
+                AverageIntellectualRespect = 0,
+                IntellectualRespectDensity = 0,
+                IntellectualRespectStrongLinks = 0,
+                IntellectualRespectWeakLinks = 0,
+                IntellectualRespectConcentration = 0,
+                IntellectualRespectDiversityIndex = 1,
+                MutualMentorshipScore = 0,
+                MentorshipLinkCount = 0,
+                CrossMentorshipLinkCount = 0,
+                MentorshipDiversityIndex = 1,
+                LearningFromOthersScore = 0,
+                LearnedFromUnexpectedAgentCount = 0,
+                IdeaAcceptanceScore = 0,
+                IntellectualRespectIdeaAcceptanceComponent = 0,
+                IntellectualRespectChallengeAcceptanceComponent = 0,
+                IntellectualRespectReconfigurationComponent = 0,
+                IntellectualRespectSerendipityComponent = 0,
+                IntellectualRespectEmergenceComponent = 0,
+                EgoPenaltyApplied = 0,
+                HierarchyPenaltyApplied = 0,
+                ThanksIdeaAsIntellectualRespectSignal = 0,
+                ThanksChallengeAsIntellectualRespectSignal = 0,
+                ThanksBridgeAsMentorshipSignal = 0,
                 ThanksCoinToReconfigurationContribution = 0,
                 ThanksCoinToSerendipityContribution = 0,
                 ThanksCoinToEmergenceContribution = 0,
@@ -571,6 +656,8 @@ public static class KnowledgeAnalysisService
                 RespectStrongLinks = 0,
                 RespectWeakLinks = 0,
                 RespectConcentration = 0,
+                RespectDiversityIndex = 1,
+                ThanksObservationStrength = 0,
                 ThanksCoinOccurred = false,
                 ThanksCoinCount = 0,
                 ThanksCoinHelpCount = 0,
@@ -692,6 +779,30 @@ public sealed class KnowledgeTimelinePoint
     public double RespectEmergenceComponent { get; set; }
     public double PopularityTrapPenalty { get; set; }
     public bool PopularityTrapDetected { get; set; }
+    public string IntellectualRespectJson { get; set; } = "";
+    public double AverageIntellectualRespect { get; set; }
+    public double IntellectualRespectDensity { get; set; }
+    public int IntellectualRespectStrongLinks { get; set; }
+    public int IntellectualRespectWeakLinks { get; set; }
+    public double IntellectualRespectConcentration { get; set; }
+    public double IntellectualRespectDiversityIndex { get; set; }
+    public double MutualMentorshipScore { get; set; }
+    public int MentorshipLinkCount { get; set; }
+    public int CrossMentorshipLinkCount { get; set; }
+    public double MentorshipDiversityIndex { get; set; }
+    public double LearningFromOthersScore { get; set; }
+    public int LearnedFromUnexpectedAgentCount { get; set; }
+    public double IntellectualRespectIdeaAcceptanceComponent { get; set; }
+    public double IntellectualRespectChallengeAcceptanceComponent { get; set; }
+    public double IntellectualRespectReconfigurationComponent { get; set; }
+    public double IntellectualRespectSerendipityComponent { get; set; }
+    public double IntellectualRespectEmergenceComponent { get; set; }
+    public double EgoPenaltyApplied { get; set; }
+    public double HierarchyPenaltyApplied { get; set; }
+    public double IdeaAcceptanceScore { get; set; }
+    public double ThanksIdeaAsIntellectualRespectSignal { get; set; }
+    public double ThanksChallengeAsIntellectualRespectSignal { get; set; }
+    public double ThanksBridgeAsMentorshipSignal { get; set; }
     public double ThanksCoinToReconfigurationContribution { get; set; }
     public double ThanksCoinToSerendipityContribution { get; set; }
     public double ThanksCoinToEmergenceContribution { get; set; }
@@ -701,6 +812,8 @@ public sealed class KnowledgeTimelinePoint
     public int RespectStrongLinks { get; set; }
     public int RespectWeakLinks { get; set; }
     public double RespectConcentration { get; set; }
+    public double RespectDiversityIndex { get; set; }
+    public double ThanksObservationStrength { get; set; }
     public bool ThanksCoinOccurred { get; set; }
     public int ThanksCoinCount { get; set; }
     public int ThanksCoinHelpCount { get; set; }

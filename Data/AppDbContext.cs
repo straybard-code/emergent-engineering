@@ -69,6 +69,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.ThanksCoinPopularityBias).HasDefaultValue(ThanksCoinDefaults.ThanksCoinPopularityBias);
             entity.Property(project => project.ThanksCoinDiversityBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinDiversityBonus);
             entity.Property(project => project.ThanksCoinChallengeBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinChallengeBonus);
+            entity.Property(project => project.EnableIntellectualRespect).HasDefaultValue(IntellectualRespectDefaults.Enable);
+            entity.Property(project => project.IntellectualRespectBase).HasDefaultValue(IntellectualRespectDefaults.Base);
+            entity.Property(project => project.IntellectualRespectGrowthRate).HasDefaultValue(IntellectualRespectDefaults.GrowthRate);
+            entity.Property(project => project.IntellectualRespectDecayRate).HasDefaultValue(IntellectualRespectDefaults.DecayRate);
+            entity.Property(project => project.IntellectualRespectDiversitySensitivity).HasDefaultValue(IntellectualRespectDefaults.DiversitySensitivity);
+            entity.Property(project => project.IntellectualRespectChallengeSensitivity).HasDefaultValue(IntellectualRespectDefaults.ChallengeSensitivity);
+            entity.Property(project => project.IntellectualRespectMentorshipSensitivity).HasDefaultValue(IntellectualRespectDefaults.MentorshipSensitivity);
+            entity.Property(project => project.IntellectualRespectEgoPenalty).HasDefaultValue(IntellectualRespectDefaults.EgoPenalty);
+            entity.Property(project => project.IntellectualRespectHierarchyPenalty).HasDefaultValue(IntellectualRespectDefaults.HierarchyPenalty);
             entity.HasOne(project => project.Experiment)
                 .WithMany(experiment => experiment.SimulationProjects)
                 .HasForeignKey(project => project.ExperimentId)
@@ -138,6 +147,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(project => project.ThanksCoinPopularityBias).HasDefaultValue(ThanksCoinDefaults.ThanksCoinPopularityBias);
             entity.Property(project => project.ThanksCoinDiversityBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinDiversityBonus);
             entity.Property(project => project.ThanksCoinChallengeBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinChallengeBonus);
+            entity.Property(project => project.EnableIntellectualRespect).HasDefaultValue(IntellectualRespectDefaults.Enable);
+            entity.Property(project => project.IntellectualRespectBase).HasDefaultValue(IntellectualRespectDefaults.Base);
+            entity.Property(project => project.IntellectualRespectGrowthRate).HasDefaultValue(IntellectualRespectDefaults.GrowthRate);
+            entity.Property(project => project.IntellectualRespectDecayRate).HasDefaultValue(IntellectualRespectDefaults.DecayRate);
+            entity.Property(project => project.IntellectualRespectDiversitySensitivity).HasDefaultValue(IntellectualRespectDefaults.DiversitySensitivity);
+            entity.Property(project => project.IntellectualRespectChallengeSensitivity).HasDefaultValue(IntellectualRespectDefaults.ChallengeSensitivity);
+            entity.Property(project => project.IntellectualRespectMentorshipSensitivity).HasDefaultValue(IntellectualRespectDefaults.MentorshipSensitivity);
+            entity.Property(project => project.IntellectualRespectEgoPenalty).HasDefaultValue(IntellectualRespectDefaults.EgoPenalty);
+            entity.Property(project => project.IntellectualRespectHierarchyPenalty).HasDefaultValue(IntellectualRespectDefaults.HierarchyPenalty);
             entity.HasOne(project => project.Scenario)
                 .WithMany(scenario => scenario.Experiments)
                 .HasForeignKey(project => project.ScenarioId)
@@ -190,6 +208,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(item => item.ThanksCoinPopularityBias).HasDefaultValue(ThanksCoinDefaults.ThanksCoinPopularityBias);
             entity.Property(item => item.ThanksCoinDiversityBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinDiversityBonus);
             entity.Property(item => item.ThanksCoinChallengeBonus).HasDefaultValue(ThanksCoinDefaults.ThanksCoinChallengeBonus);
+            entity.Property(item => item.EnableIntellectualRespect).HasDefaultValue(IntellectualRespectDefaults.Enable);
+            entity.Property(item => item.IntellectualRespectBase).HasDefaultValue(IntellectualRespectDefaults.Base);
+            entity.Property(item => item.IntellectualRespectGrowthRate).HasDefaultValue(IntellectualRespectDefaults.GrowthRate);
+            entity.Property(item => item.IntellectualRespectDecayRate).HasDefaultValue(IntellectualRespectDefaults.DecayRate);
+            entity.Property(item => item.IntellectualRespectDiversitySensitivity).HasDefaultValue(IntellectualRespectDefaults.DiversitySensitivity);
+            entity.Property(item => item.IntellectualRespectChallengeSensitivity).HasDefaultValue(IntellectualRespectDefaults.ChallengeSensitivity);
+            entity.Property(item => item.IntellectualRespectMentorshipSensitivity).HasDefaultValue(IntellectualRespectDefaults.MentorshipSensitivity);
+            entity.Property(item => item.IntellectualRespectEgoPenalty).HasDefaultValue(IntellectualRespectDefaults.EgoPenalty);
+            entity.Property(item => item.IntellectualRespectHierarchyPenalty).HasDefaultValue(IntellectualRespectDefaults.HierarchyPenalty);
         });
 
         modelBuilder.Entity<ParameterSweep>(entity =>

@@ -56,7 +56,16 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         TrustCapacity = TrustDynamicsDefaults.TrustCapacity,
         TrustCapacityPenalty = TrustDynamicsDefaults.TrustCapacityPenalty,
         DistrustPenalty = TrustDynamicsDefaults.DistrustPenalty,
-        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus
+        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus,
+        EnableIntellectualRespect = IntellectualRespectDefaults.Enable,
+        IntellectualRespectBase = IntellectualRespectDefaults.Base,
+        IntellectualRespectGrowthRate = IntellectualRespectDefaults.GrowthRate,
+        IntellectualRespectDecayRate = IntellectualRespectDefaults.DecayRate,
+        IntellectualRespectDiversitySensitivity = IntellectualRespectDefaults.DiversitySensitivity,
+        IntellectualRespectChallengeSensitivity = IntellectualRespectDefaults.ChallengeSensitivity,
+        IntellectualRespectMentorshipSensitivity = IntellectualRespectDefaults.MentorshipSensitivity,
+        IntellectualRespectEgoPenalty = IntellectualRespectDefaults.EgoPenalty,
+        IntellectualRespectHierarchyPenalty = IntellectualRespectDefaults.HierarchyPenalty
     };
 
     public async Task<IActionResult> OnPostAsync()

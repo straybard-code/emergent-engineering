@@ -188,6 +188,57 @@
 <section class="log-section mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
+            <h2 class="h5 mb-1">Intellectual Respect / 知的敬意</h2>
+            <p class="text-muted small mb-0">知的敬意は、相手の視点や専門性から学ぶ価値を見いだす度合いです。</p>
+        </div>
+    </div>
+    @if (Model.KnowledgeTimeline.Count == 0)
+    {
+        <p class="text-muted mb-0">知的敬意のタイムラインを表示できるデータがまだありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>AverageIntellectualRespect</th>
+                        <th>IntellectualRespectDensity</th>
+                        <th>IntellectualRespectDiversityIndex</th>
+                        <th>MutualMentorshipScore</th>
+                        <th>IdeaAcceptanceScore</th>
+                        <th>ChallengeAcceptanceScore</th>
+                        <th>IntellectualRespectReconfigurationComponent</th>
+                        <th>IntellectualRespectSerendipityComponent</th>
+                        <th>IntellectualRespectEmergenceComponent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var point in Model.KnowledgeTimeline)
+                {
+                    <tr>
+                        <td>@point.StepNo</td>
+                        <td>@point.AverageIntellectualRespect.ToString("0.000")</td>
+                        <td>@point.IntellectualRespectDensity.ToString("0.000")</td>
+                        <td>@point.IntellectualRespectDiversityIndex.ToString("0.000")</td>
+                        <td>@point.MutualMentorshipScore.ToString("0.000")</td>
+                        <td>@point.IdeaAcceptanceScore.ToString("0.000")</td>
+                        <td>@point.ChallengeAcceptanceScore.ToString("0.000")</td>
+                        <td>@point.IntellectualRespectReconfigurationComponent.ToString("0.000")</td>
+                        <td>@point.IntellectualRespectSerendipityComponent.ToString("0.000")</td>
+                        <td>@point.IntellectualRespectEmergenceComponent.ToString("0.000")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
             <h2 class="h5 mb-1">創発指紋</h2>
             <p class="text-muted small mb-0">この Run 全体の創発的振る舞いを特徴量ベクトルとして要約します。</p>
         </div>

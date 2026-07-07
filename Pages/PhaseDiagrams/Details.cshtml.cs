@@ -47,9 +47,18 @@ public sealed class DetailsModel(
     public int FailedPointCount { get; private set; }
     public double ProgressRate { get; private set; }
     public double AverageRespectMean { get; private set; }
+    public double AverageIntellectualRespectMean { get; private set; }
+    public double AverageIntellectualRespectDensityMean { get; private set; }
+    public double AverageIntellectualRespectDiversityIndexMean { get; private set; }
+    public double AverageIdeaAcceptanceScoreMean { get; private set; }
     public double AverageChallengeAcceptanceScoreMean { get; private set; }
     public double AverageRespectReconfigurationBoostMean { get; private set; }
     public double AverageRespectEmergenceComponentMean { get; private set; }
+    public double AverageIntellectualRespectReconfigurationComponentMean { get; private set; }
+    public double AverageIntellectualRespectSerendipityComponentMean { get; private set; }
+    public double AverageIntellectualRespectEmergenceComponentMean { get; private set; }
+    public double AverageMutualMentorshipScoreMean { get; private set; }
+    public double AverageLearnedFromUnexpectedAgentCountMean { get; private set; }
     public double AverageThanksCoinToEmergenceContributionMean { get; private set; }
     public double PopularityTrapRateMean { get; private set; }
     public bool IsFullyCompleted => Diagram is not null
@@ -182,6 +191,18 @@ public sealed class DetailsModel(
         AverageRespectMean = ExperimentSummariesByExperimentId.Count == 0
             ? 0
             : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageRespect), 3);
+        AverageIntellectualRespectMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageIntellectualRespect), 3);
+        AverageIntellectualRespectDensityMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.IntellectualRespectDensity), 3);
+        AverageIntellectualRespectDiversityIndexMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.IntellectualRespectDiversityIndex), 3);
+        AverageIdeaAcceptanceScoreMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.IdeaAcceptanceScore), 3);
         AverageChallengeAcceptanceScoreMean = ExperimentSummariesByExperimentId.Count == 0
             ? 0
             : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageChallengeAcceptanceScore), 3);
@@ -191,6 +212,21 @@ public sealed class DetailsModel(
         AverageRespectEmergenceComponentMean = ExperimentSummariesByExperimentId.Count == 0
             ? 0
             : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageRespectEmergenceComponent), 3);
+        AverageIntellectualRespectReconfigurationComponentMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageIntellectualRespectReconfigurationComponent), 3);
+        AverageIntellectualRespectSerendipityComponentMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageIntellectualRespectSerendipityComponent), 3);
+        AverageIntellectualRespectEmergenceComponentMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageIntellectualRespectEmergenceComponent), 3);
+        AverageMutualMentorshipScoreMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.MutualMentorshipScore), 3);
+        AverageLearnedFromUnexpectedAgentCountMean = ExperimentSummariesByExperimentId.Count == 0
+            ? 0
+            : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.LearnedFromUnexpectedAgentCount), 3);
         AverageThanksCoinToEmergenceContributionMean = ExperimentSummariesByExperimentId.Count == 0
             ? 0
             : Math.Round(ExperimentSummariesByExperimentId.Values.Average(item => item.AverageThanksCoinToEmergenceContribution), 3);
@@ -248,13 +284,29 @@ public sealed class DetailsModel(
                 {
                     ExperimentId = project.ExperimentId!.Value,
                     AverageRespect = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.AverageRespect), 3),
+                    AverageIntellectualRespect = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.AverageIntellectualRespect), 3),
+                    IntellectualRespectDensity = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.IntellectualRespectDensity), 3),
+                    IntellectualRespectDiversityIndex = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.IntellectualRespectDiversityIndex), 3),
+                    IntellectualRespectConcentration = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.IntellectualRespectConcentration), 3),
+                    IdeaAcceptanceScore = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.IdeaAcceptanceScore), 3),
                     AverageChallengeAcceptanceScore = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.ChallengeAcceptanceScore), 3),
                     AverageRespectReconfigurationBoost = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.RespectReconfigurationBoost), 3),
                     AverageRespectEmergenceComponent = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.RespectEmergenceComponent), 3),
+                    AverageIntellectualRespectReconfigurationComponent = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.IntellectualRespectReconfigurationComponent), 3),
+                    AverageIntellectualRespectSerendipityComponent = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.IntellectualRespectSerendipityComponent), 3),
+                    AverageIntellectualRespectEmergenceComponent = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.IntellectualRespectEmergenceComponent), 3),
+                    AverageEgoPenaltyApplied = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.EgoPenaltyApplied), 3),
+                    AverageHierarchyPenaltyApplied = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.HierarchyPenaltyApplied), 3),
                     AverageThanksCoinToReconfigurationContribution = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.ThanksCoinToReconfigurationContribution), 3),
                     AverageThanksCoinToSerendipityContribution = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.ThanksCoinToSerendipityContribution), 3),
                     AverageThanksCoinToEmergenceContribution = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.ThanksCoinToEmergenceContribution), 3),
                     PopularityTrapRate = timeline.Count == 0 ? 0 : Math.Round(timeline.Count(item => item.PopularityTrapDetected) / (double)timeline.Count, 3),
+                    MutualMentorshipScore = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.MutualMentorshipScore), 3),
+                    MentorshipLinkCount = timeline.Count == 0 ? 0 : (int)Math.Round(timeline.Average(item => (double)item.MentorshipLinkCount), 0),
+                    CrossMentorshipLinkCount = timeline.Count == 0 ? 0 : (int)Math.Round(timeline.Average(item => (double)item.CrossMentorshipLinkCount), 0),
+                    MentorshipDiversityIndex = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.MentorshipDiversityIndex), 3),
+                    LearningFromOthersScore = timeline.Count == 0 ? 0 : Math.Round(timeline.Average(item => item.LearningFromOthersScore), 3),
+                    LearnedFromUnexpectedAgentCount = timeline.Count == 0 ? 0 : (int)Math.Round(timeline.Average(item => item.LearnedFromUnexpectedAgentCount), 0),
                     AverageComponentCount = finalPoint?.StableScore ?? 0,
                     AverageShareInfoRate = finalPoint is null ? 0 : Math.Round(finalPoint.ThanksCoinHelpCount / (double)Math.Max(finalPoint.ThanksCoinCount, 1), 3),
                     AverageProposeIdeaRate = finalPoint is null ? 0 : Math.Round(finalPoint.ThanksCoinIdeaCount / (double)Math.Max(finalPoint.ThanksCoinCount, 1), 3),
@@ -277,9 +329,25 @@ public sealed class DetailsModel(
                     AverageProposeIdeaRate = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.ProposeIdeaRate), 3),
                     AverageCriticizeSupportRatio = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.CriticizeSupportRatio), 3),
                     AverageRespect = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespect), 3),
+                    AverageIntellectualRespect = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageIntellectualRespect), 3),
+                    IntellectualRespectDensity = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.IntellectualRespectDensity), 3),
+                    IntellectualRespectDiversityIndex = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.IntellectualRespectDiversityIndex), 3),
+                    IntellectualRespectConcentration = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.IntellectualRespectConcentration), 3),
+                    IdeaAcceptanceScore = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.IdeaAcceptanceScore), 3),
                     AverageChallengeAcceptanceScore = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageChallengeAcceptanceScore), 3),
                     AverageRespectReconfigurationBoost = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespectReconfigurationBoost), 3),
                     AverageRespectEmergenceComponent = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespectEmergenceComponent), 3),
+                    AverageIntellectualRespectReconfigurationComponent = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageIntellectualRespectReconfigurationComponent), 3),
+                    AverageIntellectualRespectSerendipityComponent = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageIntellectualRespectSerendipityComponent), 3),
+                    AverageIntellectualRespectEmergenceComponent = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageIntellectualRespectEmergenceComponent), 3),
+                    AverageEgoPenaltyApplied = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageEgoPenaltyApplied), 3),
+                    AverageHierarchyPenaltyApplied = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageHierarchyPenaltyApplied), 3),
+                    MutualMentorshipScore = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.MutualMentorshipScore), 3),
+                    MentorshipLinkCount = projectGroup.Count == 0 ? 0 : (int)Math.Round(projectGroup.Average(item => (double)item.MentorshipLinkCount), 0),
+                    CrossMentorshipLinkCount = projectGroup.Count == 0 ? 0 : (int)Math.Round(projectGroup.Average(item => (double)item.CrossMentorshipLinkCount), 0),
+                    MentorshipDiversityIndex = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.MentorshipDiversityIndex), 3),
+                    LearningFromOthersScore = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.LearningFromOthersScore), 3),
+                    LearnedFromUnexpectedAgentCount = projectGroup.Count == 0 ? 0 : (int)Math.Round(projectGroup.Average(item => (double)item.LearnedFromUnexpectedAgentCount), 0),
                     AverageThanksCoinToReconfigurationContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToReconfigurationContribution), 3),
                     AverageThanksCoinToSerendipityContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToSerendipityContribution), 3),
                     AverageThanksCoinToEmergenceContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToEmergenceContribution), 3),

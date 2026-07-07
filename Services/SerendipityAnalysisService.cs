@@ -44,7 +44,10 @@ public static class SerendipityAnalysisService
         double respectDensity = 0,
         double challengeAcceptanceScore = 0,
         double thanksChallengeRate = 0,
-        double thanksBridgeRate = 0)
+        double thanksBridgeRate = 0,
+        double averageIntellectualRespect = 0,
+        double intellectualRespectDiversityIndex = 0,
+        double mutualMentorshipScore = 0)
     {
         var challengeGapPositive = Clamp01(Math.Max(challengeGap, 0));
         var baseScore =
@@ -59,11 +62,14 @@ public static class SerendipityAnalysisService
             + (psychologicalSafetyLevel * 0.05)
             + (Math.Clamp(proposeIdeaRate, 0, 1) * 0.05)
             + (constructiveCriticismRate * 0.05)
-            + (Clamp01(averageRespect) * 0.05)
-            + (Clamp01(respectDensity) * 0.03)
-            + (Clamp01(challengeAcceptanceScore) * 0.04)
-            + (Clamp01(thanksChallengeRate) * 0.03)
-            + (Clamp01(thanksBridgeRate) * 0.04);
+            + (Clamp01(averageRespect) * 0.12)
+            + (Clamp01(respectDensity) * 0.08)
+            + (Clamp01(challengeAcceptanceScore) * 0.10)
+            + (Clamp01(thanksChallengeRate) * 0.02)
+            + (Clamp01(thanksBridgeRate) * 0.03)
+            + (Clamp01(averageIntellectualRespect) * 0.08)
+            + (Clamp01(intellectualRespectDiversityIndex) * 0.08)
+            + (Clamp01(mutualMentorshipScore) * 0.10);
 
         if (challengeActive)
         {
@@ -93,7 +99,11 @@ public static class SerendipityAnalysisService
         double respectDensity = 0,
         double challengeAcceptanceScore = 0,
         double thanksChallengeRate = 0,
-        double thanksBridgeRate = 0)
+        double thanksBridgeRate = 0,
+        double averageIntellectualRespect = 0,
+        double intellectualRespectDiversityIndex = 0,
+        double mutualMentorshipScore = 0,
+        double ideaAcceptanceScore = 0)
     {
         var constructiveCriticizeRate = KnowledgeAnalysisService.CalculateConstructiveCriticismRate(actions.CriticizeRate, psychologicalSafetyLevel);
         var baseScore =
@@ -110,12 +120,16 @@ public static class SerendipityAnalysisService
             + (actions.AskHelpRate * 0.07)
             + (constructiveCriticizeRate * 0.10)
             + (psychologicalSafetyLevel * 0.05)
-            + (psychologicalSafetyLevel >= 0.7 ? actions.CriticizeRate * Math.Clamp(constructiveCriticismBonus, 0, 1) : 0)
-            + (Clamp01(averageRespect) * 0.05)
-            + (Clamp01(respectDensity) * 0.03)
-            + (Clamp01(challengeAcceptanceScore) * 0.04)
-            + (Clamp01(thanksChallengeRate) * 0.03)
-            + (Clamp01(thanksBridgeRate) * 0.04);
+            + (psychologicalSafetyLevel >= 0.7 ? actions.CriticizeRate * (Math.Clamp(constructiveCriticismBonus, 0, 1) * 1.10) : 0)
+            + (Clamp01(averageRespect) * 0.12)
+            + (Clamp01(respectDensity) * 0.08)
+            + (Clamp01(challengeAcceptanceScore) * 0.10)
+            + (Clamp01(thanksChallengeRate) * 0.02)
+            + (Clamp01(thanksBridgeRate) * 0.03)
+            + (Clamp01(averageIntellectualRespect) * 0.08)
+            + (Clamp01(intellectualRespectDiversityIndex) * 0.08)
+            + (Clamp01(mutualMentorshipScore) * 0.10)
+            + (Clamp01(ideaAcceptanceScore) * 0.10);
 
         return Clamp01(Math.Round(score, 4));
     }

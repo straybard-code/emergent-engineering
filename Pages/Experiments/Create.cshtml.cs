@@ -62,7 +62,16 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         TrustCapacity = TrustDynamicsDefaults.TrustCapacity,
         TrustCapacityPenalty = TrustDynamicsDefaults.TrustCapacityPenalty,
         DistrustPenalty = TrustDynamicsDefaults.DistrustPenalty,
-        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus
+        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus,
+        EnableIntellectualRespect = IntellectualRespectDefaults.Enable,
+        IntellectualRespectBase = IntellectualRespectDefaults.Base,
+        IntellectualRespectGrowthRate = IntellectualRespectDefaults.GrowthRate,
+        IntellectualRespectDecayRate = IntellectualRespectDefaults.DecayRate,
+        IntellectualRespectDiversitySensitivity = IntellectualRespectDefaults.DiversitySensitivity,
+        IntellectualRespectChallengeSensitivity = IntellectualRespectDefaults.ChallengeSensitivity,
+        IntellectualRespectMentorshipSensitivity = IntellectualRespectDefaults.MentorshipSensitivity,
+        IntellectualRespectEgoPenalty = IntellectualRespectDefaults.EgoPenalty,
+        IntellectualRespectHierarchyPenalty = IntellectualRespectDefaults.HierarchyPenalty
     };
 
     public List<ScenarioOption> Scenarios { get; private set; } = [];
@@ -171,7 +180,16 @@ public sealed class CreateModel(AppDbContext db) : PageModel
             ThanksCoinBridgeGain = scenario.ThanksCoinBridgeGain,
             ThanksCoinPopularityBias = scenario.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = scenario.ThanksCoinDiversityBonus,
-            ThanksCoinChallengeBonus = scenario.ThanksCoinChallengeBonus
+            ThanksCoinChallengeBonus = scenario.ThanksCoinChallengeBonus,
+            EnableIntellectualRespect = scenario.EnableIntellectualRespect,
+            IntellectualRespectBase = scenario.IntellectualRespectBase,
+            IntellectualRespectGrowthRate = scenario.IntellectualRespectGrowthRate,
+            IntellectualRespectDecayRate = scenario.IntellectualRespectDecayRate,
+            IntellectualRespectDiversitySensitivity = scenario.IntellectualRespectDiversitySensitivity,
+            IntellectualRespectChallengeSensitivity = scenario.IntellectualRespectChallengeSensitivity,
+            IntellectualRespectMentorshipSensitivity = scenario.IntellectualRespectMentorshipSensitivity,
+            IntellectualRespectEgoPenalty = scenario.IntellectualRespectEgoPenalty,
+            IntellectualRespectHierarchyPenalty = scenario.IntellectualRespectHierarchyPenalty
         };
     }
 

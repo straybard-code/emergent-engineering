@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmergentEngineering.Models;
 
-public sealed class Experiment : IThanksCoinSettings, IMutualRespectSettings, IValidatableObject
+public sealed class Experiment : IThanksCoinSettings, IMutualRespectSettings, IIntellectualRespectSettings, IValidatableObject
 {
     public int Id { get; set; }
     public int? ScenarioId { get; set; }
@@ -75,6 +75,15 @@ public sealed class Experiment : IThanksCoinSettings, IMutualRespectSettings, IV
     public double MutualRespectChallengeSensitivity { get; set; } = MutualRespectDefaults.ChallengeSensitivity;
     public double MutualRespectBridgeSensitivity { get; set; } = MutualRespectDefaults.BridgeSensitivity;
     public double MutualRespectPopularityPenalty { get; set; } = MutualRespectDefaults.PopularityPenalty;
+    public bool EnableIntellectualRespect { get; set; } = IntellectualRespectDefaults.Enable;
+    public double IntellectualRespectBase { get; set; } = IntellectualRespectDefaults.Base;
+    public double IntellectualRespectGrowthRate { get; set; } = IntellectualRespectDefaults.GrowthRate;
+    public double IntellectualRespectDecayRate { get; set; } = IntellectualRespectDefaults.DecayRate;
+    public double IntellectualRespectDiversitySensitivity { get; set; } = IntellectualRespectDefaults.DiversitySensitivity;
+    public double IntellectualRespectChallengeSensitivity { get; set; } = IntellectualRespectDefaults.ChallengeSensitivity;
+    public double IntellectualRespectMentorshipSensitivity { get; set; } = IntellectualRespectDefaults.MentorshipSensitivity;
+    public double IntellectualRespectEgoPenalty { get; set; } = IntellectualRespectDefaults.EgoPenalty;
+    public double IntellectualRespectHierarchyPenalty { get; set; } = IntellectualRespectDefaults.HierarchyPenalty;
     public string Status { get; set; } = ExperimentStatus.Created;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public List<ExperimentRun> Runs { get; set; } = [];
