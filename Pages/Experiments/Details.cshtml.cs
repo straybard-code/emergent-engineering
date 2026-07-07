@@ -11,12 +11,22 @@ namespace EmergentEngineering.Pages.Experiments;
 public sealed class DetailsModel(
     AppDbContext db,
     ExperimentCleanupService cleanupService,
-    ParameterSweepRunner parameterSweepRunner) : PageModel
+    ParameterSweepRunner parameterSweepRunner,
+    ExperimentReportService reportService) : PageModel
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     [TempData]
     public string? ExperimentMessage { get; set; }
+
+    [TempData]
+    public string? ExperimentReportMessage { get; set; }
+
+    [TempData]
+    public string? ExperimentReportDownloadUrl { get; set; }
+
+    [TempData]
+    public string? ExperimentReportFileName { get; set; }
 
     public Experiment? Experiment { get; private set; }
     public List<ExperimentRun> Runs { get; private set; } = [];
@@ -271,6 +281,30 @@ public sealed class DetailsModel(
 
         await SimulationDataDeletion.DeleteSimulationProjectAsync(db, run.SimulationProjectId);
         ExperimentMessage = "Run と関連シミュレーションを削除しました。";
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostCreateReportAsync(int id, CancellationToken cancellationToken)
+    {
+        var experimentExists = await db.Experiments.AnyAsync(item => item.Id == id, cancellationToken);
+        if (!experimentExists)
+        {
+            ExperimentReportMessage = "Experimentが見つかりませんでした。";
+            return RedirectToPage(new { id });
+        }
+
+        try
+        {
+            var report = await reportService.CreateReportAsync(id, cancellationToken);
+            ExperimentReportMessage = "レポートを作成しました。";
+            ExperimentReportDownloadUrl = report.RelativeUrl;
+            ExperimentReportFileName = report.FileName;
+        }
+        catch
+        {
+            ExperimentReportMessage = "レポートを作成できませんでした。";
+        }
+
         return RedirectToPage(new { id });
     }
 

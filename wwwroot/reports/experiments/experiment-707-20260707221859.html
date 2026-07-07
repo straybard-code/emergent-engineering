@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X：知的敬意  Y：知識多様性 X=知的敬意ベース:0.400 / Y=知識多様性:0.800 - Experiment Report</title>
+<style>
+:root {
+    color-scheme: light;
+    --border: #d1d5db;
+    --muted: #6b7280;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --title: #0f172a;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 32px;
+    background: var(--bg);
+    color: #111827;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    line-height: 1.6;
+}
+.container { max-width: 1280px; margin: 0 auto; }
+.header {
+    background: linear-gradient(135deg, #eff6ff, #ffffff);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 24px;
+}
+h1, h2, h3 { color: var(--title); margin-top: 0; }
+h1 { margin-bottom: 8px; font-size: 2rem; }
+h2 { margin-bottom: 16px; font-size: 1.35rem; }
+h3 { margin-bottom: 12px; font-size: 1.1rem; }
+.muted { color: var(--muted); }
+.section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+.card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #fff;
+}
+.card .label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+.card .value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--title);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+th, td {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+}
+th {
+    background: #eff6ff;
+    color: #1e3a8a;
+    font-weight: 700;
+}
+tbody tr:nth-child(even) td { background: #fafafa; }
+.table-wrap { overflow-x: auto; }
+.pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: #1d4ed8;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+.section-note {
+    margin: 0 0 16px;
+    color: var(--muted);
+}
+.two-column {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+.summary-block {
+    display: grid;
+    gap: 8px;
+}
+.report-footer {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 24px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<div class="pill">Experiment Report</div>
+<h1>X：知的敬意  Y：知識多様性 X=知的敬意ベース:0.400 / Y=知識多様性:0.800</h1>
+<p class="muted">Experiment ID: 707 / 生成日時: 2026-07-07 22:18:59 UTC</p>
+<p>2つのパラメータを同時に変化させ、どの領域で Learning / Stable / Emergent / Silo が現れるかを観察します。 / X=知的敬意ベース:0.400 / Y=知識多様性:0.800</p>
+</div>
+<section class="section">
+<h2>基本情報</h2>
+<div class="table-wrap">
+<table>
+<tbody>
+<tr>
+<th style="width: 280px;">Experiment名</th>
+<td>X：知的敬意  Y：知識多様性 X=知的敬意ベース:0.400 / Y=知識多様性:0.800</td>
+</tr>
+<tr>
+<th style="width: 280px;">Scenario名</th>
+<td>選択的信頼・創発型－知的敬意あり</td>
+</tr>
+<tr>
+<th style="width: 280px;">Status</th>
+<td>完了</td>
+</tr>
+<tr>
+<th style="width: 280px;">Purpose</th>
+<td>顧客学習を進めながら協調的な組織形成パターンを観察する</td>
+</tr>
+<tr>
+<th style="width: 280px;">Boundary Conditions</th>
+<td>情報共有を重視する。困ったときは相談してよい。失敗は学習材料として扱い、互いに支援する。</td>
+</tr>
+<tr>
+<th style="width: 280px;">KPI</th>
+<td>市場学習、品質、リピート率、顧客成功</td>
+</tr>
+<tr>
+<th style="width: 280px;">Run数</th>
+<td>5</td>
+</tr>
+<tr>
+<th style="width: 280px;">Agent数</th>
+<td>10</td>
+</tr>
+<tr>
+<th style="width: 280px;">Step数</th>
+<td>50</td>
+</tr>
+<tr>
+<th style="width: 280px;">LLM Provider</th>
+<td>Mock</td>
+</tr>
+<tr>
+<th style="width: 280px;">LLM Model</th>
+<td>mock-v1</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>実行条件</h2>
+<div class="table-wrap">
+<table>
+<tbody>
+<tr>
+<th style="width: 280px;">情報共有</th>
+<td>0.650</td>
+</tr>
+<tr>
+<th style="width: 280px;">協調性</th>
+<td>0.550</td>
+</tr>
+<tr>
+<th style="width: 280px;">競争性</th>
+<td>0.450</td>
+</tr>
+<tr>
+<th style="width: 280px;">心理的安全性</th>
+<td>0.750</td>
+</tr>
+<tr>
+<th style="width: 280px;">学習志向</th>
+<td>0.950</td>
+</tr>
+<tr>
+<th style="width: 280px;">顧客志向</th>
+<td>0.850</td>
+</tr>
+<tr>
+<th style="width: 280px;">短期成果圧力</th>
+<td>0.350</td>
+</tr>
+<tr>
+<th style="width: 280px;">Effective Trust Threshold</th>
+<td>0.250</td>
+</tr>
+<tr>
+<th style="width: 280px;">Knowledge Stock</th>
+<td>1.000</td>
+</tr>
+<tr>
+<th style="width: 280px;">Knowledge Diversity</th>
+<td>0.800</td>
+</tr>
+<tr>
+<th style="width: 280px;">External Shock</th>
+<td>0.000</td>
+</tr>
+<tr>
+<th style="width: 280px;">Cross Domain Exposure</th>
+<td>0.500</td>
+</tr>
+<tr>
+<th style="width: 280px;">Rewiring Sensitivity</th>
+<td>0.750</td>
+</tr>
+<tr>
+<th style="width: 280px;">Enable External Shock</th>
+<td>無効</td>
+</tr>
+<tr>
+<th style="width: 280px;">Shock Step</th>
+<td>0</td>
+</tr>
+<tr>
+<th style="width: 280px;">Shock Type</th>
+<td>None</td>
+</tr>
+<tr>
+<th style="width: 280px;">Shock Description</th>
+<td></td>
+</tr>
+<tr>
+<th style="width: 280px;">Enable Challenge Event</th>
+<td>無効</td>
+</tr>
+<tr>
+<th style="width: 280px;">Challenge Type</th>
+<td>None</td>
+</tr>
+<tr>
+<th style="width: 280px;">Challenge Step</th>
+<td>0</td>
+</tr>
+<tr>
+<th style="width: 280px;">Challenge Level</th>
+<td>0.000</td>
+</tr>
+<tr>
+<th style="width: 280px;">Challenge Description</th>
+<td></td>
+</tr>
+<tr>
+<th style="width: 280px;">Enable Serendipity</th>
+<td>有効</td>
+</tr>
+<tr>
+<th style="width: 280px;">Exploration Tendency</th>
+<td>0.700</td>
+</tr>
+<tr>
+<th style="width: 280px;">Serendipity Sensitivity</th>
+<td>0.650</td>
+</tr>
+<tr>
+<th style="width: 280px;">Knowledge Recombination Rate</th>
+<td>0.650</td>
+</tr>
+<tr>
+<th style="width: 280px;">Serendipity Threshold</th>
+<td>0.400</td>
+</tr>
+<tr>
+<th style="width: 280px;">Enable Trust Dynamics</th>
+<td>有効</td>
+</tr>
+<tr>
+<th style="width: 280px;">Trust Growth Rate</th>
+<td>0.550</td>
+</tr>
+<tr>
+<th style="width: 280px;">Trust Decay Rate</th>
+<td>0.005</td>
+</tr>
+<tr>
+<th style="width: 280px;">Trust Saturation Strength</th>
+<td>0.850</td>
+</tr>
+<tr>
+<th style="width: 280px;">Trust Capacity</th>
+<td>5</td>
+</tr>
+<tr>
+<th style="width: 280px;">Trust Capacity Penalty</th>
+<td>0.040</td>
+</tr>
+<tr>
+<th style="width: 280px;">Distrust Penalty</th>
+<td>0.050</td>
+</tr>
+<tr>
+<th style="width: 280px;">Constructive Criticism Bonus</th>
+<td>0.030</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>Thanks Coin / 相互敬意 / 知的敬意</h2>
+<div class="table-wrap">
+<table>
+<tbody>
+<tr>
+<th style="width: 280px;">Thanks Coin 有効</th>
+<td>無効</td>
+</tr>
+<tr>
+<th style="width: 280px;">Thanks Coin 発生率</th>
+<td>0.300</td>
+</tr>
+<tr>
+<th style="width: 280px;">敬意増加量</th>
+<td>0.030</td>
+</tr>
+<tr>
+<th style="width: 280px;">信頼増加量</th>
+<td>0.010</td>
+</tr>
+<tr>
+<th style="width: 280px;">知識再構成増加量</th>
+<td>0.030</td>
+</tr>
+<tr>
+<th style="width: 280px;">心理的安全性増加量</th>
+<td>0.020</td>
+</tr>
+<tr>
+<th style="width: 280px;">橋渡し増加量</th>
+<td>0.030</td>
+</tr>
+<tr>
+<th style="width: 280px;">人気集中バイアス</th>
+<td>0.200</td>
+</tr>
+<tr>
+<th style="width: 280px;">多様性ボーナス</th>
+<td>0.500</td>
+</tr>
+<tr>
+<th style="width: 280px;">建設的異論ボーナス</th>
+<td>0.400</td>
+</tr>
+<tr>
+<th style="width: 280px;">相互敬意ベース</th>
+<td>0.300</td>
+</tr>
+<tr>
+<th style="width: 280px;">相互敬意成長率</th>
+<td>0.040</td>
+</tr>
+<tr>
+<th style="width: 280px;">相互敬意減衰率</th>
+<td>0.002</td>
+</tr>
+<tr>
+<th style="width: 280px;">異質性尊重感度</th>
+<td>0.400</td>
+</tr>
+<tr>
+<th style="width: 280px;">異論尊重感度</th>
+<td>0.400</td>
+</tr>
+<tr>
+<th style="width: 280px;">橋渡し尊重感度</th>
+<td>0.400</td>
+</tr>
+<tr>
+<th style="width: 280px;">人気集中ペナルティ</th>
+<td>0.300</td>
+</tr>
+<tr>
+<th style="width: 280px;">知的敬意 有効</th>
+<td>有効</td>
+</tr>
+<tr>
+<th style="width: 280px;">知的敬意ベース</th>
+<td>0.400</td>
+</tr>
+<tr>
+<th style="width: 280px;">知的敬意成長率</th>
+<td>0.040</td>
+</tr>
+<tr>
+<th style="width: 280px;">知的敬意減衰率</th>
+<td>0.002</td>
+</tr>
+<tr>
+<th style="width: 280px;">異質知識尊重感度</th>
+<td>0.500</td>
+</tr>
+<tr>
+<th style="width: 280px;">異論知的敬意感度</th>
+<td>0.500</td>
+</tr>
+<tr>
+<th style="width: 280px;">師匠化感度</th>
+<td>0.500</td>
+</tr>
+<tr>
+<th style="width: 280px;">自尊心ペナルティ</th>
+<td>0.300</td>
+</tr>
+<tr>
+<th style="width: 280px;">序列ペナルティ</th>
+<td>0.200</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>サマリー</h2>
+<div class="cards">
+<div class="card">
+<span class="label">Run数</span>
+<span class="value">5</span>
+</div>
+<div class="card">
+<span class="label">創発率</span>
+<span class="value">1.000</span>
+</div>
+<div class="card">
+<span class="label">安定率</span>
+<span class="value">0.000</span>
+</div>
+<div class="card">
+<span class="label">学習率</span>
+<span class="value">0.000</span>
+</div>
+<div class="card">
+<span class="label">平均信頼度</span>
+<span class="value">0.402</span>
+</div>
+<div class="card">
+<span class="label">平均Effective Density</span>
+<span class="value">0.978</span>
+</div>
+<div class="card">
+<span class="label">平均Knowledge Reconfiguration</span>
+<span class="value">1.000</span>
+</div>
+<div class="card">
+<span class="label">平均Serendipity Rate</span>
+<span class="value">1.000</span>
+</div>
+<div class="card">
+<span class="label">平均相互敬意</span>
+<span class="value">0.322</span>
+</div>
+<div class="card">
+<span class="label">平均知的敬意</span>
+<span class="value">0.622</span>
+</div>
+<div class="card">
+<span class="label">平均Challenge Acceptance</span>
+<span class="value">0.497</span>
+</div>
+<div class="card">
+<span class="label">平均Mutual Mentorship</span>
+<span class="value">0.429</span>
+</div>
+<div class="card">
+<span class="label">平均Thanks集中度</span>
+<span class="value">0.000</span>
+</div>
+<div class="card">
+<span class="label">平均Thanks→創発寄与</span>
+<span class="value">0.709</span>
+</div>
+</div>
+</section>
+
+<section class="section">
+<h2>Phase分布</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Phase</th><th>件数</th><th>比率</th></tr></thead>
+<tbody>
+<tr>
+<td>創発期（Emergent）</td>
+<td>5</td>
+<td>1.000</td>
+</tr>
+<tr>
+<td>安定期（Stable）</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>学習期（Learning）</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>適応期（Adaptation）</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>形成期（Forming）</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>サイロ期（Silo）</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>混沌期（Chaos）</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>崩壊期（Collapse）</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>代表的なRun一覧</h2>
+<p class="section-note">Final Phase と信頼・敬意系指標から代表Runを抽出しています。</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Run</th><th>Simulation</th><th>Final Phase</th><th>平均信頼度</th><th>Effective Density</th><th>Component</th><th>Phase Stability</th><th>相互敬意</th><th>知的敬意</th><th>Mutual Mentorship</th><th>Step</th></tr></thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>X：知的敬意  Y：知識多様性 X=知的敬意ベース:0.400 / Y=知識多様性:0.800 Run 5 (#3546)</td>
+<td>創発期（Emergent）</td>
+<td>0.410</td>
+<td>0.978</td>
+<td>1</td>
+<td>1.000</td>
+<td>0.322</td>
+<td>0.622</td>
+<td>0.410</td>
+<td>50</td>
+</tr>
+<tr>
+<td>1</td>
+<td>X：知的敬意  Y：知識多様性 X=知的敬意ベース:0.400 / Y=知識多様性:0.800 Run 1 (#3542)</td>
+<td>創発期（Emergent）</td>
+<td>0.400</td>
+<td>0.967</td>
+<td>1</td>
+<td>1.000</td>
+<td>0.322</td>
+<td>0.622</td>
+<td>0.439</td>
+<td>50</td>
+</tr>
+<tr>
+<td>2</td>
+<td>X：知的敬意  Y：知識多様性 X=知的敬意ベース:0.400 / Y=知識多様性:0.800 Run 2 (#3543)</td>
+<td>創発期（Emergent）</td>
+<td>0.400</td>
+<td>0.978</td>
+<td>1</td>
+<td>1.000</td>
+<td>0.322</td>
+<td>0.622</td>
+<td>0.439</td>
+<td>50</td>
+</tr>
+<tr>
+<td>3</td>
+<td>X：知的敬意  Y：知識多様性 X=知的敬意ベース:0.400 / Y=知識多様性:0.800 Run 3 (#3544)</td>
+<td>創発期（Emergent）</td>
+<td>0.400</td>
+<td>0.989</td>
+<td>1</td>
+<td>1.000</td>
+<td>0.322</td>
+<td>0.622</td>
+<td>0.428</td>
+<td>50</td>
+</tr>
+<tr>
+<td>4</td>
+<td>X：知的敬意  Y：知識多様性 X=知的敬意ベース:0.400 / Y=知識多様性:0.800 Run 4 (#3545)</td>
+<td>創発期（Emergent）</td>
+<td>0.400</td>
+<td>0.978</td>
+<td>1</td>
+<td>1.000</td>
+<td>0.322</td>
+<td>0.622</td>
+<td>0.428</td>
+<td>50</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>解釈コメント</h2>
+<p>創発相が十分に観測されており、相互敬意と知的敬意が結果に結びついている可能性があります。 セレンディピティの発生が一定以上あり、予期しない組み替えが起きています。</p>
+</section>
+
+<div class="report-footer">
+このHTMLレポートは削除されるExperimentとは独立して保存されます。
+</div>
+</div>
+</body>
+</html>
