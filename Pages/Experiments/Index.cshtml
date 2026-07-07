@@ -7,11 +7,11 @@
 @functions {
     private static string FormatStatus(string? status) => IndexModel.GetStatusCategory(status) switch
     {
-        ExperimentStatusCategory.Pending => "未実行",
+        ExperimentStatusCategory.Pending => "作成済み / 待機中",
         ExperimentStatusCategory.Running => "実行中",
         ExperimentStatusCategory.Completed => "完了",
         ExperimentStatusCategory.Failed => "失敗",
-        ExperimentStatusCategory.Cancelled => "停止",
+        ExperimentStatusCategory.Cancelled => "停止 / キャンセル",
         _ => "-"
     };
 
@@ -37,9 +37,9 @@
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h1 class="h2 mb-1">Experiments</h1>
-        <p class="text-muted mb-0">同じ条件で複数回の実行結果を比較し、Phase 遷移と Trust 状態を確認します。</p>
+        <p class="text-muted mb-0">実験の一覧です。相図やスイープから作成された関連 Experiment もここで確認できます。</p>
     </div>
-    <a class="btn btn-primary" asp-page="/Experiments/Create">新規実験</a>
+    <a class="btn btn-primary" asp-page="/Experiments/Create">新規Experiment</a>
 </div>
 
 @if (!string.IsNullOrWhiteSpace(Model.CleanupMessage))
@@ -47,28 +47,33 @@
     <div class="alert alert-info">@Model.CleanupMessage</div>
 }
 
-<div class="text-muted small mb-3">実行中のまま停止している場合のみ使用してください。</div>
+<div class="alert alert-warning">
+    <strong>削除は各 Experiment の詳細画面から個別に行ってください。</strong>
+    <div class="small mt-1">一括削除や管理画面からの広範囲なクリーンアップは現在停止中です。</div>
+</div>
+
+<div class="text-muted small mb-3">実行中の Experiment は通常削除できません。停止した実行の復旧や強制削除が必要な場合は、詳細画面から操作してください。</div>
 
 <section class="experiment-status-summary mb-4">
     <span class="status-badge status-running">実行中: @Model.RunningCount</span>
     <span class="status-badge status-completed">完了: @Model.CompletedCount</span>
-    <span class="status-badge status-pending">未実行: @Model.PendingCount</span>
+    <span class="status-badge status-pending">待機中: @Model.PendingCount</span>
     <span class="status-badge status-failed">失敗: @Model.FailedCount</span>
-    <span class="status-badge status-cancelled">停止: @Model.CancelledCount</span>
+    <span class="status-badge status-cancelled">停止 / キャンセル: @Model.CancelledCount</span>
 </section>
 
 @if (Model.Experiments.Count == 0)
 {
     <div class="empty-state">
         <h2 class="h5">Experiment はまだありません</h2>
-        <p>比較したい条件セットを作成してから複数 Run を実行します。</p>
+        <p>新規Experimentを作成すると、関連する Run や Simulation の詳細をここから確認できます。</p>
     </div>
 }
 else
 {
-    <form method="post" asp-page-handler="DeleteSelected" onsubmit="return confirm('選択したExperimentと関連するRun、Simulation、Step、Action、TrustSnapshotを削除します。よろしいですか？');">
+    <form method="post" asp-page-handler="DeleteSelected" onsubmit="return confirm('選択した Experiment を削除します。よろしいですか？');">
         <div class="d-flex align-items-center justify-content-between gap-3 mb-3 flex-wrap">
-            <div class="text-muted small">実行中のExperimentは削除できません。</div>
+            <div class="text-muted small">削除は個別詳細画面を推奨します。ここでの複数選択削除は実行中の Experiment を除いたものだけが対象です。</div>
             <button type="submit" class="btn btn-danger">選択したExperimentを削除</button>
         </div>
 
@@ -99,12 +104,19 @@ else
                             }
                             else
                             {
-                                <input type="checkbox" class="form-check-input experiment-delete-checkbox" name="SelectedExperimentIds" value="@experiment.Id" aria-label="@experiment.Name を選択" />
+                                <input type="checkbox"
+                                       class="form-check-input experiment-delete-checkbox"
+                                       name="SelectedExperimentIds"
+                                       value="@experiment.Id"
+                                       aria-label="@experiment.Name の選択" />
                             }
                         </td>
                         <td>
                             <strong>@experiment.Name</strong>
-                            <div class="text-muted small">@experiment.Description</div>
+                            @if (!string.IsNullOrWhiteSpace(experiment.Description))
+                            {
+                                <div class="text-muted small">@experiment.Description</div>
+                            }
                         </td>
                         <td><span class="@GetStatusBadgeClass(experiment.Status)">@FormatStatus(experiment.Status)</span></td>
                         <td>@experiment.RunCount</td>
@@ -117,12 +129,8 @@ else
                                 @if (string.Equals(experiment.Status, EmergentEngineering.Models.ExperimentStatus.Running, StringComparison.OrdinalIgnoreCase))
                                 {
                                     <button type="submit" class="btn btn-sm btn-outline-warning" form="mark-failed-experiment-@experiment.Id">失敗扱いにする</button>
-                                    <button type="submit"
-                                            class="btn btn-sm btn-outline-danger"
-                                            form="force-delete-experiment-@experiment.Id">
-                                        強制削除
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" disabled>削除不可</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" form="force-delete-experiment-@experiment.Id">強制削除</button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" disabled>通常削除不可</button>
                                 }
                                 else
                                 {
@@ -145,7 +153,7 @@ else
         <form id="force-delete-experiment-@experiment.Id"
               method="post"
               asp-page-handler="ForceDelete"
-              onsubmit="return confirm('実行中のデータを強制削除します。関連するStep、Action、TrustSnapshotも削除されます。よろしいですか？');">
+              onsubmit="return confirm('実行中の Experiment を強制削除します。関連する Run / Simulation / Step / Action / Snapshot も削除されます。よろしいですか？');">
             <input type="hidden" name="id" value="@experiment.Id" />
         </form>
     }

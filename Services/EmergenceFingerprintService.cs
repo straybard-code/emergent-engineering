@@ -54,12 +54,33 @@ public static class EmergenceFingerprintService
         var respectStrongLinks = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectStrongLinks), 4);
         var respectWeakLinks = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectWeakLinks), 4);
         var respectConcentration = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectConcentration), 4);
+        var respectDiversityIndex = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectDiversityIndex), 4);
         var averageChallengeAcceptanceScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ChallengeAcceptanceScore), 4);
+        var averageIdeaAcceptanceScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.IdeaAcceptanceScore), 4);
         var averageRespectReconfigurationBoost = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectReconfigurationBoost), 4);
         var averageRespectEmergenceComponent = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.RespectEmergenceComponent), 4);
+        var averageIntellectualRespect = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.AverageIntellectualRespect), 4);
+        var intellectualRespectDensity = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectDensity), 4);
+        var intellectualRespectStrongLinks = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectStrongLinks), 4);
+        var intellectualRespectWeakLinks = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectWeakLinks), 4);
+        var intellectualRespectConcentration = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectConcentration), 4);
+        var intellectualRespectDiversityIndex = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectDiversityIndex), 4);
+        var mutualMentorshipScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.MutualMentorshipScore), 4);
+        var averageMentorshipLinkCount = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.MentorshipLinkCount), 4);
+        var averageCrossMentorshipLinkCount = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.CrossMentorshipLinkCount), 4);
+        var averageLearnedFromUnexpectedAgentCount = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.LearnedFromUnexpectedAgentCount), 4);
+        var averageLearningFromOthersScore = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.LearningFromOthersScore), 4);
+        var averageIntellectualRespectReconfigurationComponent = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectReconfigurationComponent), 4);
+        var averageIntellectualRespectSerendipityComponent = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectSerendipityComponent), 4);
+        var averageIntellectualRespectEmergenceComponent = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.IntellectualRespectEmergenceComponent), 4);
+        var averageEgoPenaltyApplied = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.EgoPenaltyApplied), 4);
+        var averageHierarchyPenaltyApplied = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.HierarchyPenaltyApplied), 4);
         var averageThanksCoinToReconfigurationContribution = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ThanksCoinToReconfigurationContribution), 4);
         var averageThanksCoinToSerendipityContribution = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ThanksCoinToSerendipityContribution), 4);
         var averageThanksCoinToEmergenceContribution = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ThanksCoinToEmergenceContribution), 4);
+        var averageThanksIdeaAsIntellectualRespectSignal = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ThanksIdeaAsIntellectualRespectSignal), 4);
+        var averageThanksChallengeAsIntellectualRespectSignal = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ThanksChallengeAsIntellectualRespectSignal), 4);
+        var averageThanksBridgeAsMentorshipSignal = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Average(item => item.ThanksBridgeAsMentorshipSignal), 4);
         var popularityTrapRate = knowledgeTimeline.Count == 0 ? 0 : Math.Round(knowledgeTimeline.Count(item => item.PopularityTrapDetected) / (double)knowledgeTimeline.Count, 4);
         var totalThanksCount = knowledgeTimeline.Sum(item => item.ThanksCoinCount);
         var thanksCoinRate = knowledgeTimeline.Count == 0 ? 0 : Math.Round(totalThanksCount / (double)knowledgeTimeline.Count, 4);
@@ -144,9 +165,27 @@ public static class EmergenceFingerprintService
             RespectStrongLinks = respectStrongLinks,
             RespectWeakLinks = respectWeakLinks,
             RespectConcentration = respectConcentration,
+            RespectDiversityIndex = respectDiversityIndex,
             AverageChallengeAcceptanceScore = averageChallengeAcceptanceScore,
+            AverageIdeaAcceptanceScore = averageIdeaAcceptanceScore,
             AverageRespectReconfigurationBoost = averageRespectReconfigurationBoost,
             AverageRespectEmergenceComponent = averageRespectEmergenceComponent,
+            AverageIntellectualRespect = averageIntellectualRespect,
+            IntellectualRespectDensity = intellectualRespectDensity,
+            IntellectualRespectStrongLinks = intellectualRespectStrongLinks,
+            IntellectualRespectWeakLinks = intellectualRespectWeakLinks,
+            IntellectualRespectConcentration = intellectualRespectConcentration,
+            IntellectualRespectDiversityIndex = intellectualRespectDiversityIndex,
+            MutualMentorshipScore = mutualMentorshipScore,
+            AverageMentorshipLinkCount = averageMentorshipLinkCount,
+            AverageCrossMentorshipLinkCount = averageCrossMentorshipLinkCount,
+            AverageLearnedFromUnexpectedAgentCount = averageLearnedFromUnexpectedAgentCount,
+            AverageLearningFromOthersScore = averageLearningFromOthersScore,
+            AverageIntellectualRespectReconfigurationComponent = averageIntellectualRespectReconfigurationComponent,
+            AverageIntellectualRespectSerendipityComponent = averageIntellectualRespectSerendipityComponent,
+            AverageIntellectualRespectEmergenceComponent = averageIntellectualRespectEmergenceComponent,
+            AverageEgoPenaltyApplied = averageEgoPenaltyApplied,
+            AverageHierarchyPenaltyApplied = averageHierarchyPenaltyApplied,
             ThanksCoinRate = thanksCoinRate,
             ThanksHelpRate = thanksHelpRate,
             ThanksIdeaRate = thanksIdeaRate,
@@ -158,6 +197,9 @@ public static class EmergenceFingerprintService
             AverageThanksCoinToReconfigurationContribution = averageThanksCoinToReconfigurationContribution,
             AverageThanksCoinToSerendipityContribution = averageThanksCoinToSerendipityContribution,
             AverageThanksCoinToEmergenceContribution = averageThanksCoinToEmergenceContribution,
+            AverageThanksIdeaAsIntellectualRespectSignal = averageThanksIdeaAsIntellectualRespectSignal,
+            AverageThanksChallengeAsIntellectualRespectSignal = averageThanksChallengeAsIntellectualRespectSignal,
+            AverageThanksBridgeAsMentorshipSignal = averageThanksBridgeAsMentorshipSignal,
             PopularityTrapRate = popularityTrapRate,
             SerendipityOccurredCount = serendipityOccurredCount,
             SerendipityRate = serendipityRate,
@@ -183,8 +225,46 @@ public static class EmergenceFingerprintService
         return fingerprint;
     }
 
-        public static string Classify(EmergenceFingerprint fingerprint)
+    public static string Classify(EmergenceFingerprint fingerprint)
     {
+        if (fingerprint.AverageIntellectualRespect >= 0.40
+            && fingerprint.MutualMentorshipScore >= 0.40
+            && fingerprint.AverageIntellectualRespectReconfigurationComponent >= 0.20
+            && string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return "相互師匠型創発";
+        }
+
+        if (fingerprint.AverageRespect < 0.40
+            && fingerprint.AverageIntellectualRespect >= 0.50
+            && fingerprint.AverageChallengeAcceptanceScore >= 0.55
+            && string.Equals(fingerprint.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase))
+        {
+            return "プロフェッショナル創発型";
+        }
+
+        if (fingerprint.AverageRespect >= 0.50
+            && fingerprint.AverageIntellectualRespect < 0.30
+            && (string.Equals(fingerprint.FinalPhase, SimulationPhase.Stable, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(fingerprint.FinalPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase)))
+        {
+            return "仲良し停滞型";
+        }
+
+        if (fingerprint.AverageEgoPenaltyApplied >= 0.20
+            && fingerprint.AverageIdeaAcceptanceScore < 0.40
+            && fingerprint.AverageKnowledgeReconfigurationScore < 0.40)
+        {
+            return "自尊心障壁型";
+        }
+
+        if (fingerprint.AverageHierarchyPenaltyApplied >= 0.20
+            && fingerprint.AverageLearnedFromUnexpectedAgentCount < 1
+            && fingerprint.AverageCrossMentorshipLinkCount < 1)
+        {
+            return "序列障壁型";
+        }
+
         if (fingerprint.AverageRespect >= 0.50
             && fingerprint.ThanksChallengeRate > 0.10
             && fingerprint.ThanksBridgeRate > 0.10
@@ -477,9 +557,27 @@ public sealed class EmergenceFingerprint
     public double RespectStrongLinks { get; init; }
     public double RespectWeakLinks { get; init; }
     public double RespectConcentration { get; init; }
+    public double RespectDiversityIndex { get; init; }
     public double AverageChallengeAcceptanceScore { get; init; }
+    public double AverageIdeaAcceptanceScore { get; init; }
     public double AverageRespectReconfigurationBoost { get; init; }
     public double AverageRespectEmergenceComponent { get; init; }
+    public double AverageIntellectualRespect { get; init; }
+    public double IntellectualRespectDensity { get; init; }
+    public double IntellectualRespectStrongLinks { get; init; }
+    public double IntellectualRespectWeakLinks { get; init; }
+    public double IntellectualRespectConcentration { get; init; }
+    public double IntellectualRespectDiversityIndex { get; init; }
+    public double MutualMentorshipScore { get; init; }
+    public double AverageMentorshipLinkCount { get; init; }
+    public double AverageCrossMentorshipLinkCount { get; init; }
+    public double AverageLearnedFromUnexpectedAgentCount { get; init; }
+    public double AverageLearningFromOthersScore { get; init; }
+    public double AverageIntellectualRespectReconfigurationComponent { get; init; }
+    public double AverageIntellectualRespectSerendipityComponent { get; init; }
+    public double AverageIntellectualRespectEmergenceComponent { get; init; }
+    public double AverageEgoPenaltyApplied { get; init; }
+    public double AverageHierarchyPenaltyApplied { get; init; }
     public double ThanksCoinRate { get; init; }
     public double ThanksHelpRate { get; init; }
     public double ThanksIdeaRate { get; init; }
@@ -491,6 +589,9 @@ public sealed class EmergenceFingerprint
     public double AverageThanksCoinToReconfigurationContribution { get; init; }
     public double AverageThanksCoinToSerendipityContribution { get; init; }
     public double AverageThanksCoinToEmergenceContribution { get; init; }
+    public double AverageThanksIdeaAsIntellectualRespectSignal { get; init; }
+    public double AverageThanksChallengeAsIntellectualRespectSignal { get; init; }
+    public double AverageThanksBridgeAsMentorshipSignal { get; init; }
     public double PopularityTrapRate { get; init; }
     public bool ShockOccurred { get; init; }
     public string ShockType { get; init; } = ShockTypes.None;

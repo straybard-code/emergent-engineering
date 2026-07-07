@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmergentEngineering.Models;
 
-public sealed class SimulationProject : IThanksCoinSettings, IMutualRespectSettings, IValidatableObject
+public sealed class SimulationProject : IThanksCoinSettings, IMutualRespectSettings, IIntellectualRespectSettings, ILogRetentionSettings, IValidatableObject
 {
     public int Id { get; set; }
     public int? ExperimentId { get; set; }
@@ -74,6 +74,24 @@ public sealed class SimulationProject : IThanksCoinSettings, IMutualRespectSetti
     public double MutualRespectChallengeSensitivity { get; set; } = MutualRespectDefaults.ChallengeSensitivity;
     public double MutualRespectBridgeSensitivity { get; set; } = MutualRespectDefaults.BridgeSensitivity;
     public double MutualRespectPopularityPenalty { get; set; } = MutualRespectDefaults.PopularityPenalty;
+    public bool EnableIntellectualRespect { get; set; } = IntellectualRespectDefaults.EnableIntellectualRespect;
+    public double IntellectualRespectBase { get; set; } = IntellectualRespectDefaults.Base;
+    public double IntellectualRespectGrowthRate { get; set; } = IntellectualRespectDefaults.GrowthRate;
+    public double IntellectualRespectDecayRate { get; set; } = IntellectualRespectDefaults.DecayRate;
+    public double IntellectualRespectDiversitySensitivity { get; set; } = IntellectualRespectDefaults.DiversitySensitivity;
+    public double IntellectualRespectChallengeSensitivity { get; set; } = IntellectualRespectDefaults.ChallengeSensitivity;
+    public double IntellectualRespectMentorshipSensitivity { get; set; } = IntellectualRespectDefaults.MentorshipSensitivity;
+    public double IntellectualRespectEgoPenalty { get; set; } = IntellectualRespectDefaults.EgoPenalty;
+    public double IntellectualRespectHierarchyPenalty { get; set; } = IntellectualRespectDefaults.HierarchyPenalty;
+    [Required]
+    [StringLength(32)]
+    public string LogDetailLevel { get; set; } = LogDetailLevels.Full;
+
+    [Range(1, 1000)]
+    public int StepLogInterval { get; set; } = LogRetentionDefaults.FullStepInterval;
+
+    [Range(1, 1000)]
+    public int ActionLogInterval { get; set; } = LogRetentionDefaults.FullActionInterval;
     public string Status { get; set; } = SimulationStatus.Created;
     public string Phase { get; set; } = SimulationPhase.Forming;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

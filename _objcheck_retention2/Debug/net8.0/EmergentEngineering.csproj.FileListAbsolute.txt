@@ -1,0 +1,5 @@
+C:\apps\emergent-engineering\_objcheck_retention2\Debug\net8.0\EmergentEngineering.csproj.AssemblyReference.cache
+C:\apps\emergent-engineering\_objcheck_retention2\Debug\net8.0\EmergentEngineering.GeneratedMSBuildEditorConfig.editorconfig
+C:\apps\emergent-engineering\_objcheck_retention2\Debug\net8.0\EmergentEngineering.csproj.CoreCompileInputs.cache
+C:\apps\emergent-engineering\_objcheck_retention2\Debug\net8.0\EmergentEngineering.MvcApplicationPartsAssemblyInfo.cache
+C:\apps\emergent-engineering\_objcheck_retention2\Debug\net8.0\EmergentEngineering.sourcelink.json

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmergentEngineering.Models;
 
-public sealed class CreateSimulationRequest : IThanksCoinSettings, IMutualRespectSettings, IValidatableObject
+public sealed class CreateSimulationRequest : IThanksCoinSettings, IMutualRespectSettings, IIntellectualRespectSettings, ILogRetentionSettings, IValidatableObject
 {
     [Required]
     [StringLength(200)]
@@ -188,6 +188,42 @@ public sealed class CreateSimulationRequest : IThanksCoinSettings, IMutualRespec
 
     [Range(0, 1)]
     public double MutualRespectPopularityPenalty { get; set; } = MutualRespectDefaults.PopularityPenalty;
+
+    public bool EnableIntellectualRespect { get; set; } = IntellectualRespectDefaults.EnableIntellectualRespect;
+
+    [Range(0, 1)]
+    public double IntellectualRespectBase { get; set; } = IntellectualRespectDefaults.Base;
+
+    [Range(0, 1)]
+    public double IntellectualRespectGrowthRate { get; set; } = IntellectualRespectDefaults.GrowthRate;
+
+    [Range(0, 1)]
+    public double IntellectualRespectDecayRate { get; set; } = IntellectualRespectDefaults.DecayRate;
+
+    [Range(0, 1)]
+    public double IntellectualRespectDiversitySensitivity { get; set; } = IntellectualRespectDefaults.DiversitySensitivity;
+
+    [Range(0, 1)]
+    public double IntellectualRespectChallengeSensitivity { get; set; } = IntellectualRespectDefaults.ChallengeSensitivity;
+
+    [Range(0, 1)]
+    public double IntellectualRespectMentorshipSensitivity { get; set; } = IntellectualRespectDefaults.MentorshipSensitivity;
+
+    [Range(0, 1)]
+    public double IntellectualRespectEgoPenalty { get; set; } = IntellectualRespectDefaults.EgoPenalty;
+
+    [Range(0, 1)]
+    public double IntellectualRespectHierarchyPenalty { get; set; } = IntellectualRespectDefaults.HierarchyPenalty;
+
+    [Required]
+    [StringLength(40)]
+    public string LogDetailLevel { get; set; } = LogDetailLevels.Full;
+
+    [Range(1, 1000)]
+    public int StepLogInterval { get; set; } = LogRetentionDefaults.FullStepInterval;
+
+    [Range(1, 1000)]
+    public int ActionLogInterval { get; set; } = LogRetentionDefaults.FullActionInterval;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

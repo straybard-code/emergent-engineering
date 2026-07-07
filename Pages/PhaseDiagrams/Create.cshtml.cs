@@ -13,7 +13,7 @@ public sealed class CreateModel(AppDbContext db, PhaseDiagramRunner phaseDiagram
     public PhaseDiagram Input { get; set; } = new()
     {
         Name = "創発相図 実験",
-        Description = "2つのパラメータを同時に変化させ、どの領域で Learning / Stable / Emergent / Silo が現れるかを観察します。",
+        Description = "2つのパラメータを同時に変化させ、どの領域で Learning / Stable / Emergent / Silo が現れるかを確認します。",
         XParameterName = BoundaryParameterNames.TrustGrowthRate,
         XParameterDisplayName = BoundaryParameterNames.GetLabel(BoundaryParameterNames.TrustGrowthRate),
         XStartValue = 0.2,
@@ -117,7 +117,7 @@ public sealed class CreateModel(AppDbContext db, PhaseDiagramRunner phaseDiagram
         var parent = await db.PhaseDiagrams.FirstOrDefaultAsync(item => item.Id == SourcePhaseDiagramId.Value);
         if (parent is null)
         {
-            AdaptiveNotice = "再探索元の相図が見つからなかったため、通常の新規作成を表示しています。";
+            AdaptiveNotice = "再探索元の相図が見つからなかったため、通常の新規作成として表示しています。";
             return;
         }
 
@@ -125,7 +125,7 @@ public sealed class CreateModel(AppDbContext db, PhaseDiagramRunner phaseDiagram
             ? $"{parent.Name} - Adaptive {AdaptiveSourceType}"
             : $"{parent.Name} - Adaptive";
         Input.Description = string.IsNullOrWhiteSpace(AdaptiveReason)
-            ? "Adaptive Sweep の初期値が適用されています。必要に応じて調整してください。"
+            ? "Adaptive Sweep の元になった相図を引き継いで、再探索用の設定を作成しています。"
             : AdaptiveReason!;
         Input.BaseScenarioId = parent.BaseScenarioId;
         Input.XParameterName = parent.XParameterName;
@@ -156,7 +156,7 @@ public sealed class CreateModel(AppDbContext db, PhaseDiagramRunner phaseDiagram
                 Input.YStepValue = plan.YStepValue;
                 AdaptiveSourceTypeText = FormatAdaptiveSourceType(plan.AdaptiveSourceType);
                 AdaptiveReasonText = plan.AdaptiveReason;
-                AdaptiveNotice = "既存相図から Adaptive Sweep の再探索範囲を読み込んでいます。必要に応じて調整して保存してください。";
+                AdaptiveNotice = "既存相図から Adaptive Sweep の再探索範囲を読み込んでいます。必要に応じて調整して作成してください。";
                 return;
             }
         }
@@ -165,12 +165,6 @@ public sealed class CreateModel(AppDbContext db, PhaseDiagramRunner phaseDiagram
             // Fall back to a simple copy of the parent settings when the adaptive plan cannot be built.
         }
 
-        Input.Name = !string.IsNullOrWhiteSpace(AdaptiveSourceType)
-            ? $"{parent.Name} - Adaptive {AdaptiveSourceType}"
-            : $"{parent.Name} - Adaptive";
-        Input.Description = string.IsNullOrWhiteSpace(AdaptiveReason)
-            ? "Adaptive Sweep の初期値が適用されています。必要に応じて調整してください。"
-            : AdaptiveReason!;
         Input.XStartValue = parent.XStartValue;
         Input.XEndValue = parent.XEndValue;
         Input.XStepValue = Math.Max(parent.XStepValue / 2, 0.005);
@@ -179,8 +173,10 @@ public sealed class CreateModel(AppDbContext db, PhaseDiagramRunner phaseDiagram
         Input.YStepValue = Math.Max(parent.YStepValue / 2, 0.005);
 
         AdaptiveSourceTypeText = FormatAdaptiveSourceType(AdaptiveSourceType);
-        AdaptiveReasonText = string.IsNullOrWhiteSpace(AdaptiveReason) ? "Adaptive Sweep の初期値が適用されています。" : AdaptiveReason!;
-        AdaptiveNotice = "既存相図から Adaptive Sweep の初期値を読み込んでいます。必要に応じて範囲を調整して保存してください。";
+        AdaptiveReasonText = string.IsNullOrWhiteSpace(AdaptiveReason)
+            ? "Adaptive Sweep の元になった設定を引き継いでいます。"
+            : AdaptiveReason!;
+        AdaptiveNotice = "既存相図から Adaptive Sweep の設定を読み込んでいます。必要に応じて範囲を調整して作成してください。";
     }
 
     private void NormalizeDisplayNames()

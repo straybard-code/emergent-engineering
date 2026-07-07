@@ -138,6 +138,55 @@ public static class MutualRespectDefaults
     public const double PopularityPenalty = 0.30;
 }
 
+public static class IntellectualRespectDefaults
+{
+    public const bool EnableIntellectualRespect = true;
+    public const double Base = 0.30;
+    public const double GrowthRate = 0.04;
+    public const double DecayRate = 0.002;
+    public const double DiversitySensitivity = 0.50;
+    public const double ChallengeSensitivity = 0.50;
+    public const double MentorshipSensitivity = 0.50;
+    public const double EgoPenalty = 0.30;
+    public const double HierarchyPenalty = 0.20;
+}
+
+public static class LogDetailLevels
+{
+    public const string Full = "Full";
+    public const string Summary = "Summary";
+    public const string Minimal = "Minimal";
+
+    public static readonly string[] All =
+    [
+        Full,
+        Summary,
+        Minimal
+    ];
+
+    public static string GetLabel(string? value)
+    {
+        return value switch
+        {
+            Full => "Full（全Step保存）",
+            Summary => "Summary（要約保存）",
+            Minimal => "Minimal（最小保存）",
+            _ => value ?? "-"
+        };
+    }
+}
+
+public static class LogRetentionDefaults
+{
+    public const string LogDetailLevel = LogDetailLevels.Full;
+    public const int FullStepInterval = 1;
+    public const int FullActionInterval = 1;
+    public const int SummaryStepInterval = 5;
+    public const int SummaryActionInterval = 10;
+    public const int MinimalStepInterval = 10;
+    public const int MinimalActionInterval = 10;
+}
+
 public static class ThanksCoinTypes
 {
     public const string Help = "Help";
@@ -246,6 +295,16 @@ public static class BoundaryParameterNames
     public const string MutualRespectBridgeSensitivity = "MutualRespectBridgeSensitivity";
     public const string MutualRespectPopularityPenalty = "MutualRespectPopularityPenalty";
 
+    public const string EnableIntellectualRespect = "EnableIntellectualRespect";
+    public const string IntellectualRespectBase = "IntellectualRespectBase";
+    public const string IntellectualRespectGrowthRate = "IntellectualRespectGrowthRate";
+    public const string IntellectualRespectDecayRate = "IntellectualRespectDecayRate";
+    public const string IntellectualRespectDiversitySensitivity = "IntellectualRespectDiversitySensitivity";
+    public const string IntellectualRespectChallengeSensitivity = "IntellectualRespectChallengeSensitivity";
+    public const string IntellectualRespectMentorshipSensitivity = "IntellectualRespectMentorshipSensitivity";
+    public const string IntellectualRespectEgoPenalty = "IntellectualRespectEgoPenalty";
+    public const string IntellectualRespectHierarchyPenalty = "IntellectualRespectHierarchyPenalty";
+
     public const string ChallengeLevel = "ChallengeLevel";
     public const string RequiredKnowledgeDiversity = "RequiredKnowledgeDiversity";
     public const string RequiredCrossDomainExposure = "RequiredCrossDomainExposure";
@@ -315,6 +374,19 @@ public static class BoundaryParameterNames
         MutualRespectPopularityPenalty
     ];
 
+    public static readonly string[] IntellectualRespect =
+    [
+        EnableIntellectualRespect,
+        IntellectualRespectBase,
+        IntellectualRespectGrowthRate,
+        IntellectualRespectDecayRate,
+        IntellectualRespectDiversitySensitivity,
+        IntellectualRespectChallengeSensitivity,
+        IntellectualRespectMentorshipSensitivity,
+        IntellectualRespectEgoPenalty,
+        IntellectualRespectHierarchyPenalty
+    ];
+
     public static readonly string[] Challenge =
     [
         ChallengeLevel,
@@ -331,6 +403,7 @@ public static class BoundaryParameterNames
         ..TrustDynamics,
         ..ThanksCoin,
         ..MutualRespect,
+        ..IntellectualRespect,
         ..Challenge
     ];
 
@@ -342,6 +415,7 @@ public static class BoundaryParameterNames
         ("信頼ダイナミクス", TrustDynamics),
         ("Thanks Coin / 相互敬意", ThanksCoin),
         ("相互敬意", MutualRespect),
+        ("知的敬意 / Mutual Mentorship", IntellectualRespect),
         ("Challenge", Challenge)
     ];
 
@@ -387,6 +461,15 @@ public static class BoundaryParameterNames
         MutualRespectChallengeSensitivity => "異論尊重感度",
         MutualRespectBridgeSensitivity => "橋渡し尊重感度",
         MutualRespectPopularityPenalty => "人気集中ペナルティ",
+        EnableIntellectualRespect => "知的敬意を有効化",
+        IntellectualRespectBase => "知的敬意ベース",
+        IntellectualRespectGrowthRate => "知的敬意成長率",
+        IntellectualRespectDecayRate => "知的敬意減衰率",
+        IntellectualRespectDiversitySensitivity => "異質知識尊重感度",
+        IntellectualRespectChallengeSensitivity => "異論知的敬意感度",
+        IntellectualRespectMentorshipSensitivity => "師匠化感度",
+        IntellectualRespectEgoPenalty => "自尊心ペナルティ",
+        IntellectualRespectHierarchyPenalty => "序列ペナルティ",
         ChallengeLevel => "Challengeレベル",
         RequiredKnowledgeDiversity => "必要知識多様性",
         RequiredCrossDomainExposure => "必要異分野接触度",
@@ -522,6 +605,33 @@ public static class BoundaryParameterNames
                 return true;
             case MutualRespectPopularityPenalty:
                 experiment.MutualRespectPopularityPenalty = value;
+                return true;
+            case EnableIntellectualRespect:
+                experiment.EnableIntellectualRespect = value > 0;
+                return true;
+            case IntellectualRespectBase:
+                experiment.IntellectualRespectBase = value;
+                return true;
+            case IntellectualRespectGrowthRate:
+                experiment.IntellectualRespectGrowthRate = value;
+                return true;
+            case IntellectualRespectDecayRate:
+                experiment.IntellectualRespectDecayRate = value;
+                return true;
+            case IntellectualRespectDiversitySensitivity:
+                experiment.IntellectualRespectDiversitySensitivity = value;
+                return true;
+            case IntellectualRespectChallengeSensitivity:
+                experiment.IntellectualRespectChallengeSensitivity = value;
+                return true;
+            case IntellectualRespectMentorshipSensitivity:
+                experiment.IntellectualRespectMentorshipSensitivity = value;
+                return true;
+            case IntellectualRespectEgoPenalty:
+                experiment.IntellectualRespectEgoPenalty = value;
+                return true;
+            case IntellectualRespectHierarchyPenalty:
+                experiment.IntellectualRespectHierarchyPenalty = value;
                 return true;
             case ChallengeLevel:
                 experiment.ChallengeLevel = value;
@@ -664,6 +774,33 @@ public static class BoundaryParameterNames
             case MutualRespectPopularityPenalty:
                 scenario.MutualRespectPopularityPenalty = value;
                 return true;
+            case EnableIntellectualRespect:
+                scenario.EnableIntellectualRespect = value > 0;
+                return true;
+            case IntellectualRespectBase:
+                scenario.IntellectualRespectBase = value;
+                return true;
+            case IntellectualRespectGrowthRate:
+                scenario.IntellectualRespectGrowthRate = value;
+                return true;
+            case IntellectualRespectDecayRate:
+                scenario.IntellectualRespectDecayRate = value;
+                return true;
+            case IntellectualRespectDiversitySensitivity:
+                scenario.IntellectualRespectDiversitySensitivity = value;
+                return true;
+            case IntellectualRespectChallengeSensitivity:
+                scenario.IntellectualRespectChallengeSensitivity = value;
+                return true;
+            case IntellectualRespectMentorshipSensitivity:
+                scenario.IntellectualRespectMentorshipSensitivity = value;
+                return true;
+            case IntellectualRespectEgoPenalty:
+                scenario.IntellectualRespectEgoPenalty = value;
+                return true;
+            case IntellectualRespectHierarchyPenalty:
+                scenario.IntellectualRespectHierarchyPenalty = value;
+                return true;
             case ChallengeLevel:
                 scenario.ChallengeLevel = value;
                 return true;
@@ -804,6 +941,33 @@ public static class BoundaryParameterNames
                 return true;
             case MutualRespectPopularityPenalty:
                 simulationProject.MutualRespectPopularityPenalty = value;
+                return true;
+            case EnableIntellectualRespect:
+                simulationProject.EnableIntellectualRespect = value > 0;
+                return true;
+            case IntellectualRespectBase:
+                simulationProject.IntellectualRespectBase = value;
+                return true;
+            case IntellectualRespectGrowthRate:
+                simulationProject.IntellectualRespectGrowthRate = value;
+                return true;
+            case IntellectualRespectDecayRate:
+                simulationProject.IntellectualRespectDecayRate = value;
+                return true;
+            case IntellectualRespectDiversitySensitivity:
+                simulationProject.IntellectualRespectDiversitySensitivity = value;
+                return true;
+            case IntellectualRespectChallengeSensitivity:
+                simulationProject.IntellectualRespectChallengeSensitivity = value;
+                return true;
+            case IntellectualRespectMentorshipSensitivity:
+                simulationProject.IntellectualRespectMentorshipSensitivity = value;
+                return true;
+            case IntellectualRespectEgoPenalty:
+                simulationProject.IntellectualRespectEgoPenalty = value;
+                return true;
+            case IntellectualRespectHierarchyPenalty:
+                simulationProject.IntellectualRespectHierarchyPenalty = value;
                 return true;
             case ChallengeLevel:
                 simulationProject.ChallengeLevel = value;

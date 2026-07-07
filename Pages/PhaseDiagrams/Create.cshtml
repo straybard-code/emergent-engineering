@@ -1,13 +1,13 @@
 @page
 @model EmergentEngineering.Pages.PhaseDiagrams.CreateModel
 @{
-    ViewData["Title"] = "新規創発相図";
+    ViewData["Title"] = "新規相図";
     ViewData["ExecutionScaleFieldPrefix"] = "Input";
 }
 
 <div class="page-heading">
-    <h1 class="h2">新規創発相図</h1>
-    <p class="text-muted">2つのパラメータを同時に変化させ、どの領域で Learning / Stable / Emergent / Silo が現れるかを観察します。</p>
+    <h1 class="h2">新規相図</h1>
+    <p class="text-muted">2つのパラメータを同時に変化させ、どの領域で Learning / Stable / Emergent / Silo が現れるかを確認します。</p>
 </div>
 
 @if (!string.IsNullOrWhiteSpace(Model.AdaptiveNotice))
@@ -18,6 +18,11 @@
         <div class="small text-muted mt-1">Adaptive Source Type: @Model.AdaptiveSourceTypeText / Adaptive Reason: @Model.AdaptiveReasonText</div>
     </div>
 }
+
+<div class="alert alert-warning">
+    <strong>推奨モード:</strong> 相図は大量Runを生成するため、通常は <span class="fw-semibold">Summary / Minimal 保存</span> を推奨します。
+    <div class="small mb-0">Full保存は代表Runや検証Runのみで使ってください。</div>
+</div>
 
 <form method="post" class="simulation-form">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -36,7 +41,7 @@
 
     <section class="log-section mb-4" id="phaseDiagramPresetPanel">
         <h2 class="h5 mb-1">相図プリセット</h2>
-        <p class="text-muted small mb-3">よく使う組み合わせを初期値として読み込みます。適用後も各項目は自由に調整できます。</p>
+        <p class="text-muted small mb-3">よく使う組み合わせを素早く設定できます。必要に応じて値は後から調整できます。</p>
         <div class="row g-2 align-items-end">
             <div class="col-md-8">
                 <label class="form-label" for="phaseDiagramPresetSelect">プリセット</label>
@@ -139,17 +144,17 @@
 
     <div class="row">
         <div class="col-md-4 mb-3">
-            <label asp-for="Input.RunsPerPoint" class="form-label">各点の Run 数</label>
+            <label asp-for="Input.RunsPerPoint" class="form-label">各セルの実行回数</label>
             <input asp-for="Input.RunsPerPoint" class="form-control" type="number" min="1" max="100" step="1" />
             <span asp-validation-for="Input.RunsPerPoint" class="text-danger"></span>
         </div>
         <div class="col-md-4 mb-3">
-            <label asp-for="Input.AgentCount" class="form-label">Agent 数</label>
+            <label asp-for="Input.AgentCount" class="form-label">Agent数</label>
             <input asp-for="Input.AgentCount" class="form-control" type="number" min="2" max="100" step="1" />
             <span asp-validation-for="Input.AgentCount" class="text-danger"></span>
         </div>
         <div class="col-md-4 mb-3">
-            <label asp-for="Input.TotalSteps" class="form-label">Step 数</label>
+            <label asp-for="Input.TotalSteps" class="form-label">Step数</label>
             <input asp-for="Input.TotalSteps" class="form-control" type="number" min="1" max="5000" step="1" />
             <span asp-validation-for="Input.TotalSteps" class="text-danger"></span>
         </div>
@@ -159,8 +164,8 @@
         <div class="col-md-6 mb-3">
             <label asp-for="Input.LlmProvider" class="form-label">LLMプロバイダー</label>
             <select asp-for="Input.LlmProvider" class="form-select">
-                <option value="Mock">Mock（高速・無料）</option>
-                <option value="OpenAI">OpenAI（高精度・有料）</option>
+                <option value="Mock">Mock（ローカル）</option>
+                <option value="OpenAI">OpenAI（オンライン）</option>
             </select>
         </div>
         <div class="col-md-6 mb-3">
@@ -176,12 +181,12 @@
 
     <div class="alert alert-info">
         推定グリッド点数: <strong>@Model.EstimatedGridPointCount</strong><br />
-        推定実行数: <strong>@Model.EstimatedExecutionCount</strong><br />
-        相図は実行数が多くなります。Fast 設定での実行を推奨します。Publication は非常に重い設定です。
+        推定実行回数: <strong>@Model.EstimatedExecutionCount</strong><br />
+        相図は実行数が多くなります。Fast 設定や Summary / Minimal 保存の利用を推奨します。
     </div>
 
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">保存</button>
+        <button type="submit" class="btn btn-primary">作成</button>
         <a asp-page="/PhaseDiagrams/Index" class="btn btn-outline-secondary">キャンセル</a>
     </div>
 </form>

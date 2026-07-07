@@ -62,7 +62,10 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         TrustCapacity = TrustDynamicsDefaults.TrustCapacity,
         TrustCapacityPenalty = TrustDynamicsDefaults.TrustCapacityPenalty,
         DistrustPenalty = TrustDynamicsDefaults.DistrustPenalty,
-        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus
+        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus,
+        LogDetailLevel = LogDetailLevels.Summary,
+        StepLogInterval = LogRetentionDefaults.SummaryStepInterval,
+        ActionLogInterval = LogRetentionDefaults.SummaryActionInterval
     };
 
     public string? SourceScenarioName { get; private set; }

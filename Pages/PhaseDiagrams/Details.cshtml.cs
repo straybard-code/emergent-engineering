@@ -79,8 +79,8 @@ public sealed class DetailsModel(
     public bool CanCreateEmergentAdaptive { get; private set; }
 
     private HashSet<string> BoundaryCellKeys { get; } = new(StringComparer.Ordinal);
-    private Dictionary<int, PhaseDiagramExperimentSummary> ExperimentSummariesByExperimentId { get; set; } = new();
-    private Dictionary<int, string> ExperimentStatusesByExperimentId { get; set; } = new();
+    private Dictionary<int, PhaseDiagramExperimentSummary> ExperimentSummariesByExperimentId { get; set; } = [];
+    private Dictionary<int, string> ExperimentStatusesByExperimentId { get; set; } = [];
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
@@ -108,19 +108,13 @@ public sealed class DetailsModel(
     }
 
     public async Task<IActionResult> OnPostCreateAdaptiveFromBoundaryAsync(int id)
-    {
-        return await CreateAdaptiveSweepAsync(id, "Boundary");
-    }
+        => await CreateAdaptiveSweepAsync(id, "Boundary");
 
     public async Task<IActionResult> OnPostCreateAdaptiveFromHighPipelineAsync(int id)
-    {
-        return await CreateAdaptiveSweepAsync(id, "HighPipeline");
-    }
+        => await CreateAdaptiveSweepAsync(id, "HighPipeline");
 
     public async Task<IActionResult> OnPostCreateAdaptiveFromEmergentRegionAsync(int id)
-    {
-        return await CreateAdaptiveSweepAsync(id, "EmergentRegion");
-    }
+        => await CreateAdaptiveSweepAsync(id, "EmergentRegion");
 
     private async Task<bool> LoadPageDataAsync(int id, bool recalcRunningStatus = true)
     {
@@ -130,7 +124,7 @@ public sealed class DetailsModel(
             return false;
         }
 
-        if (recalcRunningStatus && Diagram.Status != PhaseDiagramStatus.Failed)
+        if (recalcRunningStatus && !string.Equals(Diagram.Status, PhaseDiagramStatus.Failed, StringComparison.OrdinalIgnoreCase))
         {
             try
             {
@@ -138,7 +132,7 @@ public sealed class DetailsModel(
             }
             catch
             {
-                // Reuse persisted status when recalculation fails.
+                // Keep the persisted status when recalculation fails.
             }
 
             Diagram = await db.PhaseDiagrams.FirstOrDefaultAsync(item => item.Id == id);
@@ -171,10 +165,10 @@ public sealed class DetailsModel(
             .ToList();
 
         ExperimentSummariesByExperimentId = experimentIds.Count == 0
-            ? new Dictionary<int, PhaseDiagramExperimentSummary>()
+            ? []
             : await BuildExperimentSummariesAsync(experimentIds);
         ExperimentStatusesByExperimentId = experimentIds.Count == 0
-            ? new Dictionary<int, string>()
+            ? []
             : await db.Experiments
                 .Where(item => experimentIds.Contains(item.Id))
                 .ToDictionaryAsync(item => item.Id, item => item.Status);
@@ -200,7 +194,6 @@ public sealed class DetailsModel(
 
         BuildRegionSummaries();
         BuildBoundaryAnalysis();
-        BuildSummary();
         BuildHeatmaps();
         BuildPointResults();
         BuildProgressSummary();
@@ -208,7 +201,7 @@ public sealed class DetailsModel(
 
         var interpretation = interpretationService.BuildPhaseDiagramInterpretation(Points, ExperimentSummariesByExperimentId);
         SummaryCards = interpretation.SummaryCards;
-        RecommendedInterpretation = interpretation.RecommendedRegion;
+        RecommendedInterpretation = interpretation.AutoComment;
         RecommendedRegionText = interpretation.RecommendedRegion;
         DangerRegionText = interpretation.DangerRegion;
         AnalysisComment = interpretation.AutoComment;
@@ -227,6 +220,7 @@ public sealed class DetailsModel(
         var projects = await db.SimulationProjects
             .Where(item => item.ExperimentId.HasValue && experimentIds.Contains(item.ExperimentId.Value))
             .ToListAsync();
+
         var projectIds = projects.Select(item => item.Id).ToList();
         var steps = await db.SimulationSteps
             .Where(item => projectIds.Contains(item.SimulationProjectId))
@@ -237,11 +231,15 @@ public sealed class DetailsModel(
         var stepsByProjectId = steps
             .GroupBy(item => item.SimulationProjectId)
             .ToDictionary(group => group.Key, group => group.ToList());
+
         var projectSummaries = projects
             .Where(item => item.ExperimentId.HasValue)
             .Select(project =>
             {
-                var timeline = KnowledgeAnalysisService.BuildTimeline(stepsByProjectId.GetValueOrDefault(project.Id, []));
+                var projectSteps = stepsByProjectId.TryGetValue(project.Id, out var resolvedSteps)
+                    ? resolvedSteps
+                    : new List<SimulationStep>();
+                var timeline = KnowledgeAnalysisService.BuildTimeline(projectSteps);
                 var finalPoint = timeline.OrderBy(item => item.StepNo).LastOrDefault();
 
                 return new
@@ -271,20 +269,20 @@ public sealed class DetailsModel(
                 {
                     var projectGroup = projectSummaries.Where(item => item.ExperimentId == group.Key).ToList();
                     return new PhaseDiagramExperimentSummary
-                {
-                    AverageComponentCount = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.ComponentCount), 3),
-                    AverageShareInfoRate = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.ShareInfoRate), 3),
-                    AverageProposeIdeaRate = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.ProposeIdeaRate), 3),
-                    AverageCriticizeSupportRatio = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.CriticizeSupportRatio), 3),
-                    AverageRespect = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespect), 3),
-                    AverageChallengeAcceptanceScore = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageChallengeAcceptanceScore), 3),
-                    AverageRespectReconfigurationBoost = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespectReconfigurationBoost), 3),
-                    AverageRespectEmergenceComponent = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespectEmergenceComponent), 3),
-                    AverageThanksCoinToReconfigurationContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToReconfigurationContribution), 3),
-                    AverageThanksCoinToSerendipityContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToSerendipityContribution), 3),
-                    AverageThanksCoinToEmergenceContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToEmergenceContribution), 3),
-                    PopularityTrapRate = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.PopularityTrapRate), 3)
-                };
+                    {
+                        AverageComponentCount = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.ComponentCount), 3),
+                        AverageShareInfoRate = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.ShareInfoRate), 3),
+                        AverageProposeIdeaRate = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.ProposeIdeaRate), 3),
+                        AverageCriticizeSupportRatio = group.Count() == 0 ? 0 : Math.Round(group.Average(item => item.CriticizeSupportRatio), 3),
+                        AverageRespect = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespect), 3),
+                        AverageChallengeAcceptanceScore = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageChallengeAcceptanceScore), 3),
+                        AverageRespectReconfigurationBoost = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespectReconfigurationBoost), 3),
+                        AverageRespectEmergenceComponent = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageRespectEmergenceComponent), 3),
+                        AverageThanksCoinToReconfigurationContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToReconfigurationContribution), 3),
+                        AverageThanksCoinToSerendipityContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToSerendipityContribution), 3),
+                        AverageThanksCoinToEmergenceContribution = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.AverageThanksCoinToEmergenceContribution), 3),
+                        PopularityTrapRate = projectGroup.Count == 0 ? 0 : Math.Round(projectGroup.Average(item => item.PopularityTrapRate), 3)
+                    };
                 });
     }
 
@@ -319,86 +317,6 @@ public sealed class DetailsModel(
         }
 
         return RedirectToPage("/PhaseDiagrams/Details", new { id });
-    }
-
-    private void BuildSummary()
-    {
-        if (Diagram is null || Points.Count == 0)
-        {
-            SummaryCards =
-            [
-                new() { Label = "最多相", Value = "--" },
-                new() { Label = "最大 Emergent Rate", Value = "--" },
-                new() { Label = "最大 Pipeline Completion", Value = "--" },
-                new() { Label = "相境界候補数", Value = "0" },
-                new() { Label = "Emergent 点数", Value = "0" },
-                new() { Label = "高 Pipeline 点数", Value = "0" },
-                new() { Label = "最頻 Bottleneck", Value = "--" },
-                new() { Label = "推奨再探索領域", Value = RecommendedReseekArea },
-                new() { Label = "最大 Average Trust", Value = "0.00" },
-                new() { Label = "最大 Effective Density", Value = "0.00" },
-                new() { Label = "最大 Serendipity Rate", Value = "0.00" },
-                new() { Label = "最大 Knowledge Reconfiguration", Value = "0.00" }
-            ];
-            RecommendedInterpretation = "この相図にはまだ実行結果がありません。実行後に相図の傾向を表示します。";
-            return;
-        }
-
-        var dominantPhase = Points
-            .GroupBy(item => item.DominantPhase)
-            .OrderByDescending(group => group.Count())
-            .ThenBy(group => group.Key, StringComparer.Ordinal)
-            .FirstOrDefault()?.Key ?? "--";
-
-        var maxEmergent = Points
-            .OrderByDescending(item => item.EmergentRate)
-            .ThenBy(item => item.XValue)
-            .ThenBy(item => item.YValue)
-            .FirstOrDefault();
-
-        var maxCompletion = Points
-            .OrderByDescending(item => item.AveragePipelineCompletionScore)
-            .ThenBy(item => item.XValue)
-            .ThenBy(item => item.YValue)
-            .FirstOrDefault();
-
-        var mostCommonBottleneck = Points
-            .Select(item => string.IsNullOrWhiteSpace(item.DominantBottleneck) ? "--" : item.DominantBottleneck)
-            .GroupBy(item => item)
-            .OrderByDescending(group => group.Count())
-            .ThenBy(group => group.Key, StringComparer.Ordinal)
-            .FirstOrDefault()?.Key ?? "--";
-
-        var maxTrust = Points.Max(item => item.AverageTrust);
-        var maxDensity = Points.Max(item => item.AverageEffectiveDensity);
-        var maxSerendipity = Points.Max(item => item.AverageSerendipityRate);
-        var maxReconfiguration = Points.Max(item => item.AverageKnowledgeReconfigurationScore);
-
-        SummaryCards =
-        [
-            new() { Label = "最多相", Value = FormatPhaseDisplay(dominantPhase) },
-            new() { Label = "最大 Emergent Rate", Value = maxEmergent is null ? "--" : $"{maxEmergent.EmergentRate:0.00} @ ({maxEmergent.XValue:0.00}, {maxEmergent.YValue:0.00})" },
-            new() { Label = "最大 Pipeline Completion", Value = maxCompletion is null ? "--" : $"{maxCompletion.AveragePipelineCompletionScore:0.00} @ ({maxCompletion.XValue:0.00}, {maxCompletion.YValue:0.00})" },
-            new() { Label = "相境界候補数", Value = BoundaryCandidateCount.ToString(CultureInfo.InvariantCulture) },
-            new() { Label = "Emergent 点数", Value = EmergentRegionSummary.Count.ToString(CultureInfo.InvariantCulture) },
-            new() { Label = "高 Pipeline 点数", Value = PipelineRegionSummary.Count.ToString(CultureInfo.InvariantCulture) },
-            new() { Label = "最頻 Bottleneck", Value = mostCommonBottleneck },
-            new() { Label = "推奨再探索領域", Value = RecommendedReseekArea },
-            new() { Label = "最大 Average Trust", Value = maxTrust.ToString("0.00") },
-            new() { Label = "最大 Effective Density", Value = maxDensity.ToString("0.00") },
-            new() { Label = "最大 Serendipity Rate", Value = maxSerendipity.ToString("0.00") },
-            new() { Label = "最大 Knowledge Reconfiguration", Value = maxReconfiguration.ToString("0.00") },
-            new() { Label = "AverageRespect", Value = AverageRespectMean.ToString("0.00") },
-            new() { Label = "ChallengeAcceptanceScore", Value = AverageChallengeAcceptanceScoreMean.ToString("0.00") },
-            new() { Label = "PopularityTrapRate", Value = PopularityTrapRateMean.ToString("0.00") }
-        ];
-
-        RecommendedInterpretation = BuildInterpretation(
-            dominantPhase,
-            maxEmergent?.EmergentRate ?? 0,
-            maxCompletion?.AveragePipelineCompletionScore ?? 0,
-            mostCommonBottleneck,
-            maxDensity);
     }
 
     private void BuildRegionSummaries()
@@ -567,16 +485,16 @@ public sealed class DetailsModel(
                     continue;
                 }
 
-                if (xIndex + 1 < XValues.Count &&
-                    pointMap.TryGetValue(GetPointKey(XValues[xIndex + 1], yValue), out var right) &&
-                    !AreSamePhase(current.DominantPhase, right.DominantPhase))
+                if (xIndex + 1 < XValues.Count
+                    && pointMap.TryGetValue(GetPointKey(XValues[xIndex + 1], yValue), out var right)
+                    && !AreSamePhase(current.DominantPhase, right.DominantPhase))
                 {
                     AddBoundary(current, right, "Horizontal");
                 }
 
-                if (yIndex + 1 < orderedYValues.Count &&
-                    pointMap.TryGetValue(GetPointKey(xValue, orderedYValues[yIndex + 1]), out var down) &&
-                    !AreSamePhase(current.DominantPhase, down.DominantPhase))
+                if (yIndex + 1 < orderedYValues.Count
+                    && pointMap.TryGetValue(GetPointKey(xValue, orderedYValues[yIndex + 1]), out var down)
+                    && !AreSamePhase(current.DominantPhase, down.DominantPhase))
                 {
                     AddBoundary(current, down, "Vertical");
                 }
@@ -718,13 +636,7 @@ public sealed class DetailsModel(
         {
             foreach (var xValue in XValues)
             {
-                if (!pointMap.TryGetValue(GetPointKey(xValue, yValue), out var point))
-                {
-                    PendingPointCount++;
-                    continue;
-                }
-
-                if (!point.ExperimentId.HasValue)
+                if (!pointMap.TryGetValue(GetPointKey(xValue, yValue), out var point) || !point.ExperimentId.HasValue)
                 {
                     PendingPointCount++;
                     continue;
@@ -796,6 +708,7 @@ public sealed class DetailsModel(
     public string FormatStatus(string? status) => status switch
     {
         PhaseDiagramStatus.Created => "Created（作成済み）",
+        "Pending" => "Pending（待機中）",
         PhaseDiagramStatus.Running => "Running（実行中）",
         PhaseDiagramStatus.Completed => "Completed（完了）",
         PhaseDiagramStatus.Failed => "Failed（失敗）",
@@ -809,7 +722,7 @@ public sealed class DetailsModel(
         SimulationPhase.Stable => "Stable（安定期）",
         SimulationPhase.Adaptation => "Adaptation（適応期）",
         SimulationPhase.Emergent => "Emergent（創発期）",
-        SimulationPhase.Silo => "Silo（サイロ化）",
+        SimulationPhase.Silo => "Silo（サイロ期）",
         SimulationPhase.Chaos => "Chaos（混沌期）",
         SimulationPhase.Collapse => "Collapse（崩壊期）",
         _ => phase ?? "--"
@@ -841,36 +754,6 @@ public sealed class DetailsModel(
         : "--";
 
     public string FormatNumber(double? value) => value.HasValue ? value.Value.ToString("0.00") : "--";
-
-    private static string BuildInterpretation(string dominantPhase, double maxEmergentRate, double maxCompletion, string bottleneck, double maxDensity)
-    {
-        if (maxEmergentRate > 0)
-        {
-            return "この相図では創発相が発生する領域が確認できます。該当座標の周辺を細かく再探索してください。";
-        }
-
-        if (maxCompletion >= 0.7)
-        {
-            return "創発プロセスはかなり進んでいますが、最終的な相変化には届いていません。Bottleneck Map を確認してください。";
-        }
-
-        if (string.Equals(dominantPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase))
-        {
-            return "多くの条件で学習相に留まっています。信頼形成、知識再構成、適応への変換が不足している可能性があります。";
-        }
-
-        if (string.Equals(dominantPhase, SimulationPhase.Silo, StringComparison.OrdinalIgnoreCase))
-        {
-            return "多くの条件でネットワーク分断が優勢です。信頼閾値や情報共有条件を見直してください。";
-        }
-
-        if (maxDensity < 0.3)
-        {
-            return "実効ネットワーク密度が全体的に低く、協働ネットワークが十分に形成されていません。";
-        }
-
-        return $"多くの条件で {dominantPhase} が支配的です。現在の主なボトルネックは {bottleneck} です。";
-    }
 
     private static string GetPhaseCellClass(string phase) => phase switch
     {
@@ -950,14 +833,10 @@ public sealed class DetailsModel(
     };
 
     private static string NormalizePhase(string? phase)
-    {
-        return string.IsNullOrWhiteSpace(phase) ? "--" : phase.Trim();
-    }
+        => string.IsNullOrWhiteSpace(phase) ? "--" : phase.Trim();
 
     private static bool AreSamePhase(string? left, string? right)
-    {
-        return string.Equals(NormalizePhase(left), NormalizePhase(right), StringComparison.OrdinalIgnoreCase);
-    }
+        => string.Equals(NormalizePhase(left), NormalizePhase(right), StringComparison.OrdinalIgnoreCase);
 
     private static string GetPointKey(double xValue, double yValue)
         => $"{Math.Round(xValue, 3).ToString("0.000", CultureInfo.InvariantCulture)}|{Math.Round(yValue, 3).ToString("0.000", CultureInfo.InvariantCulture)}";

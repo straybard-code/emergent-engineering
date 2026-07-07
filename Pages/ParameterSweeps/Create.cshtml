@@ -10,6 +10,11 @@
     <p class="text-muted">基準シナリオをもとに、1つの境界条件パラメータだけを段階的に変化させます。</p>
 </div>
 
+<div class="alert alert-warning">
+    <strong>保存モード：</strong> パラメータスイープは大量Runを生成するため、通常は <span class="fw-semibold">Summary / Minimal 保存</span> を推奨します。
+    <div class="small mb-0">Full保存は代表Runや検証Runのみ使用してください。</div>
+</div>
+
 <form method="post" class="simulation-form">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 

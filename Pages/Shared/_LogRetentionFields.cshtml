@@ -1,0 +1,30 @@
+@using EmergentEngineering.Models
+@model ILogRetentionSettings
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">保存モード / ログ保持</h2>
+    <p class="text-muted small mb-3">
+        実験規模に応じて、Step・Action・TrustSnapshot の保存量を調整します。
+        Full は全件保存、Summary は要約保存、Minimal は最小保存です。
+    </p>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="LogDetailLevel" class="form-label">保存モード</label>
+            <select asp-for="LogDetailLevel" class="form-select">
+                @foreach (var level in LogDetailLevels.All)
+                {
+                    <option value="@level">@LogDetailLevels.GetLabel(level)</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="StepLogInterval" class="form-label">Step 保存間隔</label>
+            <input asp-for="StepLogInterval" class="form-control" type="number" min="1" max="1000" step="1" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="ActionLogInterval" class="form-label">Action 保存間隔</label>
+            <input asp-for="ActionLogInterval" class="form-control" type="number" min="1" max="1000" step="1" />
+        </div>
+    </div>
+    <div class="form-text">Experiment は Summary、相図 / スイープ内部の Run は Minimal を推奨します。</div>
+</section>

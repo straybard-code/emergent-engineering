@@ -133,6 +133,10 @@ public sealed class RunModel(
                     sweep.LlmProvider,
                     sweep.LlmModel);
 
+                experiment.LogDetailLevel = LogDetailLevels.Minimal;
+                experiment.StepLogInterval = LogRetentionDefaults.MinimalStepInterval;
+                experiment.ActionLogInterval = LogRetentionDefaults.MinimalActionInterval;
+
                 if (!scopedParameterApplier.ApplyParameter(experiment, sweep.TargetParameter, parameterValue))
                 {
                     throw new InvalidOperationException($"Unsupported target parameter: {sweep.TargetParameter}");

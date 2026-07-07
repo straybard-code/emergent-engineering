@@ -64,6 +64,7 @@ public static class SimulationFactory
     public static SimulationProject CreateProject(CreateSimulationRequest request)
     {
         NormalizeOptionalEventSettings(request);
+        NormalizeLogRetentionSettings(request);
 
         var project = new SimulationProject
         {
@@ -123,6 +124,9 @@ public static class SimulationFactory
             ThanksCoinPopularityBias = request.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = request.ThanksCoinDiversityBonus,
             ThanksCoinChallengeBonus = request.ThanksCoinChallengeBonus,
+            LogDetailLevel = request.LogDetailLevel,
+            StepLogInterval = request.StepLogInterval,
+            ActionLogInterval = request.ActionLogInterval,
             CurrentStep = 0,
             Status = SimulationStatus.Created,
             Phase = SimulationPhase.Forming,
@@ -150,6 +154,7 @@ public static class SimulationFactory
     public static Experiment CreateExperiment(CreateExperimentRequest request)
     {
         NormalizeOptionalEventSettings(request);
+        NormalizeLogRetentionSettings(request);
 
         return new Experiment
         {
@@ -211,6 +216,9 @@ public static class SimulationFactory
             ThanksCoinPopularityBias = request.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = request.ThanksCoinDiversityBonus,
             ThanksCoinChallengeBonus = request.ThanksCoinChallengeBonus,
+            LogDetailLevel = request.LogDetailLevel,
+            StepLogInterval = request.StepLogInterval,
+            ActionLogInterval = request.ActionLogInterval,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -286,10 +294,14 @@ public static class SimulationFactory
             ThanksCoinPopularityBias = scenario.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = scenario.ThanksCoinDiversityBonus,
             ThanksCoinChallengeBonus = scenario.ThanksCoinChallengeBonus,
+            LogDetailLevel = scenario.LogDetailLevel,
+            StepLogInterval = scenario.StepLogInterval,
+            ActionLogInterval = scenario.ActionLogInterval,
             CreatedAt = DateTime.UtcNow
         };
 
         NormalizeOptionalEventSettings(experiment);
+        NormalizeLogRetentionSettings(experiment);
         return experiment;
     }
 
@@ -357,6 +369,9 @@ public static class SimulationFactory
             ThanksCoinPopularityBias = request.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = request.ThanksCoinDiversityBonus,
             ThanksCoinChallengeBonus = request.ThanksCoinChallengeBonus,
+            LogDetailLevel = request.LogDetailLevel,
+            StepLogInterval = request.StepLogInterval,
+            ActionLogInterval = request.ActionLogInterval,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
@@ -421,11 +436,15 @@ public static class SimulationFactory
             ThanksCoinBridgeGain = experiment.ThanksCoinBridgeGain,
             ThanksCoinPopularityBias = experiment.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = experiment.ThanksCoinDiversityBonus,
-            ThanksCoinChallengeBonus = experiment.ThanksCoinChallengeBonus
+            ThanksCoinChallengeBonus = experiment.ThanksCoinChallengeBonus,
+            LogDetailLevel = experiment.LogDetailLevel,
+            StepLogInterval = experiment.StepLogInterval,
+            ActionLogInterval = experiment.ActionLogInterval
         });
 
         project.ExperimentId = experiment.Id;
         NormalizeOptionalEventSettings(project);
+        NormalizeLogRetentionSettings(project);
         return project;
     }
 
@@ -537,5 +556,45 @@ public static class SimulationFactory
             project.RequiredCrossDomainExposure = 0;
             project.RequiredRewiringScore = 0;
         }
+    }
+
+    public static void NormalizeLogRetentionSettings(ILogRetentionSettings settings)
+    {
+        var normalizedLevel = NormalizeLogDetailLevel(settings.LogDetailLevel);
+        settings.LogDetailLevel = normalizedLevel;
+
+        if (string.Equals(normalizedLevel, LogDetailLevels.Full, StringComparison.OrdinalIgnoreCase))
+        {
+            settings.StepLogInterval = LogRetentionDefaults.FullStepInterval;
+            settings.ActionLogInterval = LogRetentionDefaults.FullActionInterval;
+            return;
+        }
+
+        if (settings.StepLogInterval <= 0)
+        {
+            settings.StepLogInterval = string.Equals(normalizedLevel, LogDetailLevels.Minimal, StringComparison.OrdinalIgnoreCase)
+                ? LogRetentionDefaults.MinimalStepInterval
+                : LogRetentionDefaults.SummaryStepInterval;
+        }
+
+        if (settings.ActionLogInterval <= 0)
+        {
+            settings.ActionLogInterval = string.Equals(normalizedLevel, LogDetailLevels.Minimal, StringComparison.OrdinalIgnoreCase)
+                ? LogRetentionDefaults.MinimalActionInterval
+                : LogRetentionDefaults.SummaryActionInterval;
+        }
+    }
+
+    private static string NormalizeLogDetailLevel(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return LogDetailLevels.Full;
+        }
+
+        var normalized = value.Trim();
+        return LogDetailLevels.All.Contains(normalized, StringComparer.OrdinalIgnoreCase)
+            ? LogDetailLevels.All.First(item => string.Equals(item, normalized, StringComparison.OrdinalIgnoreCase))
+            : LogDetailLevels.Full;
     }
 }

@@ -56,7 +56,10 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         TrustCapacity = TrustDynamicsDefaults.TrustCapacity,
         TrustCapacityPenalty = TrustDynamicsDefaults.TrustCapacityPenalty,
         DistrustPenalty = TrustDynamicsDefaults.DistrustPenalty,
-        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus
+        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus,
+        LogDetailLevel = LogDetailLevels.Full,
+        StepLogInterval = LogRetentionDefaults.FullStepInterval,
+        ActionLogInterval = LogRetentionDefaults.FullActionInterval
     };
 
     public async Task<IActionResult> OnPostAsync()

@@ -1,0 +1,47 @@
+@model dynamic
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">知的敬意 / Mutual Mentorship</h2>
+    <p class="text-muted small mb-3">相手の考え・経験・専門性に学ぶ価値を見いだす度合いを設定します。どんな人でも師匠になり得る前提で、知識再構成と創発を促進します。</p>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="form-check mt-4">
+                <input class="form-check-input" id="EnableIntellectualRespect" name="EnableIntellectualRespect" type="checkbox" value="true" @(Model.EnableIntellectualRespect ? "checked=\"checked\"" : "") />
+                <input name="EnableIntellectualRespect" type="hidden" value="false" />
+                <label class="form-check-label" for="EnableIntellectualRespect">知的敬意を有効化</label>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="IntellectualRespectBase">知的敬意ベース</label>
+            <input class="form-control" id="IntellectualRespectBase" name="IntellectualRespectBase" type="number" min="0" max="1" step="0.001" value="@Model.IntellectualRespectBase" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="IntellectualRespectGrowthRate">知的敬意成長率</label>
+            <input class="form-control" id="IntellectualRespectGrowthRate" name="IntellectualRespectGrowthRate" type="number" min="0" max="1" step="0.001" value="@Model.IntellectualRespectGrowthRate" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="IntellectualRespectDecayRate">知的敬意減衰率</label>
+            <input class="form-control" id="IntellectualRespectDecayRate" name="IntellectualRespectDecayRate" type="number" min="0" max="1" step="0.001" value="@Model.IntellectualRespectDecayRate" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="IntellectualRespectDiversitySensitivity">異質知識尊重感度</label>
+            <input class="form-control" id="IntellectualRespectDiversitySensitivity" name="IntellectualRespectDiversitySensitivity" type="number" min="0" max="1" step="0.001" value="@Model.IntellectualRespectDiversitySensitivity" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="IntellectualRespectChallengeSensitivity">異論知的敬意感度</label>
+            <input class="form-control" id="IntellectualRespectChallengeSensitivity" name="IntellectualRespectChallengeSensitivity" type="number" min="0" max="1" step="0.001" value="@Model.IntellectualRespectChallengeSensitivity" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="IntellectualRespectMentorshipSensitivity">師匠化感度</label>
+            <input class="form-control" id="IntellectualRespectMentorshipSensitivity" name="IntellectualRespectMentorshipSensitivity" type="number" min="0" max="1" step="0.001" value="@Model.IntellectualRespectMentorshipSensitivity" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="IntellectualRespectEgoPenalty">自尊心ペナルティ</label>
+            <input class="form-control" id="IntellectualRespectEgoPenalty" name="IntellectualRespectEgoPenalty" type="number" min="0" max="1" step="0.001" value="@Model.IntellectualRespectEgoPenalty" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" for="IntellectualRespectHierarchyPenalty">序列ペナルティ</label>
+            <input class="form-control" id="IntellectualRespectHierarchyPenalty" name="IntellectualRespectHierarchyPenalty" type="number" min="0" max="1" step="0.001" value="@Model.IntellectualRespectHierarchyPenalty" />
+        </div>
+    </div>
+</section>

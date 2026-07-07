@@ -1,0 +1,54 @@
+@page "/Admin/DataCleanup"
+@model EmergentEngineering.Pages.Admin.DataCleanupModel
+@{
+    ViewData["Title"] = "&#12487;&#12540;&#12479;&#12463;&#12522;&#12540;&#12531;&#12450;&#12483;&#12503;";
+}
+
+<h1>&#12487;&#12540;&#12479;&#12463;&#12522;&#12540;&#12531;&#12450;&#12483;&#12503;</h1>
+<p class="text-muted">&#36939;&#29992;&#19978;&#12398;&#23433;&#20840;&#24615;&#12434;&#20778;&#20808;&#12375;&#12289;&#19968;&#25324;&#21066;&#38500;&#12399;&#20572;&#27490;&#12375;&#12390;&#12356;&#12414;&#12377;&#12290;&#21066;&#38500;&#12399; Experiment &#35443;&#32048;&#30011;&#38754;&#12363;&#12425;&#20491;&#21029;&#12395;&#34892;&#12387;&#12390;&#12367;&#12384;&#12373;&#12356;&#12290;</p>
+
+@if (!string.IsNullOrWhiteSpace(Model.CleanupMessage))
+{
+    <div class="alert alert-info">@Model.CleanupMessage</div>
+}
+
+<div class="alert alert-warning">
+    <strong>&#19968;&#25324;&#21066;&#38500;&#12399;&#35242;&#23376;&#38306;&#20418;&#12364;&#35079;&#38609;&#12394;&#12383;&#12417;&#29694;&#22312;&#20572;&#27490;&#20013;&#12391;&#12377;&#12290;Experiment&#35443;&#32048;&#30011;&#38754;&#12363;&#12425;&#20491;&#21029;&#12395;&#21066;&#38500;&#12375;&#12390;&#12367;&#12384;&#12373;&#12356;&#12290;</strong>
+    <div class="small mt-1">&#21476;&#12356; Run / Failed / Running / &#38306;&#36899;Experiment &#12398;&#19968;&#25324;&#21066;&#38500;&#12399;&#23455;&#34892;&#12391;&#12365;&#12414;&#12379;&#12435;&#12290;</div>
+    <div class="small mt-1"><a asp-page="/Experiments/Index">Experiment&#19968;&#35239;&#12434;&#38283;&#12367;</a> &#12363;&#12289;&#21508;Experiment &#12398;&#35443;&#32048;&#30011;&#38754;&#12363;&#12425;&#20491;&#21029;&#12395;&#21066;&#38500;&#12375;&#12390;&#12367;&#12384;&#12373;&#12356;&#12290;</div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="card p-3"><div class="text-muted">Simulation&#25968;</div><div class="fs-4">@Model.SimulationCount</div></div></div>
+    <div class="col-md-4"><div class="card p-3"><div class="text-muted">Experiment&#25968;</div><div class="fs-4">@Model.ExperimentCount</div></div></div>
+    <div class="col-md-4"><div class="card p-3"><div class="text-muted">Agent&#25968;</div><div class="fs-4">@Model.AgentCount</div></div></div>
+    <div class="col-md-4"><div class="card p-3"><div class="text-muted">SimulationStep&#25968;</div><div class="fs-4">@Model.SimulationStepCount</div></div></div>
+    <div class="col-md-4"><div class="card p-3"><div class="text-muted">AgentAction&#25968;</div><div class="fs-4">@Model.AgentActionCount</div></div></div>
+    <div class="col-md-4"><div class="card p-3"><div class="text-muted">TrustSnapshot&#25968;</div><div class="fs-4">@Model.TrustSnapshotCount</div></div></div>
+    <div class="col-md-4"><div class="card p-3"><div class="text-muted">DB&#20351;&#29992;&#37327;</div><div class="fs-4">@Model.DatabaseUsageMb.ToString("0.00") MB</div></div></div>
+</div>
+
+<div class="card p-3 mb-4">
+    <h2 class="h5">&#21361;&#38522;&#25805;&#20316;</h2>
+    <p class="text-muted small mb-3">&#29694;&#22312;&#12399;&#28961;&#21177;&#21270;&#12375;&#12390;&#12356;&#12414;&#12377;&#12290;&#20491;&#21029;&#21066;&#38500;&#12399; Experiment &#35443;&#32048;&#30011;&#38754;&#12363;&#12425;&#34892;&#12387;&#12390;&#12367;&#12384;&#12373;&#12356;&#12290;</p>
+    <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-danger" disabled>Completed &#12398; Simulation &#12434;&#21066;&#38500;</button>
+        <button type="button" class="btn btn-outline-danger" disabled>Failed &#12398; Simulation &#12434;&#21066;&#38500;</button>
+        <button type="button" class="btn btn-outline-warning" disabled>Running &#12398; Simulation &#12434; Failed &#12395;&#12377;&#12427;</button>
+    </div>
+</div>
+
+<div class="card p-3 mb-4">
+    <h2 class="h5">&#21476;&#12356; Run / &#35443;&#32048;&#12525;&#12464;</h2>
+    <p class="text-muted small mb-3">&#19968;&#25324;&#21066;&#38500;&#12399;&#20572;&#27490;&#20013;&#12391;&#12377;&#12290;&#35443;&#32048;&#12525;&#12464;&#12398;&#21066;&#38500;&#12418;&#34892;&#12356;&#12414;&#12379;&#12435;&#12290;</p>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label" asp-for="CutoffDate">&#21066;&#38500;&#23550;&#35937;&#26085;</label>
+            <input class="form-control" asp-for="CutoffDate" type="date" />
+        </div>
+        <div class="col-12 d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-primary" disabled>&#21476;&#12356; Run &#12434;&#21066;&#38500;</button>
+            <button type="button" class="btn btn-outline-primary" disabled>&#35443;&#32048;&#12525;&#12464;&#12434;&#21066;&#38500;</button>
+        </div>
+    </div>
+</div>

@@ -96,6 +96,10 @@ public sealed class PhaseDiagramRunner(
                             diagram.LlmProvider,
                             diagram.LlmModel);
 
+                        experiment.LogDetailLevel = LogDetailLevels.Minimal;
+                        experiment.StepLogInterval = LogRetentionDefaults.MinimalStepInterval;
+                        experiment.ActionLogInterval = LogRetentionDefaults.MinimalActionInterval;
+
                         if (!parameterApplier.ApplyParameter(experiment, diagram.XParameterName, xValue))
                         {
                             throw new InvalidOperationException($"Unsupported X parameter: {diagram.XParameterName}");

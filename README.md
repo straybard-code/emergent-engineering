@@ -1980,6 +1980,45 @@ Migration:
 
 - `20260704110000_AddThanksCoinParameters`
 
+## DB容量対策
+
+SQL Server Express では `PRIMARY` filegroup の容量上限に達しやすいため、保存量を軽くする仕組みを入れています。
+
+Log retention:
+
+- `Full`: 全Step保存
+- `Summary`: 要約保存
+- `Minimal`: 最小保存
+
+Default modes:
+
+- `Simulation`: `Full`
+- `Experiment`: `Summary`
+- `Scenario`: `Summary`
+- `Parameter Sweep` / `Phase Diagram` の内部Run: `Minimal`
+
+Bulk cleanup through `/Admin/DataCleanup` is currently disabled because parent-child deletion paths are too fragile for a shared research database. Use the Experiment details page for individual deletion instead.
+
+Recommended retention policy:
+
+- do not keep Full logs for every run
+- keep Full only for representative runs, boundary runs, anomalous runs, and publication-grade runs
+- keep sweep / phase-diagram wide results as aggregated metrics and fingerprints
+- prefer Summary or Minimal storage for parameter sweeps and phase diagrams
+- reserve Full storage for standalone simulations and selected validation runs
+
+The UI now points researchers from Phase Diagram / Parameter Sweep pages toward related Experiments so that deletion and inspection flow through the safer per-experiment route.
+
+Emergency SQL Server actions:
+
+- delete old completed or failed simulations first
+- prune detailed `AgentActions`, `TrustSnapshots`, and `SimulationSteps` from analyzed runs
+- if necessary, run `DBCC SHRINKDATABASE` on the SQL Server side after cleanup
+
+Research note:
+
+> In large batch experiments, keeping only the latest summary state is usually enough for interpretation, while full detail should be reserved for standalone simulations that need deep inspection.
+
 Research hypothesis:
 
 > Emergence is promoted not only by high trust, but also by a culture that values different viewpoints, constructive disagreement, and bridge-building across domains.

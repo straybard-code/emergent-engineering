@@ -62,7 +62,10 @@ public sealed class CreateModel(AppDbContext db) : PageModel
         TrustCapacity = TrustDynamicsDefaults.TrustCapacity,
         TrustCapacityPenalty = TrustDynamicsDefaults.TrustCapacityPenalty,
         DistrustPenalty = TrustDynamicsDefaults.DistrustPenalty,
-        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus
+        ConstructiveCriticismBonus = TrustDynamicsDefaults.ConstructiveCriticismBonus,
+        LogDetailLevel = LogDetailLevels.Summary,
+        StepLogInterval = LogRetentionDefaults.SummaryStepInterval,
+        ActionLogInterval = LogRetentionDefaults.SummaryActionInterval
     };
 
     public List<ScenarioOption> Scenarios { get; private set; } = [];
@@ -171,7 +174,10 @@ public sealed class CreateModel(AppDbContext db) : PageModel
             ThanksCoinBridgeGain = scenario.ThanksCoinBridgeGain,
             ThanksCoinPopularityBias = scenario.ThanksCoinPopularityBias,
             ThanksCoinDiversityBonus = scenario.ThanksCoinDiversityBonus,
-            ThanksCoinChallengeBonus = scenario.ThanksCoinChallengeBonus
+            ThanksCoinChallengeBonus = scenario.ThanksCoinChallengeBonus,
+            LogDetailLevel = scenario.LogDetailLevel,
+            StepLogInterval = scenario.StepLogInterval,
+            ActionLogInterval = scenario.ActionLogInterval
         };
     }
 

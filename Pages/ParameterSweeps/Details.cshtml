@@ -36,6 +36,7 @@
             <a class="btn btn-primary" asp-page="/ParameterSweeps/Run" asp-route-id="@Model.Sweep.Id">スイープ実行</a>
         }
         <a class="btn btn-outline-secondary" asp-page-handler="DownloadCsv" asp-route-id="@Model.Sweep.Id">CSV出力</a>
+        <a class="btn btn-outline-secondary" asp-page="/Experiments/Index">関連Experimentを確認</a>
         @if (Model.Sweep.Status == EmergentEngineering.Models.ParameterSweepStatus.Running)
         {
             <form method="post" asp-page-handler="Stop" asp-route-id="@Model.Sweep.Id">
@@ -75,6 +76,10 @@
         <div class="small text-muted mt-1">実行中のまま停止している場合のみ使用してください。</div>
     </div>
 }
+
+<div class="alert alert-info mb-4">
+    相図・スイープは大量Runを生成するため、通常は Summary / Minimal 保存を推奨します。Full保存は代表Runや検証Runのみ使用してください。
+</div>
 
 <section class="summary-grid mb-4">
     <div><h2 class="h6">名前</h2><p>@Model.Sweep.Name</p></div>

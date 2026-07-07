@@ -37,6 +37,10 @@ public sealed class DetailsModel(
     public int RunningSimulationCount { get; private set; }
     public int PendingSimulationCount { get; private set; }
     public int FailedSimulationCount { get; private set; }
+    public int TotalSimulationCount { get; private set; }
+    public int TotalRunRecordCount { get; private set; }
+    public int TotalSimulationStepCount { get; private set; }
+    public int TotalAgentActionCount { get; private set; }
     public double FingerprintAverageTrustMean { get; private set; }
     public double FingerprintEffectiveDensityMean { get; private set; }
     public double FingerprintPhaseTransitionCountMean { get; private set; }
@@ -110,12 +114,24 @@ public sealed class DetailsModel(
             .Where(item => item.ExperimentId == id)
             .ToListAsync();
 
+        var simulationProjectIds = simulationProjects
+            .Select(item => item.Id)
+            .ToList();
+
         AverageTrustOverall = Runs.Count == 0 ? 0 : Math.Round(Runs.Average(run => run.AverageTrust), 2);
         AverageComponentCountOverall = Runs.Count == 0 ? 0 : Math.Round(Runs.Average(run => run.ComponentCount), 2);
+        TotalSimulationCount = simulationProjects.Count;
+        TotalRunRecordCount = Runs.Count;
         CompletedSimulationCount = simulationProjects.Count(item => string.Equals(item.Status, SimulationStatus.Completed, StringComparison.OrdinalIgnoreCase) || item.CurrentStep >= item.TotalSteps);
         RunningSimulationCount = simulationProjects.Count(item => string.Equals(item.Status, SimulationStatus.Running, StringComparison.OrdinalIgnoreCase) && item.CurrentStep < item.TotalSteps);
         PendingSimulationCount = simulationProjects.Count(item => string.Equals(item.Status, SimulationStatus.Created, StringComparison.OrdinalIgnoreCase));
         FailedSimulationCount = simulationProjects.Count(item => string.Equals(item.Status, SimulationStatus.Failed, StringComparison.OrdinalIgnoreCase));
+        TotalSimulationStepCount = simulationProjectIds.Count == 0
+            ? 0
+            : await db.SimulationSteps.CountAsync(item => simulationProjectIds.Contains(item.SimulationProjectId));
+        TotalAgentActionCount = simulationProjectIds.Count == 0
+            ? 0
+            : await db.AgentActions.CountAsync(item => simulationProjectIds.Contains(item.SimulationProjectId));
 
         PhaseDistribution = GetPhaseDistribution(Runs);
         PhaseTransitions = await GetPhaseTransitionsAsync(id);

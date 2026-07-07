@@ -1,13 +1,14 @@
 @page
 @model EmergentEngineering.Pages.PhaseDiagrams.IndexModel
 @{
-    ViewData["Title"] = "創発相図";
+    ViewData["Title"] = "相図";
 }
 
 @functions {
     private static string GetStatusText(string? status) => status switch
     {
         "Created" => "Created（作成済み）",
+        "Pending" => "Pending（待機中）",
         "Running" => "Running（実行中）",
         "Completed" => "Completed（完了）",
         "Failed" => "Failed（失敗）",
@@ -25,8 +26,8 @@
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <h1 class="h2 mb-1">創発相図</h1>
-        <p class="text-muted mb-0">2つのパラメータを同時に変化させ、Learning / Stable / Emergent / Silo の相領域を可視化します。</p>
+        <h1 class="h2 mb-1">相図</h1>
+        <p class="text-muted mb-0">2つのパラメータを同時に変化させ、Learning / Stable / Emergent / Silo などの相分布を可視化します。</p>
     </div>
     <a class="btn btn-primary" asp-page="/PhaseDiagrams/Create">新規相図</a>
 </div>
@@ -34,8 +35,8 @@
 @if (Model.Diagrams.Count == 0)
 {
     <div class="empty-state">
-        <h2 class="h5">創発相図はまだありません</h2>
-        <p>Scenario を基準にして X/Y 軸パラメータを選び、2次元の相図として結果を比較できます。</p>
+        <h2 class="h5">相図はまだありません</h2>
+        <p>Scenario を基準にして X/Y パラメータを選び、次元相図として結果を確認できます。</p>
     </div>
 }
 else

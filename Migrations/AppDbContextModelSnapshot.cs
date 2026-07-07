@@ -103,6 +103,84 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("float")
                         .HasDefaultValue(0.20);
 
+                    b.Property<double>("MutualRespectBase")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("MutualRespectGrowthRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.04);
+
+                    b.Property<double>("MutualRespectDecayRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.002);
+
+                    b.Property<double>("MutualRespectDiversitySensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.40);
+
+                    b.Property<double>("MutualRespectChallengeSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.40);
+
+                    b.Property<double>("MutualRespectBridgeSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.40);
+
+                    b.Property<double>("MutualRespectPopularityPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<bool>("EnableIntellectualRespect")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<double>("IntellectualRespectBase")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("IntellectualRespectGrowthRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.04);
+
+                    b.Property<double>("IntellectualRespectDecayRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.002);
+
+                    b.Property<double>("IntellectualRespectDiversitySensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.50);
+
+                    b.Property<double>("IntellectualRespectChallengeSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.50);
+
+                    b.Property<double>("IntellectualRespectMentorshipSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.50);
+
+                    b.Property<double>("IntellectualRespectEgoPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("IntellectualRespectHierarchyPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.20);
+
+                    b.Property<string>("LogDetailLevel")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasDefaultValue("Full");
+
+                    b.Property<int>("StepLogInterval")
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("ActionLogInterval")
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -149,8 +227,8 @@ namespace EmergentEngineering.Migrations
 
                     b.Property<string>("LlmProvider")
                         .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
                         .HasDefaultValue("Mock");
 
                     b.Property<string>("Name")
@@ -244,6 +322,84 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("ThanksCoinChallengeBonus")
                         .HasColumnType("float")
                         .HasDefaultValue(0.20);
+
+                    b.Property<double>("MutualRespectBase")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("MutualRespectGrowthRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.04);
+
+                    b.Property<double>("MutualRespectDecayRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.002);
+
+                    b.Property<double>("MutualRespectDiversitySensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.40);
+
+                    b.Property<double>("MutualRespectChallengeSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.40);
+
+                    b.Property<double>("MutualRespectBridgeSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.40);
+
+                    b.Property<double>("MutualRespectPopularityPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<bool>("EnableIntellectualRespect")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<double>("IntellectualRespectBase")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("IntellectualRespectGrowthRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.04);
+
+                    b.Property<double>("IntellectualRespectDecayRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.002);
+
+                    b.Property<double>("IntellectualRespectDiversitySensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.50);
+
+                    b.Property<double>("IntellectualRespectChallengeSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.50);
+
+                    b.Property<double>("IntellectualRespectMentorshipSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.50);
+
+                    b.Property<double>("IntellectualRespectEgoPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("IntellectualRespectHierarchyPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.20);
+
+                    b.Property<string>("LogDetailLevel")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasDefaultValue("Full");
+
+                    b.Property<int>("StepLogInterval")
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("ActionLogInterval")
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("ChallengeDescription")
                         .IsRequired()
@@ -1027,6 +1183,84 @@ namespace EmergentEngineering.Migrations
                     b.Property<double>("ThanksCoinChallengeBonus")
                         .HasColumnType("float")
                         .HasDefaultValue(0.20);
+
+                    b.Property<double>("MutualRespectBase")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("MutualRespectGrowthRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.04);
+
+                    b.Property<double>("MutualRespectDecayRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.002);
+
+                    b.Property<double>("MutualRespectDiversitySensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.40);
+
+                    b.Property<double>("MutualRespectChallengeSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.40);
+
+                    b.Property<double>("MutualRespectBridgeSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.40);
+
+                    b.Property<double>("MutualRespectPopularityPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<bool>("EnableIntellectualRespect")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<double>("IntellectualRespectBase")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("IntellectualRespectGrowthRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.04);
+
+                    b.Property<double>("IntellectualRespectDecayRate")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.002);
+
+                    b.Property<double>("IntellectualRespectDiversitySensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.50);
+
+                    b.Property<double>("IntellectualRespectChallengeSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.50);
+
+                    b.Property<double>("IntellectualRespectMentorshipSensitivity")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.50);
+
+                    b.Property<double>("IntellectualRespectEgoPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.30);
+
+                    b.Property<double>("IntellectualRespectHierarchyPenalty")
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.20);
+
+                    b.Property<string>("LogDetailLevel")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasDefaultValue("Full");
+
+                    b.Property<int>("StepLogInterval")
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("ActionLogInterval")
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<double>("EffectiveTrustThreshold")
                         .HasColumnType("float")

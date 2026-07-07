@@ -1,0 +1,175 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = EmergentEngineering
+build_property.RootNamespace = EmergentEngineering
+build_property.ProjectDir = C:\apps\emergent-engineering\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\apps\emergent-engineering
+build_property._RazorSourceGeneratorDebug = 
+
+[C:/apps/emergent-engineering/Pages/Admin/DataCleanup.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cRGF0YUNsZWFudXAuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXJyb3IuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Experiments/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXhwZXJpbWVudHNcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Experiments/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXhwZXJpbWVudHNcRGVsZXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Experiments/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXhwZXJpbWVudHNcRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Experiments/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXhwZXJpbWVudHNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Experiments/Run.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXhwZXJpbWVudHNcUnVuLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/ParameterSweeps/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGFyYW1ldGVyU3dlZXBzXENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/ParameterSweeps/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGFyYW1ldGVyU3dlZXBzXERlbGV0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/ParameterSweeps/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGFyYW1ldGVyU3dlZXBzXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/ParameterSweeps/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGFyYW1ldGVyU3dlZXBzXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/ParameterSweeps/Run.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGFyYW1ldGVyU3dlZXBzXFJ1bi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/PhaseDiagrams/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGhhc2VEaWFncmFtc1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/PhaseDiagrams/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGhhc2VEaWFncmFtc1xEZWxldGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/PhaseDiagrams/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGhhc2VEaWFncmFtc1xEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/PhaseDiagrams/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGhhc2VEaWFncmFtc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/PhaseDiagrams/Run.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGhhc2VEaWFncmFtc1xSdW4uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Privacy.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJpdmFjeS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Scenarios/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2NlbmFyaW9zXENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Scenarios/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2NlbmFyaW9zXERlbGV0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Scenarios/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2NlbmFyaW9zXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Scenarios/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2NlbmFyaW9zXEVkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Scenarios/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2NlbmFyaW9zXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Scenarios/_ScenarioFormFields.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2NlbmFyaW9zXF9TY2VuYXJpb0Zvcm1GaWVsZHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Shared/_ExecutionScalePresetPanel.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9FeGVjdXRpb25TY2FsZVByZXNldFBhbmVsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Shared/_IntellectualRespectFields.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9JbnRlbGxlY3R1YWxSZXNwZWN0RmllbGRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Shared/_LogRetentionFields.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9Mb2dSZXRlbnRpb25GaWVsZHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Shared/_MutualRespectFields.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9NdXR1YWxSZXNwZWN0RmllbGRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Shared/_OptionalEventSectionScripts.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9PcHRpb25hbEV2ZW50U2VjdGlvblNjcmlwdHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Shared/_ResearchPresetPanel.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9SZXNlYXJjaFByZXNldFBhbmVsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Shared/_ThanksCoinFields.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9UaGFua3NDb2luRmllbGRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Shared/_ValidationScriptsPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Simulations/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2ltdWxhdGlvbnNcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Simulations/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2ltdWxhdGlvbnNcRGVsZXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Simulations/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2ltdWxhdGlvbnNcRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/_ViewImports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX1ZpZXdTdGFydC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/apps/emergent-engineering/Pages/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = b-ecl5idz2id
