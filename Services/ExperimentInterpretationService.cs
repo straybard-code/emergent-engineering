@@ -58,22 +58,22 @@ public sealed class ExperimentInterpretationService
         {
             SummaryCards =
             [
-                new() { Label = "Max EmergentRate ParameterValue", Value = FormatPointValue(bestEmergent, item => item.EmergentRate) },
-                new() { Label = "Max StableRate ParameterValue", Value = FormatPointValue(bestStable, item => item.StableRate) },
-                new() { Label = "Max LearningRate ParameterValue", Value = FormatPointValue(bestLearning, item => item.LearningRate) },
-                new() { Label = "Max AverageTrust ParameterValue", Value = FormatPointValue(bestTrust, item => item.AverageTrust) },
-                new() { Label = "Max EffectiveDensity ParameterValue", Value = FormatPointValue(bestDensity, item => item.EffectiveDensity) },
-                new() { Label = "Max SerendipityRate ParameterValue", Value = FormatPointValue(bestSerendipity, item => item.SerendipityRate) },
-                new() { Label = "Max KnowledgeReconfigurationScore ParameterValue", Value = FormatPointValue(bestReconfiguration, item => item.AverageKnowledgeReconfigurationScore) },
-                new() { Label = "Max AverageIntellectualRespect ParameterValue", Value = FormatPointValue(bestIntellectualRespect, item => item.AverageIntellectualRespect) },
-                new() { Label = "Max IdeaAcceptanceScore ParameterValue", Value = FormatPointValue(bestIdeaAcceptance, item => item.IdeaAcceptanceScore) },
-                new() { Label = "Max MutualMentorshipScore ParameterValue", Value = FormatPointValue(bestMutualMentorship, item => item.MutualMentorshipScore) },
-                new() { Label = "Max IntellectualRespectReconfiguration ParameterValue", Value = FormatPointValue(bestIntellectualReconfiguration, item => item.AverageIntellectualRespectReconfigurationComponent) },
-                new() { Label = "Max IntellectualRespectSerendipity ParameterValue", Value = FormatPointValue(bestIntellectualSerendipity, item => item.AverageIntellectualRespectSerendipityComponent) },
-                new() { Label = "Max IntellectualRespectEmergence ParameterValue", Value = FormatPointValue(bestIntellectualEmergence, item => item.AverageIntellectualRespectEmergenceComponent) },
-                new() { Label = "Max Trust Jump Interval", Value = FormatInterval(bestTrustJump?.PreviousParameterValue, bestTrustJump?.ParameterValue, bestTrustJump?.DeltaAverageTrust) },
-                new() { Label = "Max Emergent Jump Interval", Value = FormatInterval(bestEmergentJump?.PreviousParameterValue, bestEmergentJump?.ParameterValue, bestEmergentJump?.DeltaEmergentRate) },
-                new() { Label = "Recommended Parameter Region", Value = recommendedRegion }
+                new() { Label = "最大創発率のParameterValue", Value = FormatPointValue(bestEmergent, item => item.EmergentRate) },
+                new() { Label = "最大安定率のParameterValue", Value = FormatPointValue(bestStable, item => item.StableRate) },
+                new() { Label = "最大学習率のParameterValue", Value = FormatPointValue(bestLearning, item => item.LearningRate) },
+                new() { Label = "最大平均信頼度のParameterValue", Value = FormatPointValue(bestTrust, item => item.AverageTrust) },
+                new() { Label = "最大実効密度のParameterValue", Value = FormatPointValue(bestDensity, item => item.EffectiveDensity) },
+                new() { Label = "最大セレンディピティ率のParameterValue", Value = FormatPointValue(bestSerendipity, item => item.SerendipityRate) },
+                new() { Label = "最大知識再構成スコアのParameterValue", Value = FormatPointValue(bestReconfiguration, item => item.AverageKnowledgeReconfigurationScore) },
+                new() { Label = "最大知的敬意のParameterValue", Value = FormatPointValue(bestIntellectualRespect, item => item.AverageIntellectualRespect) },
+                new() { Label = "最大アイデア受容スコアのParameterValue", Value = FormatPointValue(bestIdeaAcceptance, item => item.IdeaAcceptanceScore) },
+                new() { Label = "最大相互師匠スコアのParameterValue", Value = FormatPointValue(bestMutualMentorship, item => item.MutualMentorshipScore) },
+                new() { Label = "最大知的敬意再構成のParameterValue", Value = FormatPointValue(bestIntellectualReconfiguration, item => item.AverageIntellectualRespectReconfigurationComponent) },
+                new() { Label = "最大知的敬意セレンディピティのParameterValue", Value = FormatPointValue(bestIntellectualSerendipity, item => item.AverageIntellectualRespectSerendipityComponent) },
+                new() { Label = "最大知的敬意創発のParameterValue", Value = FormatPointValue(bestIntellectualEmergence, item => item.AverageIntellectualRespectEmergenceComponent) },
+                new() { Label = "最大信頼ジャンプ区間", Value = FormatInterval(bestTrustJump?.PreviousParameterValue, bestTrustJump?.ParameterValue, bestTrustJump?.DeltaAverageTrust) },
+                new() { Label = "最大創発ジャンプ区間", Value = FormatInterval(bestEmergentJump?.PreviousParameterValue, bestEmergentJump?.ParameterValue, bestEmergentJump?.DeltaEmergentRate) },
+                new() { Label = "推奨パラメータ領域", Value = recommendedRegion }
             ],
             RecommendedRegion = recommendedRegion,
             AutoComment = BuildParameterSweepComment(
@@ -131,23 +131,23 @@ public sealed class ExperimentInterpretationService
         {
             SummaryCards =
             [
-                new() { Label = "Max EmergentRate Cell", Value = FormatPointCell(maxEmergent, item => item.EmergentRate) },
-                new() { Label = "Max StableRate Cell", Value = FormatPointCell(maxStable, item => item.StableRate) },
-                new() { Label = "Max LearningRate Cell", Value = FormatPointCell(maxLearning, item => item.LearningRate) },
-                new() { Label = "Max AverageTrust Cell", Value = FormatPointCell(maxTrust, item => item.AverageTrust) },
-                new() { Label = "Max EffectiveDensity Cell", Value = FormatPointCell(maxDensity, item => item.AverageEffectiveDensity) },
-                new() { Label = "Max SerendipityRate Cell", Value = FormatPointCell(maxSerendipity, item => item.AverageSerendipityRate) },
-                new() { Label = "Max KnowledgeReconfigurationScore Cell", Value = FormatPointCell(maxReconfiguration, item => item.AverageKnowledgeReconfigurationScore) },
-                new() { Label = "AverageIntellectualRespect", Value = averageIntellectualRespect.ToString("0.000", CultureInfo.InvariantCulture) },
-                new() { Label = "AverageIntellectualRespectDensity", Value = averageIntellectualRespectDensity.ToString("0.000", CultureInfo.InvariantCulture) },
-                new() { Label = "AverageIntellectualRespectDiversityIndex", Value = averageIntellectualRespectDiversityIndex.ToString("0.000", CultureInfo.InvariantCulture) },
-                new() { Label = "AverageIdeaAcceptanceScore", Value = averageIdeaAcceptanceScore.ToString("0.000", CultureInfo.InvariantCulture) },
-                new() { Label = "AverageMutualMentorshipScore", Value = averageMutualMentorshipScore.ToString("0.000", CultureInfo.InvariantCulture) },
-                new() { Label = "AverageIntellectualRespectReconfiguration", Value = averageIntellectualRespectReconfiguration.ToString("0.000", CultureInfo.InvariantCulture) },
-                new() { Label = "AverageIntellectualRespectSerendipity", Value = averageIntellectualRespectSerendipity.ToString("0.000", CultureInfo.InvariantCulture) },
-                new() { Label = "AverageIntellectualRespectEmergence", Value = averageIntellectualRespectEmergence.ToString("0.000", CultureInfo.InvariantCulture) },
-                new() { Label = "Recommended Region", Value = recommendedRegion },
-                new() { Label = "Danger Region", Value = dangerRegion }
+                new() { Label = "最大創発セル", Value = FormatPointCell(maxEmergent, item => item.EmergentRate) },
+                new() { Label = "最大安定セル", Value = FormatPointCell(maxStable, item => item.StableRate) },
+                new() { Label = "最大学習セル", Value = FormatPointCell(maxLearning, item => item.LearningRate) },
+                new() { Label = "最大平均信頼セル", Value = FormatPointCell(maxTrust, item => item.AverageTrust) },
+                new() { Label = "最大実効密度セル", Value = FormatPointCell(maxDensity, item => item.AverageEffectiveDensity) },
+                new() { Label = "最大セレンディピティセル", Value = FormatPointCell(maxSerendipity, item => item.AverageSerendipityRate) },
+                new() { Label = "最大知識再構成セル", Value = FormatPointCell(maxReconfiguration, item => item.AverageKnowledgeReconfigurationScore) },
+                new() { Label = "平均知的敬意", Value = averageIntellectualRespect.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "平均知的敬意密度", Value = averageIntellectualRespectDensity.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "平均知的敬意多様性", Value = averageIntellectualRespectDiversityIndex.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "平均アイデア受容", Value = averageIdeaAcceptanceScore.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "平均相互師匠スコア", Value = averageMutualMentorshipScore.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "平均知的敬意再構成", Value = averageIntellectualRespectReconfiguration.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "平均知的敬意セレンディピティ", Value = averageIntellectualRespectSerendipity.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "平均知的敬意創発", Value = averageIntellectualRespectEmergence.ToString("0.000", CultureInfo.InvariantCulture) },
+                new() { Label = "推奨領域", Value = recommendedRegion },
+                new() { Label = "危険領域", Value = dangerRegion }
             ],
             RecommendedRegion = recommendedRegion,
             DangerRegion = dangerRegion,
@@ -286,12 +286,12 @@ public sealed class ExperimentInterpretationService
             var current = ordered[index];
             var interval = $"{previous.ParameterValue:0.000} -> {current.ParameterValue:0.000}";
 
-            AddTransitionCandidate(rows, interval, "Trust Jump", current.DeltaAverageTrust, "Trust network formation has accelerated.");
-            AddTransitionCandidate(rows, interval, "Density Jump", current.DeltaEffectiveDensity, "Effective network density increased quickly.");
-            AddTransitionCandidate(rows, interval, "Emergence Jump", current.DeltaEmergentRate, "Emergent phase rate increased quickly.");
-            AddTransitionCandidate(rows, interval, "Stabilization Jump", Math.Round(current.StableRate - previous.StableRate, 3), "Stable phase increased.");
-            AddTransitionCandidate(rows, interval, "Serendipity Jump", current.DeltaSerendipityRate, "Serendipity increased.");
-            AddTransitionCandidate(rows, interval, "Reconfiguration Jump", current.DeltaKnowledgeReconfigurationScore, "Knowledge reconfiguration increased.");
+            AddTransitionCandidate(rows, interval, "信頼ジャンプ", current.DeltaAverageTrust, "信頼形成が急に進んでいます。");
+            AddTransitionCandidate(rows, interval, "密度ジャンプ", current.DeltaEffectiveDensity, "実効ネットワーク密度が急増しています。");
+            AddTransitionCandidate(rows, interval, "創発ジャンプ", current.DeltaEmergentRate, "創発率が急に高まっています。");
+            AddTransitionCandidate(rows, interval, "安定化ジャンプ", Math.Round(current.StableRate - previous.StableRate, 3), "安定相が強まっています。");
+            AddTransitionCandidate(rows, interval, "セレンディピティジャンプ", current.DeltaSerendipityRate, "セレンディピティが増えています。");
+            AddTransitionCandidate(rows, interval, "知識再構成ジャンプ", current.DeltaKnowledgeReconfigurationScore, "知識再構成が進んでいます。");
         }
 
         return rows;
@@ -343,12 +343,12 @@ public sealed class ExperimentInterpretationService
     {
         var interval = $"{current.XValue:0.000},{current.YValue:0.000} -> {neighbor.XValue:0.000},{neighbor.YValue:0.000} ({direction})";
 
-        AddTransitionCandidate(rows, interval, "Trust Jump", neighbor.AverageTrust - current.AverageTrust, "Trust network strength changed.");
-        AddTransitionCandidate(rows, interval, "Density Jump", neighbor.AverageEffectiveDensity - current.AverageEffectiveDensity, "Effective density changed.");
-        AddTransitionCandidate(rows, interval, "Emergence Jump", neighbor.EmergentRate - current.EmergentRate, "Emergent rate changed.");
-        AddTransitionCandidate(rows, interval, "Stabilization Jump", neighbor.StableRate - current.StableRate, "Stable phase changed.");
-        AddTransitionCandidate(rows, interval, "Serendipity Jump", neighbor.AverageSerendipityRate - current.AverageSerendipityRate, "Serendipity changed.");
-        AddTransitionCandidate(rows, interval, "Reconfiguration Jump", neighbor.AverageKnowledgeReconfigurationScore - current.AverageKnowledgeReconfigurationScore, "Knowledge reconfiguration changed.");
+        AddTransitionCandidate(rows, interval, "信頼ジャンプ", neighbor.AverageTrust - current.AverageTrust, "信頼形成が急に進んでいます。");
+        AddTransitionCandidate(rows, interval, "密度ジャンプ", neighbor.AverageEffectiveDensity - current.AverageEffectiveDensity, "実効ネットワーク密度が急増しています。");
+        AddTransitionCandidate(rows, interval, "創発ジャンプ", neighbor.EmergentRate - current.EmergentRate, "創発率が急に高まっています。");
+        AddTransitionCandidate(rows, interval, "安定化ジャンプ", neighbor.StableRate - current.StableRate, "安定相が強まっています。");
+        AddTransitionCandidate(rows, interval, "セレンディピティジャンプ", neighbor.AverageSerendipityRate - current.AverageSerendipityRate, "セレンディピティが増えています。");
+        AddTransitionCandidate(rows, interval, "知識再構成ジャンプ", neighbor.AverageKnowledgeReconfigurationScore - current.AverageKnowledgeReconfigurationScore, "知識再構成が進んでいます。");
     }
 
     private static void AddTransitionCandidate(
@@ -366,12 +366,12 @@ public sealed class ExperimentInterpretationService
         var value = Math.Round(delta.Value, 3);
         var threshold = type switch
         {
-            "Trust Jump" => 0.15,
-            "Density Jump" => 0.15,
-            "Emergence Jump" => 0.20,
-            "Stabilization Jump" => 0.20,
-            "Serendipity Jump" => 0.20,
-            "Reconfiguration Jump" => 0.15,
+            "信頼ジャンプ" => 0.15,
+            "密度ジャンプ" => 0.15,
+            "創発ジャンプ" => 0.20,
+            "安定化ジャンプ" => 0.20,
+            "セレンディピティジャンプ" => 0.20,
+            "知識再構成ジャンプ" => 0.15,
             _ => 0.0
         };
 
@@ -398,28 +398,28 @@ public sealed class ExperimentInterpretationService
 
         foreach (var point in points)
         {
-            AddCount(counts, "Trust Insufficient", point.TrustInsufficientRunCount);
-            AddCount(counts, "Effective Density Insufficient", point.EffectiveDensityInsufficientRunCount);
-            AddCount(counts, "StrongLink Insufficient", point.StrongLinkInsufficientRunCount);
-            AddCount(counts, "Knowledge Diversity Insufficient", point.KnowledgeDiversityInsufficientRunCount);
-            AddCount(counts, "Knowledge Recombination Insufficient", point.KnowledgeRecombinationInsufficientRunCount);
-            AddCount(counts, "Knowledge Reconfiguration Insufficient", point.KnowledgeReconfigurationInsufficientRunCount);
-            AddCount(counts, "Serendipity Insufficient", point.SerendipityInsufficientRunCount);
-            AddCount(counts, "Idea Proposal Insufficient", point.IdeaProposalInsufficientRunCount);
-            AddCount(counts, "Share Info Insufficient", point.ShareInfoInsufficientRunCount);
-            AddCount(counts, "Constructive Criticism Insufficient", point.ConstructiveCriticismInsufficientRunCount);
-            AddCount(counts, "Psychological Safety Insufficient", point.PsychologicalSafetyInsufficientRunCount);
+            AddCount(counts, "信頼不足", point.TrustInsufficientRunCount);
+            AddCount(counts, "実効密度不足", point.EffectiveDensityInsufficientRunCount);
+            AddCount(counts, "StrongLink不足", point.StrongLinkInsufficientRunCount);
+            AddCount(counts, "知識多様性不足", point.KnowledgeDiversityInsufficientRunCount);
+            AddCount(counts, "知識再結合不足", point.KnowledgeRecombinationInsufficientRunCount);
+            AddCount(counts, "知識再構成不足", point.KnowledgeReconfigurationInsufficientRunCount);
+            AddCount(counts, "セレンディピティ不足", point.SerendipityInsufficientRunCount);
+            AddCount(counts, "アイデア提案不足", point.IdeaProposalInsufficientRunCount);
+            AddCount(counts, "情報共有不足", point.ShareInfoInsufficientRunCount);
+            AddCount(counts, "建設的批判不足", point.ConstructiveCriticismInsufficientRunCount);
+            AddCount(counts, "心理的安全性不足", point.PsychologicalSafetyInsufficientRunCount);
 
             var nonEmergentCount = Math.Max(point.TotalRunCount - point.EmergentRunCount, 0);
             if (nonEmergentCount > 0)
             {
                 if (point.StableRate >= point.LearningRate)
                 {
-                    AddCount(counts, "Stable Dominant", nonEmergentCount);
+                    AddCount(counts, "安定優勢", nonEmergentCount);
                 }
                 else
                 {
-                    AddCount(counts, "Learning Dominant", nonEmergentCount);
+                    AddCount(counts, "学習優勢", nonEmergentCount);
                 }
             }
         }
@@ -444,61 +444,61 @@ public sealed class ExperimentInterpretationService
 
             if (point.AverageTrust < 0.30)
             {
-                AddCount(counts, "Trust Insufficient", 1);
+                AddCount(counts, "信頼不足", 1);
             }
 
             if (point.AverageEffectiveDensity < 0.30)
             {
-                AddCount(counts, "Effective Density Insufficient", 1);
+                AddCount(counts, "実効密度不足", 1);
             }
 
             if ((experimentSummary?.AverageComponentCount ?? 0) >= 2 || point.DominantPhase is SimulationPhase.Silo or SimulationPhase.Chaos or SimulationPhase.Collapse)
             {
-                AddCount(counts, "StrongLink Insufficient", 1);
+                AddCount(counts, "StrongLink不足", 1);
             }
 
             if (point.AverageKnowledgeDiversity < 0.50)
             {
-                AddCount(counts, "Knowledge Diversity Insufficient", 1);
+                AddCount(counts, "知識多様性不足", 1);
             }
 
             if (point.AverageKnowledgeRecombinationScore < 0.25)
             {
-                AddCount(counts, "Knowledge Recombination Insufficient", 1);
+                AddCount(counts, "知識再結合不足", 1);
             }
 
             if (point.AverageKnowledgeReconfigurationScore < 0.25)
             {
-                AddCount(counts, "Knowledge Reconfiguration Insufficient", 1);
+                AddCount(counts, "知識再構成不足", 1);
             }
 
             if (point.AverageSerendipityRate < 0.20)
             {
-                AddCount(counts, "Serendipity Insufficient", 1);
+                AddCount(counts, "セレンディピティ不足", 1);
             }
 
             if (experimentSummary is not null && experimentSummary.AverageProposeIdeaRate < 0.07)
             {
-                AddCount(counts, "Idea Proposal Insufficient", 1);
+                AddCount(counts, "アイデア提案不足", 1);
             }
 
             if (experimentSummary is not null && experimentSummary.AverageShareInfoRate < 0.30)
             {
-                AddCount(counts, "Share Info Insufficient", 1);
+                AddCount(counts, "情報共有不足", 1);
             }
 
             if (experimentSummary is not null && experimentSummary.AverageCriticizeSupportRatio < 0.50)
             {
-                AddCount(counts, "Constructive Criticism Insufficient", 1);
+                AddCount(counts, "建設的批判不足", 1);
             }
 
             if (point.DominantPhase == SimulationPhase.Stable || point.StableRate >= point.EmergentRate)
             {
-                AddCount(counts, "Stable Dominant", 1);
+                AddCount(counts, "安定優勢", 1);
             }
             else if (point.DominantPhase == SimulationPhase.Learning || point.LearningRate >= point.EmergentRate)
             {
-                AddCount(counts, "Learning Dominant", 1);
+                AddCount(counts, "学習優勢", 1);
             }
         }
 
@@ -526,20 +526,20 @@ public sealed class ExperimentInterpretationService
 
     private static string BottleneckInterpretation(string reason) => reason switch
     {
-        "Trust Insufficient" => "Trust formation is too weak for collaboration to stabilize.",
-        "Effective Density Insufficient" => "Effective network density is too low for the organization to connect.",
-        "StrongLink Insufficient" => "Strong links are too sparse and the network remains fragmented.",
-        "Knowledge Diversity Insufficient" => "Knowledge diversity is too low for new combinations to emerge.",
-        "Knowledge Recombination Insufficient" => "Knowledge recombination is too weak to generate useful accidental links.",
-        "Knowledge Reconfiguration Insufficient" => "Knowledge structure is not being reconfigured enough.",
-        "Serendipity Insufficient" => "Serendipity is too weak to seed useful recombination.",
-        "Idea Proposal Insufficient" => "Idea proposal is too weak to seed emergence.",
-        "Share Info Insufficient" => "Information sharing is too weak for knowledge to flow.",
-        "Constructive Criticism Insufficient" => "Constructive criticism is too weak to stimulate rewiring.",
-        "Psychological Safety Insufficient" => "Psychological safety is too weak for criticism and proposals to help recombination.",
-        "Stable Dominant" => "The network is stable, but exploration and recombination remain weak.",
-        "Learning Dominant" => "Learning is progressing, but the system has not crossed into phase change.",
-        _ => "This factor may be a bottleneck to emergence."
+        "信頼不足" => "信頼形成が弱く、協働が安定していません。",
+        "実効密度不足" => "実効ネットワーク密度が低く、組織内の接続が十分ではありません。",
+        "StrongLink不足" => "強い結びつきが少なく、ネットワークが分断されています。",
+        "知識多様性不足" => "知識の多様性が低く、新しい組み合わせが生まれにくくなっています。",
+        "知識再結合不足" => "知識再結合が弱く、有用な偶発的接続が生まれにくくなっています。",
+        "知識再構成不足" => "知識構造の組み替えが十分に進んでいません。",
+        "セレンディピティ不足" => "セレンディピティが弱く、有用な再結合のきっかけが不足しています。",
+        "アイデア提案不足" => "アイデア提案が弱く、創発のきっかけが生まれにくくなっています。",
+        "情報共有不足" => "情報共有が弱く、知識の流れが滞っています。",
+        "建設的批判不足" => "建設的批判が弱く、再配線のきっかけが不足しています。",
+        "心理的安全性不足" => "心理的安全性が低く、批判や提案が知識再結合につながりにくくなっています。",
+        "安定優勢" => "ネットワークは安定していますが、探索や再結合はまだ弱い状態です。",
+        "学習優勢" => "学習は進んでいますが、相変化にはまだ到達していません。",
+        _ => "この要因が創発のボトルネックになっている可能性があります。"
     };
 
     private static string BuildParameterSweepComment(
@@ -553,35 +553,35 @@ public sealed class ExperimentInterpretationService
     {
         if (maxEmergentRate > 0)
         {
-            return $"Emergence was observed in some conditions. Focus on the region around: {recommendedRegion}";
+            return $"一部の条件で創発が観測されています。{recommendedRegion} の周辺を重点的に確認してください。";
         }
 
         if (maxAverageTrust < 0.3)
         {
-            return "Trust network formation is too weak. Check trust growth rate, effective trust threshold, and decay.";
+            return "信頼ネットワーク形成が弱すぎます。信頼成長率、閾値、減衰率を見直してください。";
         }
 
         if (maxEffectiveDensity < 0.3)
         {
-            return "Effective network density is too low. Thresholds or trust formation may be too strict.";
+            return "実効ネットワーク密度が低すぎます。閾値や信頼形成条件が厳しすぎる可能性があります。";
         }
 
         if (maxSerendipityRate == 0)
         {
-            return "Serendipity did not occur. Review exploration tendency, serendipity sensitivity, and threshold.";
+            return "セレンディピティが観測されませんでした。探索傾向、セレンディピティ感度、閾値を見直してください。";
         }
 
         if (maxKnowledgeReconfiguration < 0.4)
         {
-            return "Knowledge reconfiguration is too weak. Review cross-domain exposure, rewiring sensitivity, and recombination rate.";
+            return "知識再構成が弱すぎます。異分野接触、再配線感度、再結合率を見直してください。";
         }
 
         if (maxEmergentScore > 0)
         {
-            return "Emergence score is rising, but phase gating or another condition may be the bottleneck.";
+            return "創発スコアは上がっていますが、相判定条件のどこかがボトルネックになっている可能性があります。";
         }
 
-        return "Trust, knowledge, and serendipity are present, but the system has not yet crossed into emergence.";
+        return "信頼・知識・セレンディピティは見えていますが、まだ創発へは到達していません。";
     }
 
     private static string BuildParameterSweepConclusion(
@@ -592,20 +592,20 @@ public sealed class ExperimentInterpretationService
     {
         if (maxEmergentRate > 0)
         {
-            return "This sweep affects emergence directly.";
+            return "このスイープは創発に直接影響しています。";
         }
 
         if (maxEmergentScore > 0 && maxEffectiveDensity >= 0.7)
         {
-            return "The process approaches emergence, but phase change still does not occur.";
+            return "プロセスは創発に近づいていますが、相変化はまだ起きていません。";
         }
 
         if (maxEffectiveDensity < 0.3)
         {
-            return "The system is still early in trust network formation.";
+            return "システムはまだ信頼ネットワーク形成の初期段階です。";
         }
 
-        return points.Count == 0 ? "--" : "No direct emergence was observed in this sweep.";
+        return points.Count == 0 ? "--" : "このスイープでは直接的な創発は観測されませんでした。";
     }
 
     private static string BuildRecommendedParameterRegion(
@@ -626,19 +626,19 @@ public sealed class ExperimentInterpretationService
         if (maxEmergentRate > 0)
         {
             candidatePoints = ordered.Where(item => item.EmergentRate >= maxEmergentRate * 0.8);
-            reason = "EmergentRate >= 80% of maximum";
+            reason = "創発率が最大値の80%以上";
         }
         else if (maxEmergentScore > 0)
         {
             candidatePoints = ordered.Where(item => item.AverageEmergentScore >= maxEmergentScore * 0.8);
-            reason = "AverageEmergentScore is high";
+            reason = "平均創発スコアが高い";
         }
         else
         {
             candidatePoints = ordered.Where(item =>
                 item.EffectiveDensity >= maxEffectiveDensity * 0.85 &&
                 item.AverageKnowledgeReconfigurationScore >= maxKnowledgeReconfiguration * 0.85);
-            reason = "EffectiveDensity and KnowledgeReconfigurationScore are both high";
+            reason = "実効密度と知識再構成スコアが両方高い";
         }
 
         var selected = candidatePoints.ToList();
@@ -648,7 +648,7 @@ public sealed class ExperimentInterpretationService
                 .OrderByDescending(item => item.EffectiveDensity + item.AverageKnowledgeReconfigurationScore + item.AverageEmergentScore)
                 .Take(Math.Max(1, ordered.Count / 3))
                 .ToList();
-            reason = "Top combined score region";
+            reason = "合成スコアの高い領域";
         }
 
         return $"{DescribeRange(selected.Select(item => item.ParameterValue))} / {reason}";
@@ -665,35 +665,35 @@ public sealed class ExperimentInterpretationService
     {
         if (maxEmergentRate > 0)
         {
-            return $"Emergence was observed in some cells. Explore around: {dangerRegion}";
+            return $"一部のセルで創発が観測されています。{dangerRegion} の周辺を探索してください。";
         }
 
         if (maxPipelineCompletion >= 0.7)
         {
-            return "The process is progressing, but phase change has not yet occurred.";
+            return "プロセスは進んでいますが、まだ相変化には到達していません。";
         }
 
         if (maxAverageTrust < 0.3)
         {
-            return "Average trust is too low for the network to stabilize.";
+            return "平均信頼度が低く、ネットワークが安定していません。";
         }
 
         if (maxEffectiveDensity < 0.3)
         {
-            return "Effective density is too low for the network to connect.";
+            return "実効密度が低く、ネットワークが十分につながっていません。";
         }
 
         if (maxSerendipityRate == 0)
         {
-            return "Serendipity has not been observed. Review exploration settings.";
+            return "セレンディピティが観測されませんでした。探索設定を見直してください。";
         }
 
         if (maxKnowledgeReconfiguration < 0.4)
         {
-            return "Knowledge reconfiguration is too weak for emergence to proceed.";
+            return "知識再構成が弱く、創発が進みにくくなっています。";
         }
 
-        return $"High trust and density exist, but emergence still has room to develop. Danger region: {dangerRegion}";
+        return $"信頼と密度は高いものの、創発にはまだ伸びしろがあります。危険領域: {dangerRegion}";
     }
 
     private static string BuildRecommendedPhaseRegion(
@@ -713,25 +713,25 @@ public sealed class ExperimentInterpretationService
         if (maxEmergentRate > 0)
         {
             candidatePoints = ordered.Where(item => item.EmergentRate >= maxEmergentRate * 0.8);
-            reason = "EmergentRate >= 80% of maximum";
+            reason = "創発率が最大値の80%以上";
         }
         else if (maxPipelineCompletion > 0)
         {
             candidatePoints = ordered.Where(item => item.AveragePipelineCompletionScore >= maxPipelineCompletion * 0.8);
-            reason = "Pipeline completion is high";
+            reason = "パイプライン完了度が高い";
         }
         else if (maxCompositeScore > 0)
         {
             candidatePoints = ordered.Where(item =>
                 (item.AverageEffectiveDensity + item.AverageKnowledgeReconfigurationScore + item.AverageKnowledgeRecombinationScore) / 3.0 >= maxCompositeScore * 0.8);
-            reason = "EffectiveDensity and knowledge metrics are high";
+            reason = "実効密度と知識指標が高い";
         }
         else
         {
             candidatePoints = ordered.Where(item =>
                 item.AverageEffectiveDensity >= 0.30 &&
                 item.AverageKnowledgeReconfigurationScore >= 0.30);
-            reason = "EffectiveDensity and KnowledgeReconfigurationScore are both high";
+            reason = "実効密度と知識再構成スコアが両方高い";
         }
 
         var selected = candidatePoints.ToList();
@@ -741,7 +741,7 @@ public sealed class ExperimentInterpretationService
                 .OrderByDescending(item => item.EmergentRate + item.AveragePipelineCompletionScore + item.AverageEffectiveDensity)
                 .Take(Math.Max(1, ordered.Count / 3))
                 .ToList();
-            reason = "Top combined score cell region";
+            reason = "合成スコアの高いセル領域";
         }
 
         return $"{DescribePhaseRegion(selected)} / {reason}";
@@ -769,10 +769,10 @@ public sealed class ExperimentInterpretationService
 
         if (selected.Count == 0)
         {
-            return "No danger region detected.";
+            return "危険領域は見つかりませんでした。";
         }
 
-        return $"{DescribePhaseRegion(selected)} / Silo, Chaos, Collapse, low trust, or low density";
+        return $"{DescribePhaseRegion(selected)} / サイロ、混沌、崩壊、低信頼、低密度";
     }
 
     private static string DescribeRange(IEnumerable<double> values)
@@ -925,22 +925,22 @@ public sealed class ParameterSweepInterpretationResult
     {
         SummaryCards =
         [
-            new() { Label = "Max EmergentRate ParameterValue", Value = "--" },
-            new() { Label = "Max StableRate ParameterValue", Value = "--" },
-            new() { Label = "Max LearningRate ParameterValue", Value = "--" },
-            new() { Label = "Max AverageTrust ParameterValue", Value = "--" },
-            new() { Label = "Max EffectiveDensity ParameterValue", Value = "--" },
-            new() { Label = "Max SerendipityRate ParameterValue", Value = "--" },
-            new() { Label = "Max KnowledgeReconfigurationScore ParameterValue", Value = "--" },
-            new() { Label = "Max AverageIntellectualRespect ParameterValue", Value = "--" },
-            new() { Label = "Max IdeaAcceptanceScore ParameterValue", Value = "--" },
-            new() { Label = "Max MutualMentorshipScore ParameterValue", Value = "--" },
-            new() { Label = "Max IntellectualRespectReconfiguration ParameterValue", Value = "--" },
-            new() { Label = "Max IntellectualRespectSerendipity ParameterValue", Value = "--" },
-            new() { Label = "Max IntellectualRespectEmergence ParameterValue", Value = "--" },
-            new() { Label = "Max Trust Jump Interval", Value = "--" },
-            new() { Label = "Max Emergent Jump Interval", Value = "--" },
-            new() { Label = "Recommended Parameter Region", Value = "--" }
+            new() { Label = "最大創発率のParameterValue", Value = "--" },
+            new() { Label = "最大安定率のParameterValue", Value = "--" },
+            new() { Label = "最大学習率のParameterValue", Value = "--" },
+            new() { Label = "最大平均信頼度のParameterValue", Value = "--" },
+            new() { Label = "最大実効密度のParameterValue", Value = "--" },
+            new() { Label = "最大セレンディピティ率のParameterValue", Value = "--" },
+            new() { Label = "最大知識再構成スコアのParameterValue", Value = "--" },
+            new() { Label = "最大知的敬意のParameterValue", Value = "--" },
+            new() { Label = "最大アイデア受容スコアのParameterValue", Value = "--" },
+            new() { Label = "最大相互師匠スコアのParameterValue", Value = "--" },
+            new() { Label = "最大知的敬意再構成のParameterValue", Value = "--" },
+            new() { Label = "最大知的敬意セレンディピティのParameterValue", Value = "--" },
+            new() { Label = "最大知的敬意創発のParameterValue", Value = "--" },
+            new() { Label = "最大信頼ジャンプ区間", Value = "--" },
+            new() { Label = "最大創発ジャンプ区間", Value = "--" },
+            new() { Label = "推奨パラメータ領域", Value = "--" }
         ]
     };
 
@@ -958,23 +958,23 @@ public sealed class PhaseDiagramInterpretationResult
     {
         SummaryCards =
         [
-            new() { Label = "Max EmergentRate Cell", Value = "--" },
-            new() { Label = "Max StableRate Cell", Value = "--" },
-            new() { Label = "Max LearningRate Cell", Value = "--" },
-            new() { Label = "Max AverageTrust Cell", Value = "--" },
-            new() { Label = "Max EffectiveDensity Cell", Value = "--" },
-            new() { Label = "Max SerendipityRate Cell", Value = "--" },
-            new() { Label = "Max KnowledgeReconfigurationScore Cell", Value = "--" },
-            new() { Label = "AverageIntellectualRespect", Value = "--" },
-            new() { Label = "AverageIntellectualRespectDensity", Value = "--" },
-            new() { Label = "AverageIntellectualRespectDiversityIndex", Value = "--" },
-            new() { Label = "AverageIdeaAcceptanceScore", Value = "--" },
-            new() { Label = "AverageMutualMentorshipScore", Value = "--" },
-            new() { Label = "AverageIntellectualRespectReconfiguration", Value = "--" },
-            new() { Label = "AverageIntellectualRespectSerendipity", Value = "--" },
-            new() { Label = "AverageIntellectualRespectEmergence", Value = "--" },
-            new() { Label = "Recommended Region", Value = "--" },
-            new() { Label = "Danger Region", Value = "--" }
+            new() { Label = "最大創発セル", Value = "--" },
+            new() { Label = "最大安定セル", Value = "--" },
+            new() { Label = "最大学習セル", Value = "--" },
+            new() { Label = "最大平均信頼セル", Value = "--" },
+            new() { Label = "最大実効密度セル", Value = "--" },
+            new() { Label = "最大セレンディピティセル", Value = "--" },
+            new() { Label = "最大知識再構成セル", Value = "--" },
+            new() { Label = "平均知的敬意", Value = "--" },
+            new() { Label = "平均知的敬意密度", Value = "--" },
+            new() { Label = "平均知的敬意多様性", Value = "--" },
+            new() { Label = "平均アイデア受容", Value = "--" },
+            new() { Label = "平均相互師匠スコア", Value = "--" },
+            new() { Label = "平均知的敬意再構成", Value = "--" },
+            new() { Label = "平均知的敬意セレンディピティ", Value = "--" },
+            new() { Label = "平均知的敬意創発", Value = "--" },
+            new() { Label = "推奨領域", Value = "--" },
+            new() { Label = "危険領域", Value = "--" }
         ]
     };
 

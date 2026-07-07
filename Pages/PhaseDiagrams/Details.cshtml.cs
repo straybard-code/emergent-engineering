@@ -396,17 +396,17 @@ public sealed class DetailsModel(
             SummaryCards =
             [
                 new() { Label = "最多相", Value = "--" },
-                new() { Label = "最大 Emergent Rate", Value = "--" },
-                new() { Label = "最大 Pipeline Completion", Value = "--" },
+                new() { Label = "最大創発率", Value = "--" },
+                new() { Label = "最大パイプライン完了度", Value = "--" },
                 new() { Label = "相境界候補数", Value = "0" },
                 new() { Label = "Emergent 点数", Value = "0" },
                 new() { Label = "高 Pipeline 点数", Value = "0" },
-                new() { Label = "最頻 Bottleneck", Value = "--" },
+                new() { Label = "最頻ボトルネック", Value = "--" },
                 new() { Label = "推奨再探索領域", Value = RecommendedReseekArea },
-                new() { Label = "最大 Average Trust", Value = "0.00" },
-                new() { Label = "最大 Effective Density", Value = "0.00" },
-                new() { Label = "最大 Serendipity Rate", Value = "0.00" },
-                new() { Label = "最大 Knowledge Reconfiguration", Value = "0.00" }
+                new() { Label = "最大平均信頼度", Value = "0.00" },
+                new() { Label = "最大実効密度", Value = "0.00" },
+                new() { Label = "最大セレンディピティ率", Value = "0.00" },
+                new() { Label = "最大知識再構成", Value = "0.00" }
             ];
             RecommendedInterpretation = "この相図にはまだ実行結果がありません。実行後に相図の傾向を表示します。";
             return;
@@ -445,27 +445,27 @@ public sealed class DetailsModel(
         SummaryCards =
         [
             new() { Label = "最多相", Value = FormatPhaseDisplay(dominantPhase) },
-            new() { Label = "最大 Emergent Rate", Value = maxEmergent is null ? "--" : $"{maxEmergent.EmergentRate:0.00} @ ({maxEmergent.XValue:0.00}, {maxEmergent.YValue:0.00})" },
-            new() { Label = "最大 Pipeline Completion", Value = maxCompletion is null ? "--" : $"{maxCompletion.AveragePipelineCompletionScore:0.00} @ ({maxCompletion.XValue:0.00}, {maxCompletion.YValue:0.00})" },
+            new() { Label = "最大創発率", Value = maxEmergent is null ? "--" : $"{maxEmergent.EmergentRate:0.00} @ ({maxEmergent.XValue:0.00}, {maxEmergent.YValue:0.00})" },
+            new() { Label = "最大パイプライン完了度", Value = maxCompletion is null ? "--" : $"{maxCompletion.AveragePipelineCompletionScore:0.00} @ ({maxCompletion.XValue:0.00}, {maxCompletion.YValue:0.00})" },
             new() { Label = "相境界候補数", Value = BoundaryCandidateCount.ToString(CultureInfo.InvariantCulture) },
             new() { Label = "Emergent 点数", Value = EmergentRegionSummary.Count.ToString(CultureInfo.InvariantCulture) },
             new() { Label = "高 Pipeline 点数", Value = PipelineRegionSummary.Count.ToString(CultureInfo.InvariantCulture) },
-            new() { Label = "最頻 Bottleneck", Value = mostCommonBottleneck },
+            new() { Label = "最頻ボトルネック", Value = FormatBottleneckDisplay(mostCommonBottleneck) },
             new() { Label = "推奨再探索領域", Value = RecommendedReseekArea },
-            new() { Label = "最大 Average Trust", Value = maxTrust.ToString("0.00") },
-            new() { Label = "最大 Effective Density", Value = maxDensity.ToString("0.00") },
-            new() { Label = "最大 Serendipity Rate", Value = maxSerendipity.ToString("0.00") },
-            new() { Label = "最大 Knowledge Reconfiguration", Value = maxReconfiguration.ToString("0.00") },
-            new() { Label = "AverageRespect", Value = AverageRespectMean.ToString("0.00") },
-            new() { Label = "ChallengeAcceptanceScore", Value = AverageChallengeAcceptanceScoreMean.ToString("0.00") },
-            new() { Label = "PopularityTrapRate", Value = PopularityTrapRateMean.ToString("0.00") }
+            new() { Label = "最大平均信頼度", Value = maxTrust.ToString("0.00") },
+            new() { Label = "最大実効密度", Value = maxDensity.ToString("0.00") },
+            new() { Label = "最大セレンディピティ率", Value = maxSerendipity.ToString("0.00") },
+            new() { Label = "最大知識再構成", Value = maxReconfiguration.ToString("0.00") },
+            new() { Label = "平均相互敬意", Value = AverageRespectMean.ToString("0.00") },
+            new() { Label = "異論受容スコア", Value = AverageChallengeAcceptanceScoreMean.ToString("0.00") },
+            new() { Label = "人気投票停滞率", Value = PopularityTrapRateMean.ToString("0.00") }
         ];
 
         RecommendedInterpretation = BuildInterpretation(
             dominantPhase,
             maxEmergent?.EmergentRate ?? 0,
             maxCompletion?.AveragePipelineCompletionScore ?? 0,
-            mostCommonBottleneck,
+            FormatBottleneckDisplay(mostCommonBottleneck),
             maxDensity);
     }
 
@@ -473,7 +473,7 @@ public sealed class DetailsModel(
     {
         EmergentRegionSummary = BuildRegionSummary(
             "創発領域の簡易条件",
-            "この相図では創発相は確認されていません。Pipeline Completion と Bottleneck Map を確認してください。",
+            "この相図では創発相は確認されていません。パイプライン完了度とボトルネックマップを確認してください。",
             Points.Where(item => item.EmergentRate > 0 || string.Equals(item.DominantPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase)));
 
         PipelineRegionSummary = BuildRegionSummary(
@@ -533,7 +533,7 @@ public sealed class DetailsModel(
             AverageX = xValues.Average(),
             AverageY = yValues.Average(),
             AveragePipelineCompletionScore = averagePipelineCompletionScore,
-            MostCommonBottleneck = mostCommonBottleneck,
+            MostCommonBottleneck = FormatBottleneckDisplay(mostCommonBottleneck),
             Interpretation = BuildRegionInterpretation(title, points.Count, averagePipelineCompletionScore, mostCommonBottleneck)
         };
     }
@@ -547,7 +547,7 @@ public sealed class DetailsModel(
 
         if (string.Equals(title, "創発直前領域の簡易条件", StringComparison.Ordinal))
         {
-            return $"この領域では平均 Pipeline Completion が {averagePipelineCompletionScore:0.00} です。Bottleneck は {bottleneck} で、ここを改善すると創発へ移行する可能性があります。";
+            return $"この領域では平均パイプライン完了度が {averagePipelineCompletionScore:0.00} です。ボトルネックは {FormatBottleneckDisplay(bottleneck)} で、ここを改善すると創発へ移行する可能性があります。";
         }
 
         return "--";
@@ -714,7 +714,7 @@ public sealed class DetailsModel(
             ExperimentId = point.ExperimentId,
             Text = point.EmergentRate.ToString("0.00"),
             CssClass = GetEmergentRateCellClass(point.EmergentRate),
-            Tooltip = $"EmergentRate {point.EmergentRate:0.00}"
+            Tooltip = $"創発率 {point.EmergentRate:0.00}"
         });
 
         PipelineCompletionRows = BuildRows(point => new PhaseDiagramHeatmapCell
@@ -724,7 +724,7 @@ public sealed class DetailsModel(
             ExperimentId = point.ExperimentId,
             Text = point.AveragePipelineCompletionScore.ToString("0.00"),
             CssClass = GetPipelineCompletionCellClass(point.AveragePipelineCompletionScore),
-            Tooltip = $"PipelineCompletion {point.AveragePipelineCompletionScore:0.00}"
+            Tooltip = $"パイプライン完了度 {point.AveragePipelineCompletionScore:0.00}"
         });
 
         BottleneckRows = BuildRows(point => new PhaseDiagramHeatmapCell
@@ -759,7 +759,7 @@ public sealed class DetailsModel(
                 AverageKnowledgeReconfigurationScore = item.AverageKnowledgeReconfigurationScore,
                 AverageSerendipityRate = item.AverageSerendipityRate,
                 AveragePipelineCompletionScore = item.AveragePipelineCompletionScore,
-                DominantBottleneck = item.DominantBottleneck
+                DominantBottleneck = FormatBottleneckDisplay(item.DominantBottleneck)
             })
             .ToList();
     }
@@ -863,23 +863,23 @@ public sealed class DetailsModel(
 
     public string FormatStatus(string? status) => status switch
     {
-        PhaseDiagramStatus.Created => "Created（作成済み）",
-        PhaseDiagramStatus.Running => "Running（実行中）",
-        PhaseDiagramStatus.Completed => "Completed（完了）",
-        PhaseDiagramStatus.Failed => "Failed（失敗）",
+        PhaseDiagramStatus.Created => "作成済み",
+        PhaseDiagramStatus.Running => "実行中",
+        PhaseDiagramStatus.Completed => "完了",
+        PhaseDiagramStatus.Failed => "失敗",
         _ => status ?? "-"
     };
 
     public string FormatPhaseDisplay(string? phase) => phase switch
     {
-        SimulationPhase.Forming => "Forming（形成期）",
-        SimulationPhase.Learning => "Learning（学習期）",
-        SimulationPhase.Stable => "Stable（安定期）",
-        SimulationPhase.Adaptation => "Adaptation（適応期）",
-        SimulationPhase.Emergent => "Emergent（創発期）",
-        SimulationPhase.Silo => "Silo（サイロ化）",
-        SimulationPhase.Chaos => "Chaos（混沌期）",
-        SimulationPhase.Collapse => "Collapse（崩壊期）",
+        SimulationPhase.Forming => "形成期（Forming）",
+        SimulationPhase.Learning => "学習期（Learning）",
+        SimulationPhase.Stable => "安定期（Stable）",
+        SimulationPhase.Adaptation => "適応期（Adaptation）",
+        SimulationPhase.Emergent => "創発期（Emergent）",
+        SimulationPhase.Silo => "サイロ期（Silo）",
+        SimulationPhase.Chaos => "混沌期（Chaos）",
+        SimulationPhase.Collapse => "崩壊期（Collapse）",
         _ => phase ?? "--"
     };
 
@@ -914,22 +914,22 @@ public sealed class DetailsModel(
     {
         if (maxEmergentRate > 0)
         {
-            return "この相図では創発相が発生する領域が確認できます。該当座標の周辺を細かく再探索してください。";
+            return "このセルは創発期に到達しています。信頼・知識再構成・セレンディピティの条件が揃っている可能性があります。";
         }
 
         if (maxCompletion >= 0.7)
         {
-            return "創発プロセスはかなり進んでいますが、最終的な相変化には届いていません。Bottleneck Map を確認してください。";
+            return "このセルは創発直前の段階です。創発には近づいていますが、最終的な相変化にはまだ届いていません。ボトルネックマップを確認してください。";
         }
 
         if (string.Equals(dominantPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase))
         {
-            return "多くの条件で学習相に留まっています。信頼形成、知識再構成、適応への変換が不足している可能性があります。";
+            return "このセルは学習期に留まっています。知識再構成またはネットワーク密度が不足している可能性があります。";
         }
 
         if (string.Equals(dominantPhase, SimulationPhase.Silo, StringComparison.OrdinalIgnoreCase))
         {
-            return "多くの条件でネットワーク分断が優勢です。信頼閾値や情報共有条件を見直してください。";
+            return "このセルはサイロ化傾向があります。実効ネットワーク密度や情報共有が不足している可能性があります。";
         }
 
         if (maxDensity < 0.3)
@@ -937,7 +937,7 @@ public sealed class DetailsModel(
             return "実効ネットワーク密度が全体的に低く、協働ネットワークが十分に形成されていません。";
         }
 
-        return $"多くの条件で {dominantPhase} が支配的です。現在の主なボトルネックは {bottleneck} です。";
+        return $"このセルは安定期です。信頼や協調は成立していますが、探索や知識再構成が不足している可能性があります。主なボトルネックは {bottleneck} です。";
     }
 
     private static string GetPhaseCellClass(string phase) => phase switch
@@ -1004,6 +1004,33 @@ public sealed class DetailsModel(
         "Adaptation" => "Adp",
         "Emergence" => "Emg",
         _ => "--"
+    };
+
+    private static string FormatBottleneckDisplay(string? bottleneck) => bottleneck switch
+    {
+        "Trust" => "信頼",
+        "EffectiveDensity" => "実効密度",
+        "StrongLink" => "強い結びつき",
+        "KnowledgeDiversity" => "知識多様性",
+        "KnowledgeRecombination" => "知識再結合",
+        "KnowledgeReconfiguration" => "知識再構成",
+        "Serendipity" => "セレンディピティ",
+        "IdeaProposal" => "アイデア提案",
+        "ShareInfo" => "情報共有",
+        "ConstructiveCriticism" => "建設的批判",
+        "PsychologicalSafety" => "心理的安全性",
+        "Learning" => "学習",
+        "Adaptation" => "適応",
+        "Stable" => "安定",
+        "Emergent" => "創発",
+        "Emergence" => "創発",
+        "Silo" => "サイロ",
+        "Chaos" => "混沌",
+        "Collapse" => "崩壊",
+        "Forming" => "形成",
+        "--" => "--",
+        null => "--",
+        _ => bottleneck
     };
 
     private static string BuildBottleneckInterpretation(string? bottleneck) => bottleneck switch

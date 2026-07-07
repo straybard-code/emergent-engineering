@@ -222,7 +222,7 @@
 
 <section class="log-section phase-diagram-shell mb-4">
     <h2 class="h5 mb-2">創発領域の簡易条件</h2>
-    <p class="text-muted mb-3">EmergentRate > 0 または DominantPhase == Emergent の点を抽出して表示します。</p>
+    <p class="text-muted mb-3">創発率 > 0 または 支配相 == 創発期 の点を抽出して表示します。</p>
     @if (Model.EmergentRegionSummary.HasData)
     {
         <div class="analysis-summary-grid mb-3">
@@ -243,11 +243,11 @@
                 <div class="summary-card-value">@Model.FormatCenter(Model.EmergentRegionSummary.AverageX, Model.EmergentRegionSummary.AverageY)</div>
             </article>
             <article class="summary-card">
-                <div class="summary-card-label">平均Pipeline Completion</div>
+                <div class="summary-card-label">平均パイプライン完了度</div>
                 <div class="summary-card-value">@Model.FormatNumber(Model.EmergentRegionSummary.AveragePipelineCompletionScore)</div>
             </article>
             <article class="summary-card">
-                <div class="summary-card-label">最頻Bottleneck</div>
+                <div class="summary-card-label">最頻ボトルネック</div>
                 <div class="summary-card-value">@Model.EmergentRegionSummary.MostCommonBottleneck</div>
             </article>
         </div>
@@ -258,69 +258,69 @@
     }
     else
     {
-        <div class="alert alert-light mb-0">この相図では創発相は確認されていません。Pipeline Completion と Bottleneck Map を確認してください。</div>
+        <div class="alert alert-light mb-0">この相図では創発相は確認されていません。パイプライン完了度とボトルネックマップを確認してください。</div>
     }
 </section>
 
 <section class="log-section phase-diagram-shell mb-4">
     <h2 class="h5 mb-2">創発直前領域の簡易条件</h2>
-    <p class="text-muted mb-3">AveragePipelineCompletionScore >= 0.70 の点を抽出して表示します。</p>
+    <p class="text-muted mb-3">平均パイプライン完了度 >= 0.70 の点を抽出して表示します。</p>
     @if (Model.PipelineRegionSummary.HasData)
     {
         <div class="analysis-summary-grid mb-3">
             <article class="summary-card">
-                <div class="summary-card-label">�Y���_��</div>
+                <div class="summary-card-label">該当点数</div>
                 <div class="summary-card-value">@Model.PipelineRegionSummary.Count</div>
             </article>
             <article class="summary-card">
-                <div class="summary-card-label">X�͈�</div>
+                <div class="summary-card-label">X範囲</div>
                 <div class="summary-card-value">@Model.FormatRange(Model.PipelineRegionSummary.XMin, Model.PipelineRegionSummary.XMax)</div>
             </article>
             <article class="summary-card">
-                <div class="summary-card-label">Y�͈�</div>
+                <div class="summary-card-label">Y範囲</div>
                 <div class="summary-card-value">@Model.FormatRange(Model.PipelineRegionSummary.YMin, Model.PipelineRegionSummary.YMax)</div>
             </article>
             <article class="summary-card">
-                <div class="summary-card-label">���S</div>
+                <div class="summary-card-label">中心点</div>
                 <div class="summary-card-value">@Model.FormatCenter(Model.PipelineRegionSummary.AverageX, Model.PipelineRegionSummary.AverageY)</div>
             </article>
             <article class="summary-card">
-                <div class="summary-card-label">����Pipeline Completion</div>
+                <div class="summary-card-label">平均パイプライン完了度</div>
                 <div class="summary-card-value">@Model.FormatNumber(Model.PipelineRegionSummary.AveragePipelineCompletionScore)</div>
             </article>
             <article class="summary-card">
-                <div class="summary-card-label">�ŕpBottleneck</div>
+                <div class="summary-card-label">最頻ボトルネック</div>
                 <div class="summary-card-value">@Model.PipelineRegionSummary.MostCommonBottleneck</div>
             </article>
         </div>
         <div class="summary-card summary-card-wide">
-            <div class="summary-card-label">���</div>
+            <div class="summary-card-label">解釈</div>
             <div class="summary-card-value summary-card-text">@Model.PipelineRegionSummary.Interpretation</div>
         </div>
     }
     else
     {
-        <div class="alert alert-light mb-0">�n�����O�̈�͂܂�����܂���B</div>
+        <div class="alert alert-light mb-0">この領域ではまだ創発相は確認されていません。パイプライン完了度とボトルネックマップを確認してください。</div>
     }
 </section>
 
 <section class="log-section phase-diagram-shell mb-4">
-    <h2 class="h5 mb-2">�}��</h2>
+    <h2 class="h5 mb-2">凡例</h2>
     <div class="phase-legend">
-        <span class="phase-legend-chip phase-cell-emergent">�n���iEmergent�j</span>
-        <span class="phase-legend-chip phase-cell-stable">����iStable�j</span>
-        <span class="phase-legend-chip phase-cell-learning">�w�K�iLearning�j</span>
-        <span class="phase-legend-chip phase-cell-adaptation">�K���iAdaptation�j</span>
-        <span class="phase-legend-chip phase-cell-silo">�T�C���iSilo�j</span>
-        <span class="phase-legend-chip phase-cell-chaos">�����iChaos�j</span>
-        <span class="phase-legend-chip phase-cell-collapse">����iCollapse�j</span>
-        <span class="phase-legend-chip phase-cell-forming">�`���iForming�j</span>
+        <span class="phase-legend-chip phase-cell-emergent">創発期（Emergent）</span>
+        <span class="phase-legend-chip phase-cell-stable">安定期（Stable）</span>
+        <span class="phase-legend-chip phase-cell-learning">学習期（Learning）</span>
+        <span class="phase-legend-chip phase-cell-adaptation">適応期（Adaptation）</span>
+        <span class="phase-legend-chip phase-cell-silo">サイロ期（Silo）</span>
+        <span class="phase-legend-chip phase-cell-chaos">混沌期（Chaos）</span>
+        <span class="phase-legend-chip phase-cell-collapse">崩壊期（Collapse）</span>
+        <span class="phase-legend-chip phase-cell-forming">形成期（Forming）</span>
     </div>
 </section>
 
 <section class="log-section phase-diagram-shell mb-4">
-    <h2 class="h5 mb-2">���}�q�[�g�}�b�v</h2>
-    <p class="text-muted small mb-3">�Z���w�i�F�͑��ɉ����ĐF�������܂��B�e�Z���͒Z�k�\�L�ŕ\�����܂��B</p>
+    <h2 class="h5 mb-2">支配相ヒートマップ</h2>
+    <p class="text-muted small mb-3">各セルの支配相を色で表します。セル内は短縮表記で表示します。</p>
     <div class="phase-diagram-scroll">
         <table class="table table-sm phase-diagram-table align-middle mb-0">
             <thead>
@@ -349,8 +349,8 @@
 </section>
 
 <section class="log-section phase-diagram-shell mb-4">
-    <h2 class="h5 mb-2">�n�����q�[�g�}�b�v</h2>
-    <p class="text-muted small mb-3">���l���傫���قǔZ���΂ŕ\�����܂��B</p>
+    <h2 class="h5 mb-2">創発率ヒートマップ</h2>
+    <p class="text-muted small mb-3">数値が高いほど濃い緑で表示します。</p>
     <div class="phase-diagram-scroll">
         <table class="table table-sm phase-diagram-table align-middle mb-0">
             <thead>
@@ -379,8 +379,8 @@
 </section>
 
 <section class="log-section phase-diagram-shell mb-4">
-    <h2 class="h5 mb-2">�p�C�v���C�������x�q�[�g�}�b�v</h2>
-    <p class="text-muted small mb-3">���l���傫���قǔZ���ŕ\�����܂��B</p>
+    <h2 class="h5 mb-2">パイプライン完了度ヒートマップ</h2>
+    <p class="text-muted small mb-3">数値が高いほど濃い青で表示します。</p>
     <div class="phase-diagram-scroll">
         <table class="table table-sm phase-diagram-table align-middle mb-0">
             <thead>
@@ -409,8 +409,8 @@
 </section>
 
 <section class="log-section phase-diagram-shell mb-4">
-    <h2 class="h5 mb-2">�{�g���l�b�N�}�b�v</h2>
-    <p class="text-muted small mb-3">�{�g���l�b�N��F�������ĕ\�����܂��B</p>
+    <h2 class="h5 mb-2">ボトルネックマップ</h2>
+    <p class="text-muted small mb-3">ボトルネックの種類ごとに色分けして表示します。</p>
     <div class="phase-diagram-scroll">
         <table class="table table-sm phase-diagram-table align-middle mb-0">
             <thead>
@@ -439,10 +439,10 @@
 </section>
 
 <section class="log-section mb-4">
-    <h2 class="h5 mb-3">�_���Ƃ̌��ʈꗗ</h2>
+    <h2 class="h5 mb-3">セルごとの結果一覧</h2>
     @if (Model.PointResults.Count == 0)
     {
-        <p class="text-muted mb-0">�܂����}���ʂ͂���܂���B</p>
+        <p class="text-muted mb-0">まだ対象の点はありません。</p>
     }
     else
     {
@@ -452,19 +452,19 @@
                     <tr>
                         <th>XValue</th>
                         <th>YValue</th>
-                        <th>DominantPhase</th>
-                        <th>EmergentRate</th>
-                        <th>StableRate</th>
-                        <th>LearningRate</th>
-                        <th>SiloRate</th>
-                        <th>AverageTrust</th>
-                        <th>AverageEffectiveDensity</th>
-                        <th>AverageKnowledgeDiversity</th>
-                        <th>AverageKnowledgeReconfigurationScore</th>
-                        <th>AverageSerendipityRate</th>
-                        <th>AveragePipelineCompletionScore</th>
-                        <th>DominantBottleneck</th>
-                        <th>Experiment</th>
+                        <th>支配相</th>
+                        <th>創発率</th>
+                        <th>安定率</th>
+                        <th>学習率</th>
+                        <th>サイロ率</th>
+                        <th>平均信頼度</th>
+                        <th>実効密度</th>
+                        <th>知識多様性</th>
+                        <th>知識再構成</th>
+                        <th>セレンディピティ</th>
+                        <th>パイプライン完了度</th>
+                        <th>ボトルネック</th>
+                        <th>実験</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -488,7 +488,7 @@
                         <td>
                             @if (row.ExperimentId.HasValue)
                             {
-                                <a asp-page="/Experiments/Details" asp-route-id="@row.ExperimentId.Value">���� #@row.ExperimentId.Value</a>
+                                <a asp-page="/Experiments/Details" asp-route-id="@row.ExperimentId.Value">実験 #@row.ExperimentId.Value</a>
                             }
                             else
                             {
