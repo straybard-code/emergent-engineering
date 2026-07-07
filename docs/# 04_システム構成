@@ -1,3 +1,13 @@
+```mermaid
+flowchart TD
+
+A[Dashboard]
+
+B[API]
+
+A --> B
+```
+
 # 04_システム構成
 
 
