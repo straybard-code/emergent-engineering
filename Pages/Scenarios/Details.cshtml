@@ -4,6 +4,11 @@
     ViewData["Title"] = Model.Scenario?.Name ?? "シナリオ詳細";
 }
 
+@functions {
+    private static string FormatBoolJapanese(bool value) => value ? "有効" : "無効";
+    private static string FormatValue(double value) => value.ToString("0.000");
+}
+
 @if (Model.Scenario is null)
 {
     <div class="alert alert-warning">シナリオが見つかりません。</div>
@@ -60,6 +65,62 @@
     <div>
         <h2 class="h6">関連Experiment数</h2>
         <p>@Model.ExperimentCount</p>
+    </div>
+</section>
+
+<section class="log-section mt-4">
+    <h2 class="h5 mb-3">Thanks Coin / 相互敬意</h2>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <tbody>
+                <tr><th>Thanks Coin 有効</th><td>@FormatBoolJapanese(Model.Scenario.EnableThanksCoin)</td></tr>
+                <tr><th>Thanks Coin 発生率</th><td>@FormatValue(Model.Scenario.ThanksCoinRate)</td></tr>
+                <tr><th>敬意増加量</th><td>@FormatValue(Model.Scenario.ThanksCoinRespectGain)</td></tr>
+                <tr><th>信頼増加量</th><td>@FormatValue(Model.Scenario.ThanksCoinTrustGain)</td></tr>
+                <tr><th>知識再構成増加量</th><td>@FormatValue(Model.Scenario.ThanksCoinReconfigurationGain)</td></tr>
+                <tr><th>心理的安全性増加量</th><td>@FormatValue(Model.Scenario.ThanksCoinPsychologicalSafetyGain)</td></tr>
+                <tr><th>橋渡し増加量</th><td>@FormatValue(Model.Scenario.ThanksCoinBridgeGain)</td></tr>
+                <tr><th>人気集中バイアス</th><td>@FormatValue(Model.Scenario.ThanksCoinPopularityBias)</td></tr>
+                <tr><th>多様性ボーナス</th><td>@FormatValue(Model.Scenario.ThanksCoinDiversityBonus)</td></tr>
+                <tr><th>建設的異論ボーナス</th><td>@FormatValue(Model.Scenario.ThanksCoinChallengeBonus)</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="log-section mt-4">
+    <h2 class="h5 mb-3">相互敬意</h2>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <tbody>
+                <tr><th>相互敬意ベース</th><td>@FormatValue(Model.Scenario.MutualRespectBase)</td></tr>
+                <tr><th>相互敬意成長率</th><td>@FormatValue(Model.Scenario.MutualRespectGrowthRate)</td></tr>
+                <tr><th>相互敬意減衰率</th><td>@FormatValue(Model.Scenario.MutualRespectDecayRate)</td></tr>
+                <tr><th>異質性尊重感度</th><td>@FormatValue(Model.Scenario.MutualRespectDiversitySensitivity)</td></tr>
+                <tr><th>異論尊重感度</th><td>@FormatValue(Model.Scenario.MutualRespectChallengeSensitivity)</td></tr>
+                <tr><th>橋渡し尊重感度</th><td>@FormatValue(Model.Scenario.MutualRespectBridgeSensitivity)</td></tr>
+                <tr><th>人気集中ペナルティ</th><td>@FormatValue(Model.Scenario.MutualRespectPopularityPenalty)</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="log-section mt-4">
+    <h2 class="h5 mb-3">知的敬意 / Mutual Mentorship</h2>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <tbody>
+                <tr><th>知的敬意 有効</th><td>@FormatBoolJapanese(Model.Scenario.EnableIntellectualRespect)</td></tr>
+                <tr><th>知的敬意ベース</th><td>@FormatValue(Model.Scenario.IntellectualRespectBase)</td></tr>
+                <tr><th>知的敬意成長率</th><td>@FormatValue(Model.Scenario.IntellectualRespectGrowthRate)</td></tr>
+                <tr><th>知的敬意減衰率</th><td>@FormatValue(Model.Scenario.IntellectualRespectDecayRate)</td></tr>
+                <tr><th>異質知識尊重感度</th><td>@FormatValue(Model.Scenario.IntellectualRespectDiversitySensitivity)</td></tr>
+                <tr><th>異論知的敬意感度</th><td>@FormatValue(Model.Scenario.IntellectualRespectChallengeSensitivity)</td></tr>
+                <tr><th>師匠化感度</th><td>@FormatValue(Model.Scenario.IntellectualRespectMentorshipSensitivity)</td></tr>
+                <tr><th>自尊心ペナルティ</th><td>@FormatValue(Model.Scenario.IntellectualRespectEgoPenalty)</td></tr>
+                <tr><th>序列ペナルティ</th><td>@FormatValue(Model.Scenario.IntellectualRespectHierarchyPenalty)</td></tr>
+            </tbody>
+        </table>
     </div>
 </section>
 
