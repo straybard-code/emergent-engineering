@@ -1,6 +1,8 @@
 # 04_システム構成
 
-markdown mermaidflowchart LRStart --> Stop 
+markdown mermaid
+flowchart LR
+Start --> Stop 
 
 ## 目的
 
