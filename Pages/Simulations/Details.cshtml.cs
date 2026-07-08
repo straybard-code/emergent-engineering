@@ -155,13 +155,12 @@ public sealed class DetailsModel(
                 TrustAfter = action.TrustAfter
             })
             .ToList();
-        var edgeRowsByStep = NetworkMetricsCalculator.BuildEdgeRowsByStep(Project.Agents, trustSnapshots, Project.CurrentStep);
-
         NetworkSnapshots = BuildNetworkSnapshots(
             Project,
-            trustSnapshots,
+            simulationSteps,
             phaseByStep,
             NetworkMetricsCalculator.NormalizeThreshold(Project.EffectiveTrustThreshold));
+        var edgeRowsByStep = BuildEdgeRowsByStep(NetworkSnapshots);
         FinalNetworkMetrics = CalculateNetworkMetrics(Project.Agents, finalTrustRows, Project.EffectiveTrustThreshold);
         ThresholdSweep = BuildThresholdSweep(Project.Agents, finalTrustRows);
         ActionTimeline = BuildActionTimeline(orderedActions, phaseByStep, Project.Phase);
@@ -258,6 +257,15 @@ public sealed class DetailsModel(
     public string GetNetworkSnapshotsJson()
     {
         return JsonSerializer.Serialize(NetworkSnapshots, JsonOptions);
+    }
+
+    public string GetNetworkSnapshotsByStepJson()
+    {
+        var snapshotsByStep = NetworkSnapshots
+            .GroupBy(snapshot => snapshot.StepNo)
+            .ToDictionary(group => group.Key, group => group.First());
+
+        return JsonSerializer.Serialize(snapshotsByStep, JsonOptions);
     }
 
     public string GetThresholdSweepJson()
@@ -461,7 +469,7 @@ public sealed class DetailsModel(
 
     private static List<NetworkSnapshot> BuildNetworkSnapshots(
         SimulationProject project,
-        IReadOnlyCollection<TrustSnapshot> trustSnapshots,
+        IReadOnlyCollection<SimulationStep> simulationSteps,
         IReadOnlyDictionary<int, string> phaseByStep,
         double effectiveTrustThreshold)
     {
@@ -470,26 +478,19 @@ public sealed class DetailsModel(
             return [];
         }
 
-        if (trustSnapshots.Count == 0)
+        if (simulationSteps.Count == 0)
         {
             return BuildFallbackNetworkSnapshots(project, phaseByStep, effectiveTrustThreshold);
         }
 
-        return trustSnapshots
-            .GroupBy(snapshot => snapshot.StepNo)
-            .OrderBy(group => group.Key)
-            .Select(group => CreateSnapshotFromRows(
-                group.Key,
-                phaseByStep.GetValueOrDefault(group.Key, group.Key <= 2 ? SimulationPhase.Forming : project.Phase),
+        return simulationSteps
+            .OrderBy(step => step.StepNo)
+            .Select(step => CreateSnapshotFromRows(
+                step.StepNo,
+                phaseByStep.GetValueOrDefault(step.StepNo, step.StepNo <= 2 ? SimulationPhase.Forming : project.Phase),
                 project.Agents,
                 effectiveTrustThreshold,
-                group.Select(snapshot => new TrustRow(
-                    snapshot.SourceAgentId,
-                    snapshot.TargetAgentId,
-                    snapshot.SourceAgentName,
-                    snapshot.TargetAgentName,
-                    TrustJsonUtility.Clamp(snapshot.TrustValue)))
-                    .ToList()))
+                CreateTrustRowsFromStateJson(step.StateJson, project.Agents)))
             .ToList();
     }
 
@@ -512,6 +513,118 @@ public sealed class DetailsModel(
         }
 
         return snapshots;
+    }
+
+    private static IReadOnlyDictionary<int, IReadOnlyCollection<NetworkTrustEdgeRef>> BuildEdgeRowsByStep(
+        IReadOnlyCollection<NetworkSnapshot> snapshots)
+    {
+        if (snapshots.Count == 0)
+        {
+            return new Dictionary<int, IReadOnlyCollection<NetworkTrustEdgeRef>>();
+        }
+
+        return snapshots.ToDictionary(
+            snapshot => snapshot.StepNo,
+            snapshot => (IReadOnlyCollection<NetworkTrustEdgeRef>)snapshot.Edges
+                .Select(edge => new NetworkTrustEdgeRef(
+                    edge.SourceAgentId,
+                    edge.TargetAgentId,
+                    edge.SourceAgentName,
+                    edge.TargetAgentName,
+                    TrustJsonUtility.Clamp(edge.Trust)))
+                .ToList());
+    }
+
+    private static List<TrustRow> CreateTrustRowsFromStateJson(
+        string? stateJson,
+        IReadOnlyCollection<Agent> fallbackAgents)
+    {
+        if (string.IsNullOrWhiteSpace(stateJson))
+        {
+            return CreateTrustRowsFromCurrentState(fallbackAgents);
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(stateJson);
+            var root = document.RootElement;
+            if (!TryGetPropertyIgnoreCase(root, "Agents", out var agentsElement) || agentsElement.ValueKind != JsonValueKind.Array)
+            {
+                return CreateTrustRowsFromCurrentState(fallbackAgents);
+            }
+
+            List<StepAgentTrustProjection> agents = [];
+            foreach (var element in agentsElement.EnumerateArray())
+            {
+                var id = TryGetPropertyIgnoreCase(element, "Id", out var idElement) && idElement.TryGetInt32(out var parsedId)
+                    ? parsedId
+                    : -1;
+                var name = TryGetPropertyIgnoreCase(element, "Name", out var nameElement) && nameElement.ValueKind == JsonValueKind.String
+                    ? nameElement.GetString() ?? ""
+                    : "";
+                var trustJson = TryGetPropertyIgnoreCase(element, "TrustJson", out var trustJsonElement) && trustJsonElement.ValueKind == JsonValueKind.String
+                    ? trustJsonElement.GetString() ?? "{}"
+                    : "{}";
+                if (id <= 0 || string.IsNullOrWhiteSpace(name))
+                {
+                    continue;
+                }
+
+                agents.Add(new StepAgentTrustProjection(id, name, trustJson));
+            }
+
+            if (agents.Count == 0)
+            {
+                return CreateTrustRowsFromCurrentState(fallbackAgents);
+            }
+
+            var trustMaps = agents.ToDictionary(agent => agent.Id, agent => TrustJsonUtility.Deserialize(agent.TrustJson));
+            List<TrustRow> rows = [];
+
+            foreach (var sourceAgent in agents)
+            {
+                foreach (var targetAgent in agents.Where(agent => agent.Id != sourceAgent.Id))
+                {
+                    var trustMap = trustMaps[sourceAgent.Id];
+                    var trustValue = trustMap.TryGetValue(targetAgent.Name, out var value) ? value : 0;
+                    rows.Add(new TrustRow(
+                        sourceAgent.Id,
+                        targetAgent.Id,
+                        sourceAgent.Name,
+                        targetAgent.Name,
+                        TrustJsonUtility.Clamp(trustValue)));
+                }
+            }
+
+            return rows;
+        }
+        catch
+        {
+            return CreateTrustRowsFromCurrentState(fallbackAgents);
+        }
+    }
+
+    private static bool TryGetPropertyIgnoreCase(JsonElement element, string propertyName, out JsonElement value)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            if (element.TryGetProperty(propertyName, out value))
+            {
+                return true;
+            }
+
+            foreach (var property in element.EnumerateObject())
+            {
+                if (string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = property.Value;
+                    return true;
+                }
+            }
+        }
+
+        value = default;
+        return false;
     }
 
     private static List<TrustRow> CreateTrustRowsFromCurrentState(IReadOnlyCollection<Agent> agents)
@@ -862,4 +975,9 @@ public sealed class DetailsModel(
         string SourceAgentName,
         string TargetAgentName,
         double TrustValue);
+
+    private sealed record StepAgentTrustProjection(
+        int Id,
+        string Name,
+        string TrustJson);
 }

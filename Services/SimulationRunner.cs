@@ -1294,7 +1294,7 @@ public sealed class SimulationRunner(
             return;
         }
 
-        var keepStepNumbers = new HashSet<int>();
+        var keepStepNumbers = new HashSet<int>(stepNumbers);
         var keepSnapshotStepNumbers = new HashSet<int>();
         var retainFromStepNo = Math.Max(1, currentStepNo - RetentionWindowStepCount + 1);
 
@@ -1345,10 +1345,6 @@ public sealed class SimulationRunner(
             }
         }
 
-        var stepsToDelete = await db.SimulationSteps
-            .Where(step => step.SimulationProjectId == simulationId && !keepStepNumbers.Contains(step.StepNo))
-            .ToListAsync(cancellationToken);
-
         var actionsToDelete = await db.AgentActions
             .Where(action => action.SimulationProjectId == simulationId && !keepStepNumbers.Contains(action.StepNo))
             .ToListAsync(cancellationToken);
@@ -1356,11 +1352,6 @@ public sealed class SimulationRunner(
         var snapshotsToDelete = await db.TrustSnapshots
             .Where(snapshot => snapshot.SimulationProjectId == simulationId && !keepSnapshotStepNumbers.Contains(snapshot.StepNo))
             .ToListAsync(cancellationToken);
-
-        if (stepsToDelete.Count > 0)
-        {
-            db.SimulationSteps.RemoveRange(stepsToDelete);
-        }
 
         if (actionsToDelete.Count > 0)
         {
@@ -1372,7 +1363,7 @@ public sealed class SimulationRunner(
             db.TrustSnapshots.RemoveRange(snapshotsToDelete);
         }
 
-        if (stepsToDelete.Count > 0 || actionsToDelete.Count > 0 || snapshotsToDelete.Count > 0)
+        if (actionsToDelete.Count > 0 || snapshotsToDelete.Count > 0)
         {
             await db.SaveChangesAsync(cancellationToken);
         }

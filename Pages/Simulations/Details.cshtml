@@ -1,4 +1,4 @@
-@page "{id:int}"
+﻿@page "{id:int}"
 @model EmergentEngineering.Pages.Simulations.DetailsModel
 @{
     ViewData["Title"] = Model.Project?.Name ?? "Simulation詳細";
@@ -1064,7 +1064,7 @@
     </div>
     @if (Model.ThresholdSweep.Count == 0)
     {
-        <p class="text-muted mb-0">まだ threshold sweep を表示できる trust 状態がありません。</p>
+        <p class="text-muted mb-0">まだ実効信頼閾値スイープを表示できるデータがありません。</p>
     }
     else
     {
@@ -1122,8 +1122,10 @@
             </div>
             <div class="d-flex gap-2 flex-wrap">
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="networkReplayFirst">先頭へ</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="networkReplayPrev">前へ</button>
                 <button type="button" class="btn btn-primary btn-sm" id="networkReplayPlay">再生</button>
                 <button type="button" class="btn btn-outline-primary btn-sm" id="networkReplayStop">停止</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="networkReplayNext">次へ</button>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="networkReplayLast">最後へ</button>
             </div>
         </div>
@@ -1155,6 +1157,7 @@
             </div>
         </div>
 
+        <div id="networkEmptyNotice" class="alert alert-light border small mb-3 d-none">このStepには信頼ネットワークデータがありません。</div>
         <p class="text-muted small mb-3">薄線は weak link、太線は strong link です。</p>
 
         <div class="network-svg-shell">
@@ -1401,7 +1404,7 @@
     <script>
         (() => {
             const phasePoints = @Html.Raw(Model.GetPhaseHistoryJson());
-            const networkSnapshots = @Html.Raw(Model.GetNetworkSnapshotsJson());
+            const trustNetworkByStep = @Html.Raw(Model.GetNetworkSnapshotsByStepJson());
             const thresholdSweep = @Html.Raw(Model.GetThresholdSweepJson());
             const actionTimeline = @Html.Raw(Model.GetActionTimelineJson());
             const precursorPoints = @Html.Raw(Model.GetPrecursorPointsJson());
@@ -1423,7 +1426,7 @@
             renderSerendipityTimeline(knowledgeTimeline);
             renderActionTimeline(actionTimeline);
             renderThresholdSweep(thresholdSweep);
-            renderTrustNetwork(networkSnapshots);
+            renderTrustNetwork(trustNetworkByStep);
 
             function renderPhaseTimeline(points) {
                 const canvas = document.getElementById('phaseTimelineChart');
@@ -1941,16 +1944,24 @@
                 phaseSection.parentNode.insertBefore(actionSection, actionAnchor.nextElementSibling);
             }
 
-            function renderTrustNetwork(snapshots) {
+            function renderTrustNetwork(trustNetworkByStep) {
                 const svg = document.getElementById('trustNetworkSvg');
                 const slider = document.getElementById('networkStepSlider');
                 const stepBadge = document.getElementById('networkStepBadge');
                 const firstButton = document.getElementById('networkReplayFirst');
+                const prevButton = document.getElementById('networkReplayPrev');
                 const playButton = document.getElementById('networkReplayPlay');
                 const stopButton = document.getElementById('networkReplayStop');
+                const nextButton = document.getElementById('networkReplayNext');
                 const lastButton = document.getElementById('networkReplayLast');
+                const emptyNotice = document.getElementById('networkEmptyNotice');
 
-                if (!svg || !slider || !snapshots || snapshots.length === 0) {
+                const stepNumbers = Object.keys(trustNetworkByStep ?? {})
+                    .map(key => Number(key))
+                    .filter(stepNo => Number.isFinite(stepNo))
+                    .sort((left, right) => left - right);
+
+                if (!svg || !slider || stepNumbers.length === 0) {
                     return;
                 }
 
@@ -1965,8 +1976,7 @@
                     Collapse: 'Collapse\uFF08\u5D29\u58CA\uFF09'
                 };
 
-                const snapshotsByStep = new Map(snapshots.map(snapshot => [snapshot.stepNo, snapshot]));
-                const maxStep = Math.max(...snapshots.map(snapshot => snapshot.stepNo));
+                const maxStep = stepNumbers[stepNumbers.length - 1];
                 let currentStep = maxStep;
                 let replayTimer = null;
 
@@ -1981,6 +1991,12 @@
 
                 firstButton?.addEventListener('click', () => {
                     currentStep = 1;
+                    stopReplay();
+                    drawCurrentStep();
+                });
+
+                prevButton?.addEventListener('click', () => {
+                    currentStep = Math.max(1, currentStep - 1);
                     stopReplay();
                     drawCurrentStep();
                 });
@@ -2011,6 +2027,12 @@
                     stopReplay();
                 });
 
+                nextButton?.addEventListener('click', () => {
+                    currentStep = Math.min(maxStep, currentStep + 1);
+                    stopReplay();
+                    drawCurrentStep();
+                });
+
                 drawCurrentStep();
 
                 function stopReplay() {
@@ -2020,41 +2042,214 @@
                     }
                 }
 
-                function getSnapshot(stepNo) {
-                    if (snapshotsByStep.has(stepNo)) {
-                        return snapshotsByStep.get(stepNo);
+                function buildTrustNetworkLayout(snapshot) {
+                    const nodes = (snapshot.nodes ?? []).map(node => ({ ...node }));
+                    const edges = snapshot.edges ?? [];
+                    if (nodes.length === 0) {
+                        return { nodes, edges };
                     }
 
-                    const sorted = [...snapshots].sort((left, right) => left.stepNo - right.stepNo);
-                    let fallback = sorted[0];
-                    for (const snapshot of sorted) {
-                        if (snapshot.stepNo > stepNo) {
-                            break;
+                    const centerX = 350;
+                    const centerY = 220;
+                    const width = 700;
+                    const height = 450;
+                    const averageTrust = Number(snapshot.averageTrust ?? 0);
+                    const density = Number(snapshot.networkDensity ?? 0);
+                    const componentCount = Math.max(1, Number(snapshot.componentCount ?? 1));
+                    const isolatedCount = Math.max(0, Number(snapshot.isolatedCount ?? 0));
+                    const weightMap = new Map(nodes.map(node => [node.agentName, 0]));
+                    for (const edge of edges) {
+                        const trust = Math.max(0, Math.min(1, Number(edge.trust ?? 0)));
+                        weightMap.set(edge.sourceAgentName, (weightMap.get(edge.sourceAgentName) ?? 0) + trust);
+                        weightMap.set(edge.targetAgentName, (weightMap.get(edge.targetAgentName) ?? 0) + trust);
+                    }
+
+                    const orderedNodes = [...nodes].sort((left, right) => {
+                        if (!!left.isHub !== !!right.isHub) {
+                            return left.isHub ? -1 : 1;
                         }
 
-                        fallback = snapshot;
+                        const degreeDelta = (weightMap.get(right.agentName) ?? 0) - (weightMap.get(left.agentName) ?? 0);
+                        if (Math.abs(degreeDelta) > 1e-6) {
+                            return degreeDelta;
+                        }
+
+                        return left.agentName.localeCompare(right.agentName);
+                    });
+
+                    const positions = new Map();
+                    const maxWeight = Math.max(...orderedNodes.map(node => weightMap.get(node.agentName) ?? 0), 1);
+                    const baseRadius = 150 - (averageTrust * 60) - (density * 45) + (componentCount * 8) + (isolatedCount * 10);
+
+                    orderedNodes.forEach((node, index) => {
+                        const normalizedWeight = (weightMap.get(node.agentName) ?? 0) / maxWeight;
+                        const radius = Math.max(70, baseRadius + ((1 - normalizedWeight) * 75));
+                        const angle = orderedNodes.length === 1
+                            ? 0
+                            : ((Math.PI * 2 * index) / orderedNodes.length);
+                        positions.set(node.agentName, {
+                            x: centerX + (radius * Math.cos(angle)),
+                            y: centerY + (radius * Math.sin(angle)),
+                            vx: 0,
+                            vy: 0
+                        });
+                    });
+
+                    const hubNode = orderedNodes.find(node => node.isHub) ?? orderedNodes[0];
+                    if (hubNode) {
+                        const hubPosition = positions.get(hubNode.agentName);
+                        if (hubPosition) {
+                            hubPosition.x = centerX;
+                            hubPosition.y = centerY;
+                        }
                     }
 
-                    return fallback;
+                    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+                    const linkPairs = edges
+                        .map(edge => ({
+                            source: positions.get(edge.sourceAgentName),
+                            target: positions.get(edge.targetAgentName),
+                            trust: Math.max(0, Math.min(1, Number(edge.trust ?? 0)))
+                        }))
+                        .filter(link => link.source && link.target);
+
+                    for (let iteration = 0; iteration < 60; iteration++) {
+                        for (const link of linkPairs) {
+                            const source = link.source;
+                            const target = link.target;
+                            const dx = target.x - source.x;
+                            const dy = target.y - source.y;
+                            const distance = Math.max(18, Math.hypot(dx, dy));
+                            const desiredDistance = 215 - (link.trust * 140);
+                            const force = (distance - desiredDistance) * 0.0022 * (0.4 + link.trust);
+                            const fx = (dx / distance) * force;
+                            const fy = (dy / distance) * force;
+                            if (source !== positions.get(hubNode?.agentName ?? '')) {
+                                source.vx += fx;
+                                source.vy += fy;
+                            }
+                            if (target !== positions.get(hubNode?.agentName ?? '')) {
+                                target.vx -= fx;
+                                target.vy -= fy;
+                            }
+                        }
+
+                        const nodeEntries = [...positions.values()];
+                        for (let i = 0; i < nodeEntries.length; i++) {
+                            for (let j = i + 1; j < nodeEntries.length; j++) {
+                                const left = nodeEntries[i];
+                                const right = nodeEntries[j];
+                                let dx = right.x - left.x;
+                                let dy = right.y - left.y;
+                                let distanceSq = (dx * dx) + (dy * dy);
+                                if (distanceSq < 1) {
+                                    distanceSq = 1;
+                                    dx = 1;
+                                    dy = 0;
+                                }
+
+                                const repulsion = 1600 / distanceSq;
+                                const distance = Math.sqrt(distanceSq);
+                                const fx = (dx / distance) * repulsion;
+                                const fy = (dy / distance) * repulsion;
+                                left.vx -= fx;
+                                left.vy -= fy;
+                                right.vx += fx;
+                                right.vy += fy;
+                            }
+                        }
+
+                        for (const [agentName, position] of positions.entries()) {
+                            if (agentName === hubNode?.agentName) {
+                                position.x += (centerX - position.x) * 0.18;
+                                position.y += (centerY - position.y) * 0.18;
+                                position.vx = 0;
+                                position.vy = 0;
+                                continue;
+                            }
+
+                            position.vx += (centerX - position.x) * 0.0012;
+                            position.vy += (centerY - position.y) * 0.0012;
+                            position.x += position.vx * 0.16;
+                            position.y += position.vy * 0.16;
+                            position.vx *= 0.74;
+                            position.vy *= 0.74;
+                            position.x = clamp(position.x, 48, width - 48);
+                            position.y = clamp(position.y, 48, height - 48);
+                        }
+                    }
+
+                    const settledNodes = orderedNodes.map(node => {
+                        const position = positions.get(node.agentName);
+                        return {
+                            ...node,
+                            x: Math.round(position?.x ?? node.x ?? centerX),
+                            y: Math.round(position?.y ?? node.y ?? centerY)
+                        };
+                    });
+
+                    return { nodes: settledNodes, edges };
                 }
 
                 function drawCurrentStep() {
-                    const snapshot = getSnapshot(currentStep);
+                    const snapshot = trustNetworkByStep[String(currentStep)] ?? null;
                     if (!snapshot) {
+                        slider.value = String(currentStep);
+                        if (stepBadge) {
+                            stepBadge.textContent = String(currentStep);
+                        }
+
+                        if (emptyNotice) {
+                            emptyNotice.classList.remove('d-none');
+                        }
+
+                        setText('networkInfoStep', String(currentStep));
+                        setText('networkInfoPhase', '-');
+                        setText('networkInfoAverageTrust', '-');
+                        setText('networkInfoHub', '-');
+                        setText('networkInfoIsolated', '-');
+                        setText('networkInfoComponents', '-');
+
+                        svg.innerHTML = '';
+
+                        const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        background.setAttribute('x', '0');
+                        background.setAttribute('y', '0');
+                        background.setAttribute('width', '700');
+                        background.setAttribute('height', '450');
+                        background.setAttribute('rx', '12');
+                        background.setAttribute('fill', '#f8fafc');
+                        background.setAttribute('stroke', '#d9dee7');
+                        svg.appendChild(background);
+
+                        const noData = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        noData.setAttribute('x', '350');
+                        noData.setAttribute('y', '225');
+                        noData.setAttribute('text-anchor', 'middle');
+                        noData.setAttribute('fill', '#6b7280');
+                        noData.setAttribute('font-size', '15');
+                        noData.textContent = 'このStepには信頼ネットワークデータがありません。';
+                        svg.appendChild(noData);
                         return;
                     }
 
-                    slider.value = String(snapshot.stepNo);
-                    if (stepBadge) {
-                        stepBadge.textContent = String(snapshot.stepNo);
+                    if (emptyNotice) {
+                        emptyNotice.classList.add('d-none');
                     }
 
-                    setText('networkInfoStep', String(snapshot.stepNo));
+                    slider.value = String(currentStep);
+                    if (stepBadge) {
+                        stepBadge.textContent = String(currentStep);
+                    }
+
+                    setText('networkInfoStep', String(currentStep));
                     setText('networkInfoPhase', phaseMap[snapshot.phase] ?? snapshot.phase ?? '-');
                     setText('networkInfoAverageTrust', Number(snapshot.averageTrust ?? 0).toFixed(2));
                     setText('networkInfoHub', snapshot.hubAgentName && snapshot.hubAgentName !== '' ? snapshot.hubAgentName : '-');
                     setText('networkInfoIsolated', String(snapshot.isolatedCount ?? 0));
                     setText('networkInfoComponents', String(snapshot.componentCount ?? 0));
+
+                    const layout = buildTrustNetworkLayout(snapshot);
 
                     svg.innerHTML = '';
 
@@ -2068,9 +2263,9 @@
                     background.setAttribute('stroke', '#d9dee7');
                     svg.appendChild(background);
 
-                    for (const edge of snapshot.edges ?? []) {
-                        const source = (snapshot.nodes ?? []).find(node => node.agentName === edge.sourceAgentName);
-                        const target = (snapshot.nodes ?? []).find(node => node.agentName === edge.targetAgentName);
+                    for (const edge of layout.edges ?? []) {
+                        const source = (layout.nodes ?? []).find(node => node.agentName === edge.sourceAgentName);
+                        const target = (layout.nodes ?? []).find(node => node.agentName === edge.targetAgentName);
                         if (!source || !target) {
                             continue;
                         }
@@ -2087,18 +2282,18 @@
                         svg.appendChild(line);
                     }
 
-                    if ((snapshot.edges ?? []).length === 0) {
+                    if ((layout.edges ?? []).length === 0) {
                         const noEdges = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                         noEdges.setAttribute('x', '350');
                         noEdges.setAttribute('y', '225');
                         noEdges.setAttribute('text-anchor', 'middle');
                         noEdges.setAttribute('fill', '#6b7280');
                         noEdges.setAttribute('font-size', '15');
-                        noEdges.textContent = '\u898B\u3048\u308B trust edge \u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093';
+                        noEdges.textContent = 'このStepには信頼ネットワークの接続がありません。';
                         svg.appendChild(noEdges);
                     }
 
-                    for (const node of snapshot.nodes ?? []) {
+                    for (const node of layout.nodes ?? []) {
                         const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
                         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -2147,7 +2342,7 @@
                         labels: points.map(point => Number(point.threshold).toFixed(2)),
                         datasets: [
                             {
-                                label: '騾｣邨先・蛻・焚',
+                                label: '連結成分数',
                                 data: points.map(point => point.componentCount),
                                 borderColor: '#a86d14',
                                 backgroundColor: 'rgba(168, 109, 20, 0.12)',
