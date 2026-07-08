@@ -29,6 +29,7 @@ This app is meant to observe organization formation as a dynamic system, not onl
 | `docs/06_パラメータ一覧.md` | パラメータ定義 |
 | `docs/07_実験方法.md` | 実験プロトコル |
 | `docs/08_実験結果.md` | 実験結果と考察 |
+| `docs/09_FAQ.md` | よくある質問 |
 
 ## Concept
 
