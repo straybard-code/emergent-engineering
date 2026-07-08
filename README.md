@@ -14,6 +14,22 @@ This app is meant to observe organization formation as a dynamic system, not onl
 - Repeat the same condition set through experiments and compare outcomes
 - Inspect logs, phase timelines, trust summaries, trust deltas, trust networks, and experiment-level aggregates
 
+## Documentation
+
+詳しい背景・設計・実験方法は `docs/` を参照してください。
+
+| ドキュメント | 内容 |
+|---|---|
+| `docs/00_プロジェクト概要.md` | プロジェクト全体の概要 |
+| `docs/01_背景と参考文献.md` | 研究背景と参考文献 |
+| `docs/02_創発工学とは.md` | 創発工学の考え方 |
+| `docs/03_シミュレーションモデル.md` | モデル設計 |
+| `docs/04_システム構成.md` | システム構成 |
+| `docs/05_データベース設計.md` | DB設計 |
+| `docs/06_パラメータ一覧.md` | パラメータ定義 |
+| `docs/07_実験方法.md` | 実験プロトコル |
+| `docs/08_実験結果.md` | 実験結果と考察 |
+
 ## Stack
 
 - ASP.NET Core 8 Razor Pages
@@ -1989,4 +2005,4 @@ Research hypothesis:
 - This pass was implemented without build verification, startup verification, `dotnet run`, test execution, or migration apply.
 - If compile errors remain, they are most likely around Razor typing, manual migration drift, or EF relationship alignment and should be fixed from the reported build output.
 
-
+This project is a personal research project and is not affiliated with any organization.
