@@ -12,10 +12,20 @@ namespace EmergentEngineering.Pages.PhaseDiagrams;
 public sealed class DetailsModel(
     AppDbContext db,
     PhaseDiagramRunner phaseDiagramRunner,
-    ExperimentInterpretationService interpretationService) : PageModel
+    ExperimentInterpretationService interpretationService,
+    PhaseDiagramReportService reportService) : PageModel
 {
     [TempData]
     public string? DiagramMessage { get; set; }
+
+    [TempData]
+    public string? DiagramReportMessage { get; set; }
+
+    [TempData]
+    public string? DiagramReportDownloadUrl { get; set; }
+
+    [TempData]
+    public string? DiagramReportFileName { get; set; }
 
     public PhaseDiagram? Diagram { get; private set; }
     public string ScenarioName { get; private set; } = "-";
@@ -86,6 +96,7 @@ public sealed class DetailsModel(
     public bool CanCreateBoundaryAdaptive { get; private set; }
     public bool CanCreateHighPipelineAdaptive { get; private set; }
     public bool CanCreateEmergentAdaptive { get; private set; }
+    public Dictionary<int, string> ExperimentNames { get; private set; } = [];
 
     private HashSet<string> BoundaryCellKeys { get; } = new(StringComparer.Ordinal);
     private Dictionary<int, PhaseDiagramExperimentSummary> ExperimentSummariesByExperimentId { get; set; } = new();
@@ -114,6 +125,29 @@ public sealed class DetailsModel(
             Diagram?.YParameterName ?? "Y");
         var bytes = new UTF8Encoding(true).GetBytes(csv);
         return File(bytes, "text/csv; charset=utf-8", $"phase-diagram-{id}.csv");
+    }
+
+    public async Task<IActionResult> OnPostCreateReportAsync(int id, CancellationToken cancellationToken)
+    {
+        if (!await LoadPageDataAsync(id))
+        {
+            DiagramReportMessage = "相図が見つかりませんでした。";
+            return RedirectToPage("/PhaseDiagrams/Index");
+        }
+
+        try
+        {
+            var report = await reportService.CreateReportAsync(this, cancellationToken);
+            DiagramReportMessage = "レポートを作成しました。";
+            DiagramReportDownloadUrl = report.RelativeUrl;
+            DiagramReportFileName = report.FileName;
+        }
+        catch
+        {
+            DiagramReportMessage = "レポートを作成できませんでした。";
+        }
+
+        return RedirectToPage(new { id });
     }
 
     public async Task<IActionResult> OnPostCreateAdaptiveFromBoundaryAsync(int id)
@@ -187,6 +221,11 @@ public sealed class DetailsModel(
             : await db.Experiments
                 .Where(item => experimentIds.Contains(item.Id))
                 .ToDictionaryAsync(item => item.Id, item => item.Status);
+        ExperimentNames = experimentIds.Count == 0
+            ? new Dictionary<int, string>()
+            : await db.Experiments
+                .Where(item => experimentIds.Contains(item.Id))
+                .ToDictionaryAsync(item => item.Id, item => item.Name);
 
         AverageRespectMean = ExperimentSummariesByExperimentId.Count == 0
             ? 0

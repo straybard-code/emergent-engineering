@@ -1,0 +1,2605 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>信頼成長率&#215;心理的安全性 - Adaptive Boundary - Phase Diagram Report</title>
+<style>
+:root {
+    color-scheme: light;
+    --border: #d1d5db;
+    --muted: #6b7280;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --title: #0f172a;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 32px;
+    background: var(--bg);
+    color: #111827;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    line-height: 1.6;
+}
+.container { max-width: 1600px; margin: 0 auto; }
+.header {
+    background: linear-gradient(135deg, #eff6ff, #ffffff);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 24px;
+}
+h1, h2, h3 { color: var(--title); margin-top: 0; }
+h1 { margin-bottom: 8px; font-size: 2rem; }
+h2 { margin-bottom: 16px; font-size: 1.35rem; }
+h3 { margin-bottom: 12px; font-size: 1.1rem; }
+.muted { color: var(--muted); }
+.section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+.card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #fff;
+}
+.card .label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+.card .value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--title);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+th, td {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+}
+th {
+    background: #eff6ff;
+    color: #1e3a8a;
+    font-weight: 700;
+}
+tbody tr:nth-child(even) td { background: #fafafa; }
+.table-wrap { overflow-x: auto; }
+.section-note {
+    margin: 0 0 16px;
+    color: var(--muted);
+}
+.report-footer {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 24px;
+}
+.pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: #1d4ed8;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+.grid-table td {
+    min-width: 140px;
+}
+.cell-box {
+    display: grid;
+    gap: 2px;
+}
+.cell-phase {
+    font-weight: 700;
+}
+.cell-metric {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<div class="pill">Phase Diagram Report</div>
+<h1>信頼成長率&#215;心理的安全性 - Adaptive Boundary</h1>
+<p class="muted">生成日時: 2026-07-08 11:48:51 UTC</p>
+<p>Adaptive Sweep: 相境界周辺を細かく再探索します。</p>
+</div>
+<section class="section">
+<h2>基本情報</h2>
+<div class="table-wrap">
+<table>
+<tbody>
+<tr>
+<th style="width: 280px;">相図名</th>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary</td>
+</tr>
+<tr>
+<th style="width: 280px;">Scenario名</th>
+<td>低信頼、学習型 - 心理的安全性スイープ</td>
+</tr>
+<tr>
+<th style="width: 280px;">X軸パラメータ</th>
+<td>信頼成長率</td>
+</tr>
+<tr>
+<th style="width: 280px;">X範囲</th>
+<td>0.200 〜 0.800 / Step 0.075</td>
+</tr>
+<tr>
+<th style="width: 280px;">Y軸パラメータ</th>
+<td>心理的安全性</td>
+</tr>
+<tr>
+<th style="width: 280px;">Y範囲</th>
+<td>0.200 〜 0.800 / Step 0.075</td>
+</tr>
+<tr>
+<th style="width: 280px;">グリッド数</th>
+<td>81</td>
+</tr>
+<tr>
+<th style="width: 280px;">完了セル数</th>
+<td>81</td>
+</tr>
+<tr>
+<th style="width: 280px;">実行中セル数</th>
+<td>0</td>
+</tr>
+<tr>
+<th style="width: 280px;">未実行セル数</th>
+<td>0</td>
+</tr>
+<tr>
+<th style="width: 280px;">失敗セル数</th>
+<td>0</td>
+</tr>
+<tr>
+<th style="width: 280px;">進捗率</th>
+<td>100.0 %</td>
+</tr>
+<tr>
+<th style="width: 280px;">LLM</th>
+<td>Mock / mock-v1</td>
+</tr>
+<tr>
+<th style="width: 280px;">状態</th>
+<td>完了</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>解析サマリー</h2>
+<div class="cards">
+<div class="card">
+<span class="label">平均信頼度</span>
+<span class="value">0.031</span>
+</div>
+<div class="card">
+<span class="label">実効密度</span>
+<span class="value">0.006</span>
+</div>
+<div class="card">
+<span class="label">平均PipelineCompletion</span>
+<span class="value">0.402</span>
+</div>
+<div class="card">
+<span class="label">平均KnowledgeReconfiguration</span>
+<span class="value">0.306</span>
+</div>
+<div class="card">
+<span class="label">平均Serendipity</span>
+<span class="value">0.674</span>
+</div>
+<div class="card">
+<span class="label">平均相互敬意</span>
+<span class="value">0.000</span>
+</div>
+<div class="card">
+<span class="label">平均知的敬意</span>
+<span class="value">0.000</span>
+</div>
+<div class="card">
+<span class="label">平均Challenge受容</span>
+<span class="value">0.000</span>
+</div>
+<div class="card">
+<span class="label">平均Mutual Mentorship</span>
+<span class="value">0.000</span>
+</div>
+<div class="card">
+<span class="label">Thanks→創発寄与</span>
+<span class="value">0.000</span>
+</div>
+<div class="card">
+<span class="label">Popularity Trap率</span>
+<span class="value">0.000</span>
+</div>
+<div class="card">
+<span class="label">境界候補数</span>
+<span class="value">16</span>
+</div>
+</div>
+</section>
+
+<section class="section">
+<h2>創発領域</h2>
+<div class="cards">
+<div class="card">
+<span class="label">件数</span>
+<span class="value">33</span>
+</div>
+<div class="card">
+<span class="label">X範囲</span>
+<span class="value">0.200 〜 0.800</span>
+</div>
+<div class="card">
+<span class="label">Y範囲</span>
+<span class="value">0.350 〜 0.800</span>
+</div>
+<div class="card">
+<span class="label">中心</span>
+<span class="value">X=0.518, Y=0.677</span>
+</div>
+<div class="card">
+<span class="label">平均PipelineCompletion</span>
+<span class="value">0.420</span>
+</div>
+<div class="card">
+<span class="label">主なボトルネック</span>
+<span class="value">知識再結合</span>
+</div>
+</div>
+<div class="table-wrap mt-3">
+<p class="section-note">この相図では、創発点が 33 個見つかっています。X/Y の周辺を細かく再探索すると境界が見えやすくなります。</p>
+</div>
+</section>
+
+<section class="section">
+<h2>学習領域</h2>
+<div class="cards">
+<div class="card">
+<span class="label">件数</span>
+<span class="value">51</span>
+</div>
+<div class="card">
+<span class="label">X範囲</span>
+<span class="value">0.200 〜 0.800</span>
+</div>
+<div class="card">
+<span class="label">Y範囲</span>
+<span class="value">0.200 〜 0.575</span>
+</div>
+<div class="card">
+<span class="label">中心</span>
+<span class="value">X=0.491, Y=0.397</span>
+</div>
+<div class="card">
+<span class="label">平均PipelineCompletion</span>
+<span class="value">0.392</span>
+</div>
+<div class="card">
+<span class="label">主なボトルネック</span>
+<span class="value">KnowledgeRecombination</span>
+</div>
+</div>
+<div class="table-wrap mt-3">
+<p class="section-note">この領域では 学習領域 の条件が集まっています。</p>
+</div>
+</section>
+
+<section class="section">
+<h2>境界領域</h2>
+<p class="section-note">相境界として検出されたセル群とその近傍です。</p>
+<div class="cards mb-3">
+<div class="card">
+<span class="label">境界候補数</span>
+<span class="value">16</span>
+</div>
+<div class="card">
+<span class="label">Emergent境界数</span>
+<span class="value">9</span>
+</div>
+<div class="card">
+<span class="label">Stable境界数</span>
+<span class="value">0</span>
+</div>
+<div class="card">
+<span class="label">Silo境界数</span>
+<span class="value">0</span>
+</div>
+<div class="card">
+<span class="label">最頻パターン</span>
+<span class="value">創発期（Emergent） → 学習期（Learning）</span>
+</div>
+</div>
+<div class="cards mb-3">
+<div class="card">
+<span class="label">範囲</span>
+<span class="value">0.200 〜 0.800 / 0.200 〜 0.650</span>
+</div>
+<div class="card">
+<span class="label">中心</span>
+<span class="value">X=0.559, Y=0.451</span>
+</div>
+<div class="card">
+<span class="label">平均PipelineCompletion</span>
+<span class="value">0.400</span>
+</div>
+<div class="card">
+<span class="label">主なボトルネック</span>
+<span class="value">創発期（Emergent） → 学習期（Learning）</span>
+</div>
+</div>
+<p class="section-note">境界領域では Phase の切り替わりが起きています。ここを重点的に再探索すると、創発への遷移条件が見つかりやすくなります。</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>From</th><th>To</th><th>X</th><th>Y</th><th>Neighbor X</th><th>Neighbor Y</th><th>Direction</th></tr></thead>
+<tbody>
+<tr>
+<td>学習期（Learning）</td>
+<td>混沌期（Chaos）</td>
+<td>0.500</td>
+<td>0.200</td>
+<td>0.575</td>
+<td>0.200</td>
+<td>横方向</td>
+</tr>
+<tr>
+<td>混沌期（Chaos）</td>
+<td>学習期（Learning）</td>
+<td>0.575</td>
+<td>0.200</td>
+<td>0.650</td>
+<td>0.200</td>
+<td>横方向</td>
+</tr>
+<tr>
+<td>学習期（Learning）</td>
+<td>混沌期（Chaos）</td>
+<td>0.725</td>
+<td>0.200</td>
+<td>0.800</td>
+<td>0.200</td>
+<td>横方向</td>
+</tr>
+<tr>
+<td>学習期（Learning）</td>
+<td>混沌期（Chaos）</td>
+<td>0.500</td>
+<td>0.275</td>
+<td>0.575</td>
+<td>0.275</td>
+<td>横方向</td>
+</tr>
+<tr>
+<td>混沌期（Chaos）</td>
+<td>学習期（Learning）</td>
+<td>0.575</td>
+<td>0.275</td>
+<td>0.650</td>
+<td>0.275</td>
+<td>横方向</td>
+</tr>
+<tr>
+<td>学習期（Learning）</td>
+<td>混沌期（Chaos）</td>
+<td>0.800</td>
+<td>0.275</td>
+<td>0.800</td>
+<td>0.200</td>
+<td>縦方向</td>
+</tr>
+<tr>
+<td>学習期（Learning）</td>
+<td>混沌期（Chaos）</td>
+<td>0.575</td>
+<td>0.350</td>
+<td>0.575</td>
+<td>0.275</td>
+<td>縦方向</td>
+</tr>
+<tr>
+<td>創発期（Emergent）</td>
+<td>学習期（Learning）</td>
+<td>0.200</td>
+<td>0.650</td>
+<td>0.200</td>
+<td>0.575</td>
+<td>縦方向</td>
+</tr>
+<tr>
+<td>創発期（Emergent）</td>
+<td>学習期（Learning）</td>
+<td>0.275</td>
+<td>0.650</td>
+<td>0.275</td>
+<td>0.575</td>
+<td>縦方向</td>
+</tr>
+<tr>
+<td>創発期（Emergent）</td>
+<td>学習期（Learning）</td>
+<td>0.350</td>
+<td>0.650</td>
+<td>0.350</td>
+<td>0.575</td>
+<td>縦方向</td>
+</tr>
+<tr>
+<td>創発期（Emergent）</td>
+<td>学習期（Learning）</td>
+<td>0.425</td>
+<td>0.650</td>
+<td>0.425</td>
+<td>0.575</td>
+<td>縦方向</td>
+</tr>
+<tr>
+<td>創発期（Emergent）</td>
+<td>学習期（Learning）</td>
+<td>0.500</td>
+<td>0.650</td>
+<td>0.500</td>
+<td>0.575</td>
+<td>縦方向</td>
+</tr>
+<tr>
+<td>創発期（Emergent）</td>
+<td>学習期（Learning）</td>
+<td>0.575</td>
+<td>0.650</td>
+<td>0.575</td>
+<td>0.575</td>
+<td>縦方向</td>
+</tr>
+<tr>
+<td>創発期（Emergent）</td>
+<td>学習期（Learning）</td>
+<td>0.650</td>
+<td>0.650</td>
+<td>0.650</td>
+<td>0.575</td>
+<td>縦方向</td>
+</tr>
+<tr>
+<td>創発期（Emergent）</td>
+<td>学習期（Learning）</td>
+<td>0.725</td>
+<td>0.650</td>
+<td>0.725</td>
+<td>0.575</td>
+<td>縦方向</td>
+</tr>
+<tr>
+<td>創発期（Emergent）</td>
+<td>学習期（Learning）</td>
+<td>0.800</td>
+<td>0.650</td>
+<td>0.800</td>
+<td>0.575</td>
+<td>縦方向</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>Phase分布</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Phase</th><th>件数</th><th>比率</th></tr></thead>
+<tbody>
+<tr>
+<td>Emergent</td>
+<td>27</td>
+<td>0.333</td>
+</tr>
+<tr>
+<td>Stable</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>Learning</td>
+<td>51</td>
+<td>0.630</td>
+</tr>
+<tr>
+<td>Adaptation</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>Forming</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>Silo</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>Chaos</td>
+<td>3</td>
+<td>0.037</td>
+</tr>
+<tr>
+<td>Collapse</td>
+<td>0</td>
+<td>0.000</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>ボトルネック分布</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>ボトルネック</th><th>件数</th><th>比率</th></tr></thead>
+<tbody>
+<tr>
+<td>知識再結合</td>
+<td>68</td>
+<td>0.840</td>
+</tr>
+<tr>
+<td>適応</td>
+<td>13</td>
+<td>0.160</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>グリッド結果</h2>
+<p class="section-note">各 X / Y の組み合わせごとのセル結果です。</p>
+<div class="table-wrap">
+<table class="grid-table">
+<thead><tr><th>Y \ X</th>
+<th>0.200</th>
+<th>0.275</th>
+<th>0.350</th>
+<th>0.425</th>
+<th>0.500</th>
+<th>0.575</th>
+<th>0.650</th>
+<th>0.725</th>
+<th>0.800</th>
+</tr></thead>
+<tbody>
+<tr>
+<th>0.800</th>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.60 / Stable 0.00 / Learning 0.40</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.60 / Stable 0.00 / Learning 0.40</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.44 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.60 / Stable 0.00 / Learning 0.40</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.43 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.02 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 1.00 / Stable 0.00 / Learning 0.00</div>
+<div class="cell-metric">Trust 0.03 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.43 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.04 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.43 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 1.00 / Stable 0.00 / Learning 0.00</div>
+<div class="cell-metric">Trust 0.09 / Density 0.02</div>
+<div class="cell-metric">Pipeline 0.43 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.12 / Density 0.06</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+</tr>
+<tr>
+<th>0.725</th>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.43 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 1.00 / Stable 0.00 / Learning 0.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.43 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.02 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.43 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.60 / Stable 0.00 / Learning 0.40</div>
+<div class="cell-metric">Trust 0.03 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 1.00 / Stable 0.00 / Learning 0.00</div>
+<div class="cell-metric">Trust 0.05 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 1.00 / Stable 0.00 / Learning 0.00</div>
+<div class="cell-metric">Trust 0.09 / Density 0.01</div>
+<div class="cell-metric">Pipeline 0.43 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.12 / Density 0.04</div>
+<div class="cell-metric">Pipeline 0.43 / Bottleneck 知識再結合</div>
+</div>
+</td>
+</tr>
+<tr>
+<th>0.650</th>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 1.00 / Stable 0.00 / Learning 0.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 1.00 / Stable 0.00 / Learning 0.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.60 / Stable 0.00 / Learning 0.40</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 1.00 / Stable 0.00 / Learning 0.00</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.60 / Stable 0.00 / Learning 0.40</div>
+<div class="cell-metric">Trust 0.03 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 1.00 / Stable 0.00 / Learning 0.00</div>
+<div class="cell-metric">Trust 0.05 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 0.80 / Stable 0.00 / Learning 0.20</div>
+<div class="cell-metric">Trust 0.09 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">創発期（Emergent）</div>
+<div class="cell-metric">Emergent 1.00 / Stable 0.00 / Learning 0.00</div>
+<div class="cell-metric">Trust 0.12 / Density 0.07</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+</tr>
+<tr>
+<th>0.575</th>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.02 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.20 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.05 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.08 / Density 0.02</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.20 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.14 / Density 0.08</div>
+<div class="cell-metric">Pipeline 0.42 / Bottleneck 知識再結合</div>
+</div>
+</td>
+</tr>
+<tr>
+<th>0.500</th>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.39 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.39 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.20 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.02 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.02 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.05 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.08 / Density 0.01</div>
+<div class="cell-metric">Pipeline 0.39 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.11 / Density 0.03</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+</tr>
+<tr>
+<th>0.425</th>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.41 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.39 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.39 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.03 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.05 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.20 / Stable 0.00 / Learning 0.60</div>
+<div class="cell-metric">Trust 0.08 / Density 0.02</div>
+<div class="cell-metric">Pipeline 0.39 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.13 / Density 0.05</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+</tr>
+<tr>
+<th>0.350</th>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.38 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.20 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.20 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.39 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.02 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.04 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.39 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.07 / Density 0.02</div>
+<div class="cell-metric">Pipeline 0.38 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.11 / Density 0.03</div>
+<div class="cell-metric">Pipeline 0.40 / Bottleneck 知識再結合</div>
+</div>
+</td>
+</tr>
+<tr>
+<th>0.275</th>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.60</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.37 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.60</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.37 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.37 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.38 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.60</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.38 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">混沌期（Chaos）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.40</div>
+<div class="cell-metric">Trust 0.02 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.37 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.03 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.38 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.60</div>
+<div class="cell-metric">Trust 0.06 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.37 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 1.00</div>
+<div class="cell-metric">Trust 0.08 / Density 0.01</div>
+<div class="cell-metric">Pipeline 0.38 / Bottleneck 知識再結合</div>
+</div>
+</td>
+</tr>
+<tr>
+<th>0.200</th>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.38 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.37 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.00 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.38 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.60</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.38 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.60</div>
+<div class="cell-metric">Trust 0.01 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.37 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">混沌期（Chaos）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.40</div>
+<div class="cell-metric">Trust 0.02 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.37 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.60</div>
+<div class="cell-metric">Trust 0.03 / Density 0.00</div>
+<div class="cell-metric">Pipeline 0.36 / Bottleneck 適応</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">学習期（Learning）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.80</div>
+<div class="cell-metric">Trust 0.06 / Density 0.02</div>
+<div class="cell-metric">Pipeline 0.37 / Bottleneck 知識再結合</div>
+</div>
+</td>
+<td>
+<div class="cell-box">
+<div class="cell-phase">混沌期（Chaos）</div>
+<div class="cell-metric">Emergent 0.00 / Stable 0.00 / Learning 0.40</div>
+<div class="cell-metric">Trust 0.07 / Density 0.01</div>
+<div class="cell-metric">Pipeline 0.38 / Bottleneck 知識再結合</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>セルの詳細一覧</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>X</th><th>Y</th><th>Experiment</th><th>Phase</th><th>EmergentRate</th><th>StableRate</th><th>LearningRate</th><th>SiloRate</th><th>Trust</th><th>EffectiveDensity</th><th>KnowledgeReconfiguration</th><th>Serendipity</th><th>PipelineCompletion</th><th>ボトルネック</th></tr></thead>
+<tbody>
+<tr>
+<td>0.200</td>
+<td>0.200</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.200 / Y=心理的安全性:0.200 (#482)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.28</td>
+<td>0.00</td>
+<td>0.38</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.275</td>
+<td>0.200</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.275 / Y=心理的安全性:0.200 (#491)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.27</td>
+<td>0.20</td>
+<td>0.37</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.350</td>
+<td>0.200</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.350 / Y=心理的安全性:0.200 (#500)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.28</td>
+<td>0.00</td>
+<td>0.38</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.425</td>
+<td>0.200</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.425 / Y=心理的安全性:0.200 (#510)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.30</td>
+<td>0.20</td>
+<td>0.38</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.500</td>
+<td>0.200</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.500 / Y=心理的安全性:0.200 (#519)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.27</td>
+<td>0.00</td>
+<td>0.37</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.575</td>
+<td>0.200</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.575 / Y=心理的安全性:0.200 (#528)</td>
+<td>混沌期（Chaos）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.40</td>
+<td>0.00</td>
+<td>0.02</td>
+<td>0.00</td>
+<td>0.27</td>
+<td>0.20</td>
+<td>0.37</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.650</td>
+<td>0.200</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.650 / Y=心理的安全性:0.200 (#537)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.03</td>
+<td>0.00</td>
+<td>0.27</td>
+<td>0.00</td>
+<td>0.36</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.725</td>
+<td>0.200</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.725 / Y=心理的安全性:0.200 (#546)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.06</td>
+<td>0.02</td>
+<td>0.27</td>
+<td>0.20</td>
+<td>0.37</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.800</td>
+<td>0.200</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.800 / Y=心理的安全性:0.200 (#555)</td>
+<td>混沌期（Chaos）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.40</td>
+<td>0.00</td>
+<td>0.07</td>
+<td>0.01</td>
+<td>0.29</td>
+<td>0.20</td>
+<td>0.38</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.200</td>
+<td>0.275</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.200 / Y=心理的安全性:0.275 (#483)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.28</td>
+<td>0.20</td>
+<td>0.37</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.275</td>
+<td>0.275</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.275 / Y=心理的安全性:0.275 (#492)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.27</td>
+<td>0.00</td>
+<td>0.37</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.350</td>
+<td>0.275</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.350 / Y=心理的安全性:0.275 (#501)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.28</td>
+<td>0.00</td>
+<td>0.37</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.425</td>
+<td>0.275</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.425 / Y=心理的安全性:0.275 (#511)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.29</td>
+<td>0.40</td>
+<td>0.38</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.500</td>
+<td>0.275</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.500 / Y=心理的安全性:0.275 (#520)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.29</td>
+<td>0.20</td>
+<td>0.38</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.575</td>
+<td>0.275</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.575 / Y=心理的安全性:0.275 (#529)</td>
+<td>混沌期（Chaos）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.40</td>
+<td>0.00</td>
+<td>0.02</td>
+<td>0.00</td>
+<td>0.28</td>
+<td>0.00</td>
+<td>0.37</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.650</td>
+<td>0.275</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.650 / Y=心理的安全性:0.275 (#538)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.03</td>
+<td>0.00</td>
+<td>0.29</td>
+<td>0.00</td>
+<td>0.38</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.725</td>
+<td>0.275</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.725 / Y=心理的安全性:0.275 (#547)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.06</td>
+<td>0.00</td>
+<td>0.27</td>
+<td>0.00</td>
+<td>0.37</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.800</td>
+<td>0.275</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.800 / Y=心理的安全性:0.275 (#556)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.08</td>
+<td>0.01</td>
+<td>0.29</td>
+<td>0.00</td>
+<td>0.38</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.200</td>
+<td>0.350</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.200 / Y=心理的安全性:0.350 (#484)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.28</td>
+<td>0.40</td>
+<td>0.38</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.275</td>
+<td>0.350</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.275 / Y=心理的安全性:0.350 (#493)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.30</td>
+<td>0.40</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.350</td>
+<td>0.350</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.350 / Y=心理的安全性:0.350 (#502)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.30</td>
+<td>0.60</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.425</td>
+<td>0.350</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.425 / Y=心理的安全性:0.350 (#512)</td>
+<td>学習期（Learning）</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.30</td>
+<td>0.60</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.500</td>
+<td>0.350</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.500 / Y=心理的安全性:0.350 (#521)</td>
+<td>学習期（Learning）</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.29</td>
+<td>0.40</td>
+<td>0.39</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.575</td>
+<td>0.350</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.575 / Y=心理的安全性:0.350 (#530)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.02</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>0.60</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.650</td>
+<td>0.350</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.650 / Y=心理的安全性:0.350 (#539)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.04</td>
+<td>0.00</td>
+<td>0.29</td>
+<td>0.40</td>
+<td>0.39</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.725</td>
+<td>0.350</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.725 / Y=心理的安全性:0.350 (#548)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.07</td>
+<td>0.02</td>
+<td>0.27</td>
+<td>0.20</td>
+<td>0.38</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.800</td>
+<td>0.350</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.800 / Y=心理的安全性:0.350 (#557)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.11</td>
+<td>0.03</td>
+<td>0.31</td>
+<td>0.40</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.200</td>
+<td>0.425</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.200 / Y=心理的安全性:0.425 (#485)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>0.80</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.275</td>
+<td>0.425</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.275 / Y=心理的安全性:0.425 (#494)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.30</td>
+<td>0.80</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.350</td>
+<td>0.425</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.350 / Y=心理的安全性:0.425 (#503)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.29</td>
+<td>0.40</td>
+<td>0.39</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.425</td>
+<td>0.425</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.425 / Y=心理的安全性:0.425 (#513)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.29</td>
+<td>0.40</td>
+<td>0.39</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.500</td>
+<td>0.425</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.500 / Y=心理的安全性:0.425 (#522)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>0.80</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.575</td>
+<td>0.425</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.575 / Y=心理的安全性:0.425 (#531)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.03</td>
+<td>0.00</td>
+<td>0.30</td>
+<td>0.80</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.650</td>
+<td>0.425</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.650 / Y=心理的安全性:0.425 (#540)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.05</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>0.60</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.725</td>
+<td>0.425</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.725 / Y=心理的安全性:0.425 (#549)</td>
+<td>学習期（Learning）</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.08</td>
+<td>0.02</td>
+<td>0.29</td>
+<td>0.40</td>
+<td>0.39</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.800</td>
+<td>0.425</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.800 / Y=心理的安全性:0.425 (#558)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.13</td>
+<td>0.05</td>
+<td>0.30</td>
+<td>0.60</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.200</td>
+<td>0.500</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.200 / Y=心理的安全性:0.500 (#486)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.30</td>
+<td>0.60</td>
+<td>0.39</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.275</td>
+<td>0.500</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.275 / Y=心理的安全性:0.500 (#495)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.29</td>
+<td>0.80</td>
+<td>0.39</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.350</td>
+<td>0.500</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.350 / Y=心理的安全性:0.500 (#504)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>0.80</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.425</td>
+<td>0.500</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.425 / Y=心理的安全性:0.500 (#514)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.30</td>
+<td>0.80</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.500</td>
+<td>0.500</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.500 / Y=心理的安全性:0.500 (#523)</td>
+<td>学習期（Learning）</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.02</td>
+<td>0.00</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.41</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.575</td>
+<td>0.500</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.575 / Y=心理的安全性:0.500 (#532)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.02</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>1.00</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.650</td>
+<td>0.500</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.650 / Y=心理的安全性:0.500 (#541)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.05</td>
+<td>0.00</td>
+<td>0.30</td>
+<td>1.00</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.725</td>
+<td>0.500</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.725 / Y=心理的安全性:0.500 (#550)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.08</td>
+<td>0.01</td>
+<td>0.29</td>
+<td>0.60</td>
+<td>0.39</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.800</td>
+<td>0.500</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.800 / Y=心理的安全性:0.500 (#559)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.11</td>
+<td>0.03</td>
+<td>0.31</td>
+<td>1.00</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.200</td>
+<td>0.575</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.200 / Y=心理的安全性:0.575 (#487)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>1.00</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.275</td>
+<td>0.575</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.275 / Y=心理的安全性:0.575 (#496)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.350</td>
+<td>0.575</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.350 / Y=心理的安全性:0.575 (#505)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.32</td>
+<td>0.80</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.425</td>
+<td>0.575</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.425 / Y=心理的安全性:0.575 (#515)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.500</td>
+<td>0.575</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.500 / Y=心理的安全性:0.575 (#524)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>1.00</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.575</td>
+<td>0.575</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.575 / Y=心理的安全性:0.575 (#533)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.02</td>
+<td>0.00</td>
+<td>0.30</td>
+<td>1.00</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.650</td>
+<td>0.575</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.650 / Y=心理的安全性:0.575 (#542)</td>
+<td>学習期（Learning）</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.05</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>1.00</td>
+<td>0.40</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.725</td>
+<td>0.575</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.725 / Y=心理的安全性:0.575 (#551)</td>
+<td>学習期（Learning）</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.08</td>
+<td>0.02</td>
+<td>0.31</td>
+<td>0.80</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.800</td>
+<td>0.575</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.800 / Y=心理的安全性:0.575 (#560)</td>
+<td>学習期（Learning）</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.14</td>
+<td>0.08</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.200</td>
+<td>0.650</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.200 / Y=心理的安全性:0.650 (#488)</td>
+<td>創発期（Emergent）</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>1.00</td>
+<td>0.41</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.275</td>
+<td>0.650</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.275 / Y=心理的安全性:0.650 (#497)</td>
+<td>創発期（Emergent）</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.33</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.350</td>
+<td>0.650</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.350 / Y=心理的安全性:0.650 (#506)</td>
+<td>創発期（Emergent）</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.40</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>1.00</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.425</td>
+<td>0.650</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.425 / Y=心理的安全性:0.650 (#516)</td>
+<td>創発期（Emergent）</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.500</td>
+<td>0.650</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.500 / Y=心理的安全性:0.650 (#525)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.575</td>
+<td>0.650</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.575 / Y=心理的安全性:0.650 (#534)</td>
+<td>創発期（Emergent）</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.40</td>
+<td>0.00</td>
+<td>0.03</td>
+<td>0.00</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.650</td>
+<td>0.650</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.650 / Y=心理的安全性:0.650 (#543)</td>
+<td>創発期（Emergent）</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.05</td>
+<td>0.00</td>
+<td>0.31</td>
+<td>1.00</td>
+<td>0.41</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.725</td>
+<td>0.650</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.725 / Y=心理的安全性:0.650 (#552)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.09</td>
+<td>0.00</td>
+<td>0.34</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.800</td>
+<td>0.650</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.800 / Y=心理的安全性:0.650 (#561)</td>
+<td>創発期（Emergent）</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.12</td>
+<td>0.07</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.200</td>
+<td>0.725</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.200 / Y=心理的安全性:0.725 (#489)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.33</td>
+<td>1.00</td>
+<td>0.43</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.275</td>
+<td>0.725</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.275 / Y=心理的安全性:0.725 (#498)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.33</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.350</td>
+<td>0.725</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.350 / Y=心理的安全性:0.725 (#507)</td>
+<td>創発期（Emergent）</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.425</td>
+<td>0.725</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.425 / Y=心理的安全性:0.725 (#517)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.33</td>
+<td>1.00</td>
+<td>0.43</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.500</td>
+<td>0.725</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.500 / Y=心理的安全性:0.725 (#526)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.02</td>
+<td>0.00</td>
+<td>0.34</td>
+<td>1.00</td>
+<td>0.43</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.575</td>
+<td>0.725</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.575 / Y=心理的安全性:0.725 (#535)</td>
+<td>創発期（Emergent）</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.40</td>
+<td>0.00</td>
+<td>0.03</td>
+<td>0.00</td>
+<td>0.33</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.650</td>
+<td>0.725</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.650 / Y=心理的安全性:0.725 (#544)</td>
+<td>創発期（Emergent）</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.05</td>
+<td>0.00</td>
+<td>0.33</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.725</td>
+<td>0.725</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.725 / Y=心理的安全性:0.725 (#553)</td>
+<td>創発期（Emergent）</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.09</td>
+<td>0.01</td>
+<td>0.34</td>
+<td>1.00</td>
+<td>0.43</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.800</td>
+<td>0.725</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.800 / Y=心理的安全性:0.725 (#562)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.12</td>
+<td>0.04</td>
+<td>0.34</td>
+<td>1.00</td>
+<td>0.43</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.200</td>
+<td>0.800</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.200 / Y=心理的安全性:0.800 (#490)</td>
+<td>創発期（Emergent）</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.40</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.34</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.275</td>
+<td>0.800</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.275 / Y=心理的安全性:0.800 (#499)</td>
+<td>創発期（Emergent）</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.40</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.36</td>
+<td>1.00</td>
+<td>0.44</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.350</td>
+<td>0.800</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.350 / Y=心理的安全性:0.800 (#509)</td>
+<td>創発期（Emergent）</td>
+<td>0.60</td>
+<td>0.00</td>
+<td>0.40</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.425</td>
+<td>0.800</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.425 / Y=心理的安全性:0.800 (#518)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>0.00</td>
+<td>0.34</td>
+<td>1.00</td>
+<td>0.43</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.500</td>
+<td>0.800</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.500 / Y=心理的安全性:0.800 (#527)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.02</td>
+<td>0.00</td>
+<td>0.32</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.575</td>
+<td>0.800</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.575 / Y=心理的安全性:0.800 (#536)</td>
+<td>創発期（Emergent）</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.03</td>
+<td>0.00</td>
+<td>0.34</td>
+<td>1.00</td>
+<td>0.43</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.650</td>
+<td>0.800</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.650 / Y=心理的安全性:0.800 (#545)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.04</td>
+<td>0.00</td>
+<td>0.33</td>
+<td>1.00</td>
+<td>0.43</td>
+<td>知識再結合</td>
+</tr>
+<tr>
+<td>0.725</td>
+<td>0.800</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.725 / Y=心理的安全性:0.800 (#554)</td>
+<td>創発期（Emergent）</td>
+<td>1.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.09</td>
+<td>0.02</td>
+<td>0.33</td>
+<td>1.00</td>
+<td>0.43</td>
+<td>適応</td>
+</tr>
+<tr>
+<td>0.800</td>
+<td>0.800</td>
+<td>信頼成長率&#215;心理的安全性 - Adaptive Boundary X=信頼成長率:0.800 / Y=心理的安全性:0.800 (#563)</td>
+<td>創発期（Emergent）</td>
+<td>0.80</td>
+<td>0.00</td>
+<td>0.20</td>
+<td>0.00</td>
+<td>0.12</td>
+<td>0.06</td>
+<td>0.31</td>
+<td>1.00</td>
+<td>0.42</td>
+<td>知識再結合</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<h2>推奨改善方向</h2>
+<p>創発領域が見つかっています。境界周辺と高PipelineCompletion領域を重点的に再探索してください。</p>
+</section>
+
+<section class="section">
+<h2>解釈コメント</h2>
+<p>いくつかのセルで創発相に到達しています。境界付近の条件を詰めると、創発セルの面積が広がる可能性があります。 創発領域はすでに確認されています。境界領域の厚みと周辺のボトルネックを比較すると、移行条件が見えやすくなります。 学習領域は残っていますが、知識再構成やセレンディピティの連鎖がまだ創発閾値まで届いていない可能性があります。 境界領域では、Phase の切り替わりに合わせてボトルネックが変化しています。ここが再探索の主戦場です。 相互敬意が低いと、異論受容と知識再構成が伸びにくくなります。Thanks Coin の観測分布も確認してください。</p>
+</section>
+
+<div class="report-footer">
+この HTML レポートは静的ファイルとして保存されるため、元の Phase Diagram を削除した後も閲覧できます。
+</div>
+</div>
+</body>
+</html>

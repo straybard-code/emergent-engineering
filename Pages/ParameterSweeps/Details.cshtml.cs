@@ -13,10 +13,20 @@ public sealed class DetailsModel(
     AppDbContext db,
     ParameterSweepRunner sweepRunner,
     ExperimentInterpretationService interpretationService,
-    ExperimentCleanupService cleanupService) : PageModel
+    ExperimentCleanupService cleanupService,
+    ParameterSweepReportService reportService) : PageModel
 {
     [TempData]
     public string? SweepMessage { get; set; }
+
+    [TempData]
+    public string? SweepReportMessage { get; set; }
+
+    [TempData]
+    public string? SweepReportDownloadUrl { get; set; }
+
+    [TempData]
+    public string? SweepReportFileName { get; set; }
 
     public ParameterSweep? Sweep { get; private set; }
     public string ScenarioName { get; private set; } = "-";
@@ -64,6 +74,29 @@ public sealed class DetailsModel(
         var csv = interpretationService.BuildParameterSweepCsv(AnalysisPoints);
         var bytes = new UTF8Encoding(true).GetBytes(csv);
         return File(bytes, "text/csv; charset=utf-8", $"parameter-sweep-{id}.csv");
+    }
+
+    public async Task<IActionResult> OnPostCreateReportAsync(int id, CancellationToken cancellationToken)
+    {
+        if (!await LoadPageDataAsync(id))
+        {
+            SweepReportMessage = "Parameter Sweepが見つかりませんでした。";
+            return RedirectToPage("/ParameterSweeps/Index");
+        }
+
+        try
+        {
+            var report = await reportService.CreateReportAsync(this, cancellationToken);
+            SweepReportMessage = "レポートを作成しました。";
+            SweepReportDownloadUrl = report.RelativeUrl;
+            SweepReportFileName = report.FileName;
+        }
+        catch
+        {
+            SweepReportMessage = "レポートを作成できませんでした。";
+        }
+
+        return RedirectToPage(new { id });
     }
 
     public async Task<IActionResult> OnPostStopAsync(int id)

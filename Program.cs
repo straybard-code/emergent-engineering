@@ -22,6 +22,8 @@ builder.Services.AddScoped<ParameterSweepRunner>();
 builder.Services.AddScoped<PhaseDiagramRunner>();
 builder.Services.AddScoped<ExperimentInterpretationService>();
 builder.Services.AddScoped<ExperimentReportService>();
+builder.Services.AddScoped<ParameterSweepReportService>();
+builder.Services.AddScoped<PhaseDiagramReportService>();
 
 var app = builder.Build();
 
