@@ -17,6 +17,10 @@
         <div class="text-muted">@Model.Diagram.Description</div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary" asp-page="/PhaseDiagrams/Edit" asp-route-id="@Model.Diagram.Id">編集</a>
+        <form method="post" asp-page-handler="Copy" asp-route-id="@Model.Diagram.Id">
+            <button type="submit" class="btn btn-outline-success">コピーして新規作成</button>
+        </form>
         @if (Model.ShowPrimaryActionButton)
         {
             <a class="btn btn-primary" asp-page="/PhaseDiagrams/Run" asp-route-id="@Model.Diagram.Id">@Model.PrimaryActionLabel</a>

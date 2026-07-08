@@ -150,6 +150,54 @@ public sealed class DetailsModel(
         return RedirectToPage(new { id });
     }
 
+    public async Task<IActionResult> OnPostCopyAsync(int id, CancellationToken cancellationToken)
+    {
+        var source = await db.PhaseDiagrams
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
+
+        if (source is null)
+        {
+            DiagramMessage = "相図が見つかりませんでした。";
+            return RedirectToPage("/PhaseDiagrams/Index");
+        }
+
+        var copy = new PhaseDiagram
+        {
+            Name = await BuildCopyNameAsync(source.Name, cancellationToken),
+            Description = source.Description,
+            BaseScenarioId = source.BaseScenarioId,
+            XParameterName = source.XParameterName,
+            XParameterDisplayName = source.XParameterDisplayName,
+            XStartValue = source.XStartValue,
+            XEndValue = source.XEndValue,
+            XStepValue = source.XStepValue,
+            YParameterName = source.YParameterName,
+            YParameterDisplayName = source.YParameterDisplayName,
+            YStartValue = source.YStartValue,
+            YEndValue = source.YEndValue,
+            YStepValue = source.YStepValue,
+            RunsPerPoint = source.RunsPerPoint,
+            AgentCount = source.AgentCount,
+            TotalSteps = source.TotalSteps,
+            ParentPhaseDiagramId = source.Id,
+            AdaptiveSourceType = source.AdaptiveSourceType,
+            AdaptiveReason = source.AdaptiveReason,
+            IsAdaptiveSweep = source.IsAdaptiveSweep,
+            LlmProvider = source.LlmProvider,
+            LlmModel = source.LlmModel,
+            Status = PhaseDiagramStatus.Pending,
+            CreatedAt = DateTime.UtcNow,
+            CompletedAt = null
+        };
+
+        db.PhaseDiagrams.Add(copy);
+        await db.SaveChangesAsync(cancellationToken);
+
+        DiagramMessage = "相図をコピーして新規作成しました。";
+        return RedirectToPage("/PhaseDiagrams/Edit", new { id = copy.Id });
+    }
+
     public async Task<IActionResult> OnPostCreateAdaptiveFromBoundaryAsync(int id)
     {
         return await CreateAdaptiveSweepAsync(id, "Boundary");
@@ -903,6 +951,7 @@ public sealed class DetailsModel(
     public string FormatStatus(string? status) => status switch
     {
         PhaseDiagramStatus.Created => "作成済み",
+        PhaseDiagramStatus.Pending => "待機中",
         PhaseDiagramStatus.Running => "実行中",
         PhaseDiagramStatus.Completed => "完了",
         PhaseDiagramStatus.Failed => "失敗",
@@ -1109,5 +1158,29 @@ public sealed class DetailsModel(
         }
 
         return values;
+    }
+
+    private async Task<string> BuildCopyNameAsync(string sourceName, CancellationToken cancellationToken)
+    {
+        var baseName = string.IsNullOrWhiteSpace(sourceName) ? "相図" : sourceName.Trim();
+        var candidate = $"{baseName} のコピー";
+        var existingNames = await db.PhaseDiagrams
+            .AsNoTracking()
+            .Select(item => item.Name)
+            .ToListAsync(cancellationToken);
+
+        var names = new HashSet<string>(existingNames, StringComparer.OrdinalIgnoreCase);
+        if (!names.Contains(candidate))
+        {
+            return candidate;
+        }
+
+        var index = 2;
+        while (names.Contains($"{candidate} {index}"))
+        {
+            index++;
+        }
+
+        return $"{candidate} {index}";
     }
 }

@@ -176,7 +176,9 @@ public sealed class PhaseDiagramRunner(
 
         if (expectedPoints == 0 || points.Count == 0)
         {
-            diagram.Status = PhaseDiagramStatus.Created;
+            diagram.Status = string.Equals(diagram.Status, PhaseDiagramStatus.Pending, StringComparison.OrdinalIgnoreCase)
+                ? PhaseDiagramStatus.Pending
+                : PhaseDiagramStatus.Created;
             diagram.CompletedAt = null;
             await db.SaveChangesAsync(cancellationToken);
             return diagram;

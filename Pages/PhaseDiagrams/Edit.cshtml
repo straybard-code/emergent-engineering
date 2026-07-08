@@ -1,0 +1,180 @@
+@page "{id:int}"
+@model EmergentEngineering.Pages.PhaseDiagrams.EditModel
+@{
+    ViewData["Title"] = Model.Input.Name == "" ? "相図編集" : $"{Model.Input.Name} - 相図編集";
+    ViewData["ExecutionScaleFieldPrefix"] = "Input";
+}
+
+<div class="page-heading">
+    <a asp-page="/PhaseDiagrams/Details" asp-route-id="@Model.Input.Id" class="text-decoration-none small">&larr; 相図詳細へ戻る</a>
+    <h1 class="h2 mt-2">相図編集</h1>
+    <p class="text-muted">相図の条件だけを調整して再実行できます。保存すると既存の結果は削除されます。</p>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.DiagramMessage))
+{
+    <div class="alert alert-info">@Model.DiagramMessage</div>
+}
+
+@if (Model.HasExistingResults)
+{
+    <div class="alert alert-warning">
+        <div class="fw-semibold">既存結果があります</div>
+        <div>保存すると、現在の PhaseDiagramPoints と関連する実験結果を削除して、待機中の状態に戻します。結果を残したい場合は「コピーして編集」を使ってください。</div>
+    </div>
+}
+
+<form method="post" class="simulation-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Input.Id" />
+
+    <div class="mb-3">
+        <label asp-for="Input.Name" class="form-label">名前</label>
+        <input asp-for="Input.Name" class="form-control" />
+        <span asp-validation-for="Input.Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.Description" class="form-label">説明</label>
+        <textarea asp-for="Input.Description" class="form-control" rows="2"></textarea>
+        <span asp-validation-for="Input.Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.BaseScenarioId" class="form-label">対象シナリオ</label>
+        <select asp-for="Input.BaseScenarioId" class="form-select">
+            <option value="0">選択してください</option>
+            @foreach (var scenario in Model.Scenarios)
+            {
+                <option value="@scenario.Id">@scenario.Name</option>
+            }
+        </select>
+        <span asp-validation-for="Input.BaseScenarioId" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.XParameterName" class="form-label">X軸パラメータ</label>
+            <select asp-for="Input.XParameterName" class="form-select">
+                @foreach (var group in EmergentEngineering.Models.BoundaryParameterNames.Groups)
+                {
+                    <optgroup label="@group.Label">
+                        @foreach (var parameterName in group.Parameters)
+                        {
+                            <option value="@parameterName">@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(parameterName)</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+            <span asp-validation-for="Input.XParameterName" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.YParameterName" class="form-label">Y軸パラメータ</label>
+            <select asp-for="Input.YParameterName" class="form-select">
+                @foreach (var group in EmergentEngineering.Models.BoundaryParameterNames.Groups)
+                {
+                    <optgroup label="@group.Label">
+                        @foreach (var parameterName in group.Parameters)
+                        {
+                            <option value="@parameterName">@EmergentEngineering.Models.BoundaryParameterNames.GetLabel(parameterName)</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+            <span asp-validation-for="Input.YParameterName" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.XStartValue" class="form-label">X開始値</label>
+            <input asp-for="Input.XStartValue" class="form-control" type="number" min="0" max="20" step="0.001" />
+            <span asp-validation-for="Input.XStartValue" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.XEndValue" class="form-label">X終了値</label>
+            <input asp-for="Input.XEndValue" class="form-control" type="number" min="0" max="20" step="0.001" />
+            <span asp-validation-for="Input.XEndValue" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.XStepValue" class="form-label">X刻み幅</label>
+            <input asp-for="Input.XStepValue" class="form-control" type="number" min="0.001" max="20" step="0.001" />
+            <span asp-validation-for="Input.XStepValue" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.YStartValue" class="form-label">Y開始値</label>
+            <input asp-for="Input.YStartValue" class="form-control" type="number" min="0" max="20" step="0.001" />
+            <span asp-validation-for="Input.YStartValue" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.YEndValue" class="form-label">Y終了値</label>
+            <input asp-for="Input.YEndValue" class="form-control" type="number" min="0" max="20" step="0.001" />
+            <span asp-validation-for="Input.YEndValue" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.YStepValue" class="form-label">Y刻み幅</label>
+            <input asp-for="Input.YStepValue" class="form-control" type="number" min="0.001" max="20" step="0.001" />
+            <span asp-validation-for="Input.YStepValue" class="text-danger"></span>
+        </div>
+    </div>
+
+    <partial name="_ExecutionScalePresetPanel" />
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.RunsPerPoint" class="form-label">各セルの実行回数</label>
+            <input asp-for="Input.RunsPerPoint" class="form-control" type="number" min="1" max="100" step="1" />
+            <span asp-validation-for="Input.RunsPerPoint" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.AgentCount" class="form-label">Agent数</label>
+            <input asp-for="Input.AgentCount" class="form-control" type="number" min="2" max="100" step="1" />
+            <span asp-validation-for="Input.AgentCount" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Input.TotalSteps" class="form-label">Step数</label>
+            <input asp-for="Input.TotalSteps" class="form-control" type="number" min="1" max="5000" step="1" />
+            <span asp-validation-for="Input.TotalSteps" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.LlmProvider" class="form-label">LLMプロバイダー</label>
+            <select asp-for="Input.LlmProvider" class="form-select">
+                <option value="Mock">Mock（ローカル用）</option>
+                <option value="OpenAI">OpenAI（実運用用）</option>
+            </select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Input.LlmModel" class="form-label">LLMモデル</label>
+            <select asp-for="Input.LlmModel" class="form-select">
+                @foreach (var modelName in EmergentEngineering.Models.LlmDefaults.AvailableModels)
+                {
+                    <option value="@modelName">@modelName</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        予想グリッド点数: <strong>@(Math.Max(0, (int)Math.Round((Model.Input.XEndValue - Model.Input.XStartValue) / Math.Max(Model.Input.XStepValue, 0.001)) + 1) * Math.Max(0, (int)Math.Round((Model.Input.YEndValue - Model.Input.YStartValue) / Math.Max(Model.Input.YStepValue, 0.001)) + 1))</strong><br />
+        予想実行回数: <strong>@(Math.Max(1, (int)Math.Round((Model.Input.XEndValue - Model.Input.XStartValue) / Math.Max(Model.Input.XStepValue, 0.001)) + 1) * Math.Max(0, (int)Math.Round((Model.Input.YEndValue - Model.Input.YStartValue) / Math.Max(Model.Input.YStepValue, 0.001)) + 1) * Math.Max(1, Model.Input.RunsPerPoint))</strong>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
+        <button type="submit" class="btn btn-primary" onclick="return confirm('保存すると既存の相図結果を削除して待機中に戻します。よろしいですか？')">保存</button>
+        <a asp-page="/PhaseDiagrams/Details" asp-route-id="@Model.Input.Id" class="btn btn-outline-secondary">キャンセル</a>
+    </div>
+</form>
+
+<form method="post" asp-page-handler="Copy" asp-route-id="@Model.Input.Id" class="mt-3">
+    <button type="submit" class="btn btn-outline-success">コピーして編集</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
