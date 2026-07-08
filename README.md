@@ -30,6 +30,36 @@ This app is meant to observe organization formation as a dynamic system, not onl
 | `docs/07_実験方法.md` | 実験プロトコル |
 | `docs/08_実験結果.md` | 実験結果と考察 |
 
+## Concept
+
+本プロジェクトの基本サイクルは以下です。
+
+```mermaid
+flowchart LR
+  Question[問い]
+  Hypothesis[仮説]
+  Simulation[Simulation]
+  Visualization[可視化]
+  Interpretation[人間による解釈]
+  NextQuestion[次の問い]
+
+  Question --> Hypothesis
+  Hypothesis --> Simulation
+  Simulation --> Visualization
+  Visualization --> Interpretation
+  Interpretation --> NextQuestion
+  NextQuestion --> Question
+```
+
+## Contribution
+
+本プロジェクトは現在、個人研究として進めています。
+コードの Pull Request は当面受け付けていません。
+不具合報告、参考文献の紹介、研究上のコメントは Issue で歓迎します。
+
+## License
+ライセンスについては LICENSE を参照してください。
+
 ## Stack
 
 - ASP.NET Core 8 Razor Pages
