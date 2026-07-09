@@ -13,4 +13,4 @@
 |2026-07-xx|創発工学の行方|今後の展望|
 |2026-07-xx|AIとの協奏的ループコーディングは創発工学を加速させた|AIとの開発プロセス|
 |2026-07-xx|ゾンビ企業は、無能な組織ではない|情報共有と創発しない組織モデル|
-https://note.com/alert_murre6423/n/nd7414c20b800?sub_rt=share_b
+https://note.com/alert_murre6423/n/nd7414c20b800?sub_rt=share_b|
