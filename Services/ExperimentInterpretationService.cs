@@ -1010,6 +1010,26 @@ public sealed class PhaseDiagramExperimentSummary
     public double AverageShareInfoRate { get; init; }
     public double AverageProposeIdeaRate { get; init; }
     public double AverageCriticizeSupportRatio { get; init; }
+    public bool ThinkingSpeedModelEnabled { get; init; }
+    public double AverageThinkingSpeed { get; init; }
+    public double MinThinkingSpeed { get; init; }
+    public double MaxThinkingSpeed { get; init; }
+    public double ThinkingSpeedDispersionActual { get; init; }
+    public double OrganizationalDecisionSpeed { get; init; }
+    public double OrganizationalValidationSpeed { get; init; }
+    public double GeneratedIdeaCount { get; init; }
+    public double ProcessedIdeaCount { get; init; }
+    public double UnprocessedIdeaCount { get; init; }
+    public double GeneratedHypothesisCount { get; init; }
+    public double ValidatedHypothesisCount { get; init; }
+    public double UnvalidatedHypothesisCount { get; init; }
+    public double CognitiveLoad { get; init; }
+    public double ThinkingSpeedMismatch { get; init; }
+    public double DecisionOverloadRatio { get; init; }
+    public double ValidationOverloadRatio { get; init; }
+    public int ConsecutiveHighLoadSteps { get; init; }
+    public double ThinkingFlowBonus { get; init; }
+    public double ThinkingOverloadPenalty { get; init; }
     public double AverageRespect { get; init; }
     public double AverageIntellectualRespect { get; init; }
     public double IntellectualRespectDensity { get; init; }

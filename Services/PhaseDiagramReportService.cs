@@ -200,6 +200,11 @@ public sealed class PhaseDiagramReportService(IWebHostEnvironment webHostEnviron
         }));
 
         builder.AppendLine(BuildMetricSection(metrics));
+        builder.AppendLine(BuildProductivitySection(model));
+        if (ThinkingSpeedAnalysisService.UsesThinkingSpeedParameters(diagram.XParameterName, diagram.YParameterName))
+        {
+            builder.AppendLine(BuildThinkingSpeedSection(model));
+        }
         builder.AppendLine(BuildRegionSummarySection("創発領域", model.EmergentRegionSummary));
         builder.AppendLine(BuildRegionSummarySection("学習領域", learningRegion));
         builder.AppendLine(BuildBoundarySection(model, boundaryRegion));
@@ -249,6 +254,166 @@ public sealed class PhaseDiagramReportService(IWebHostEnvironment webHostEnviron
         builder.AppendLine("</div>");
         builder.AppendLine("</section>");
         return builder.ToString();
+    }
+
+    private static string BuildProductivitySection(EmergentEngineering.Pages.PhaseDiagrams.DetailsModel model)
+    {
+        var rows = model.PointResults
+            .OrderBy(item => item.YValue)
+            .ThenBy(item => item.XValue)
+            .ToList();
+
+        var averageManagement = rows.Count == 0 ? 0 : Math.Round(rows.Average(item => item.ManagementProductivityScore), 3);
+        var averageEmergence = rows.Count == 0 ? 0 : Math.Round(rows.Average(item => item.EmergenceProductivityScore), 3);
+        var averageInstitutionalization = rows.Count == 0 ? 0 : Math.Round(rows.Average(item => item.InstitutionalizationProductivityScore), 3);
+        var averageComposite = rows.Count == 0 ? 0 : Math.Round(rows.Average(item => item.CompositeProductivityScore), 3);
+
+        var interpretation = BuildProductivityInterpretation(averageManagement, averageEmergence, averageInstitutionalization);
+
+        var builder = new StringBuilder();
+        builder.AppendLine("<section class=\"section\">");
+        builder.AppendLine("<h2>生産性評価</h2>");
+        builder.AppendLine("<div class=\"cards\">");
+        AppendCard(builder, "平均管理生産性", FormatDouble(averageManagement));
+        AppendCard(builder, "平均創発生産性", FormatDouble(averageEmergence));
+        AppendCard(builder, "平均定着生産性", FormatDouble(averageInstitutionalization));
+        AppendCard(builder, "平均総合生産性", FormatDouble(averageComposite));
+        builder.AppendLine("</div>");
+        builder.AppendLine("<div class=\"table-wrap mt-3\">");
+        builder.AppendLine("<table>");
+        builder.AppendLine("<thead><tr><th>X</th><th>Y</th><th>Phase</th><th>管理生産性</th><th>創発生産性</th><th>定着生産性</th><th>総合生産性</th></tr></thead>");
+        builder.AppendLine("<tbody>");
+        foreach (var row in rows)
+        {
+            builder.AppendLine("<tr>");
+            builder.AppendLine($"<td>{row.XValue:0.000}</td>");
+            builder.AppendLine($"<td>{row.YValue:0.000}</td>");
+            builder.AppendLine($"<td>{Html(model.FormatPhaseDisplay(row.DominantPhase))}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.ManagementProductivityScore)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.EmergenceProductivityScore)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.InstitutionalizationProductivityScore)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.CompositeProductivityScore)}</td>");
+            builder.AppendLine("</tr>");
+        }
+        builder.AppendLine("</tbody>");
+        builder.AppendLine("</table>");
+        builder.AppendLine("</div>");
+        builder.AppendLine($"<p class=\"section-note\">{Html(interpretation)}</p>");
+        builder.AppendLine("</section>");
+        return builder.ToString();
+    }
+
+    private static string BuildProductivityInterpretation(double management, double emergence, double institutionalization)
+    {
+        if (management >= 0.65 && emergence < 0.45)
+        {
+            return "管理生産性は高い一方で創発生産性が低く、既存業務の安定運用に偏っています。";
+        }
+
+        if (emergence >= 0.65 && institutionalization < 0.45)
+        {
+            return "創発生産性は高いものの、定着生産性が低く、新しい価値を組織能力へ変換する段階に課題があります。";
+        }
+
+        if (emergence >= 0.60 && institutionalization >= 0.60)
+        {
+            return "創発生産性と定着生産性がともに高く、継続的に新しい価値を生み出す状態です。";
+        }
+
+        return "管理・創発・定着のバランスは中程度です。";
+    }
+
+    private static string BuildThinkingSpeedSection(EmergentEngineering.Pages.PhaseDiagrams.DetailsModel model)
+    {
+        var rows = model.PointResults.OrderBy(item => item.YValue).ThenBy(item => item.XValue).ToList();
+        var enabled = rows.Any(item => item.ThinkingSpeedModelEnabled);
+        var averageSpeed = rows.Count == 0 ? 0 : Math.Round(rows.Average(item => item.AverageThinkingSpeed), 3);
+        var minSpeed = rows.Count == 0 ? 0 : Math.Round(rows.Min(item => item.MinThinkingSpeed), 3);
+        var maxSpeed = rows.Count == 0 ? 0 : Math.Round(rows.Max(item => item.MaxThinkingSpeed), 3);
+        var averageLoad = rows.Count == 0 ? 0 : Math.Round(rows.Average(item => item.CognitiveLoad), 3);
+        var maxLoad = rows.Count == 0 ? 0 : Math.Round(rows.Max(item => item.CognitiveLoad), 3);
+        var averageMismatch = rows.Count == 0 ? 0 : Math.Round(rows.Average(item => item.ThinkingSpeedMismatch), 3);
+        var maxMismatch = rows.Count == 0 ? 0 : Math.Round(rows.Max(item => item.ThinkingSpeedMismatch), 3);
+        var averageFlowBonus = rows.Count == 0 ? 0 : Math.Round(rows.Average(item => item.ThinkingFlowBonus), 3);
+        var averageOverloadPenalty = rows.Count == 0 ? 0 : Math.Round(rows.Average(item => item.ThinkingOverloadPenalty), 3);
+        var maxHighLoadSteps = rows.Count == 0 ? 0 : rows.Max(item => item.ConsecutiveHighLoadSteps);
+        var interpretation = BuildThinkingSpeedInterpretation(enabled, averageSpeed, averageLoad, averageMismatch, maxHighLoadSteps);
+
+        var builder = new StringBuilder();
+        builder.AppendLine("<section class=\"section\">");
+        builder.AppendLine("<h2>思考速度と組織処理負荷</h2>");
+        builder.AppendLine("<div class=\"cards\">");
+        AppendCard(builder, "思考速度モデル", enabled ? "有効" : "無効");
+        AppendCard(builder, "平均思考速度", FormatDouble(averageSpeed));
+        AppendCard(builder, "最小思考速度", FormatDouble(minSpeed));
+        AppendCard(builder, "最大思考速度", FormatDouble(maxSpeed));
+        AppendCard(builder, "平均認知負荷", FormatDouble(averageLoad));
+        AppendCard(builder, "最大認知負荷", FormatDouble(maxLoad));
+        AppendCard(builder, "平均ミスマッチ", FormatDouble(averageMismatch));
+        AppendCard(builder, "最大ミスマッチ", FormatDouble(maxMismatch));
+        AppendCard(builder, "平均Flow Bonus", FormatDouble(averageFlowBonus));
+        AppendCard(builder, "平均Overload Penalty", FormatDouble(averageOverloadPenalty));
+        AppendCard(builder, "最大連続高負荷Step数", maxHighLoadSteps.ToString(CultureInfo.InvariantCulture));
+        builder.AppendLine("</div>");
+        builder.AppendLine("<div class=\"table-wrap mt-3\">");
+        builder.AppendLine("<table>");
+        builder.AppendLine("<thead><tr><th>X</th><th>Y</th><th>Phase</th><th>有効</th><th>平均思考速度</th><th>最小</th><th>最大</th><th>分散</th><th>意思決定速度</th><th>検証速度</th><th>生成提案</th><th>処理済み提案</th><th>未処理提案</th><th>生成仮説</th><th>検証済み仮説</th><th>未検証仮説</th><th>認知負荷</th><th>ミスマッチ</th><th>Flow Bonus</th><th>Overload Penalty</th><th>連続高負荷</th></tr></thead>");
+        builder.AppendLine("<tbody>");
+        foreach (var row in rows)
+        {
+            builder.AppendLine("<tr>");
+            builder.AppendLine($"<td>{row.XValue:0.000}</td>");
+            builder.AppendLine($"<td>{row.YValue:0.000}</td>");
+            builder.AppendLine($"<td>{Html(model.FormatPhaseDisplay(row.DominantPhase))}</td>");
+            builder.AppendLine($"<td>{(row.ThinkingSpeedModelEnabled ? "有効" : "無効")}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.AverageThinkingSpeed)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.MinThinkingSpeed)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.MaxThinkingSpeed)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.ThinkingSpeedDispersionActual)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.OrganizationalDecisionSpeed)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.OrganizationalValidationSpeed)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.GeneratedIdeaCount)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.ProcessedIdeaCount)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.UnprocessedIdeaCount)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.GeneratedHypothesisCount)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.ValidatedHypothesisCount)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.UnvalidatedHypothesisCount)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.CognitiveLoad)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.ThinkingSpeedMismatch)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.ThinkingFlowBonus)}</td>");
+            builder.AppendLine($"<td>{FormatDouble(row.ThinkingOverloadPenalty)}</td>");
+            builder.AppendLine($"<td>{row.ConsecutiveHighLoadSteps}</td>");
+            builder.AppendLine("</tr>");
+        }
+        builder.AppendLine("</tbody>");
+        builder.AppendLine("</table>");
+        builder.AppendLine("</div>");
+        builder.AppendLine($"<p class=\"section-note\">{Html(interpretation)}</p>");
+        builder.AppendLine("</section>");
+        return builder.ToString();
+    }
+
+    private static string BuildThinkingSpeedInterpretation(bool enabled, double averageSpeed, double averageLoad, double averageMismatch, int maxHighLoadSteps)
+    {
+        if (!enabled)
+        {
+            return "思考速度モデルは無効です。既存の相図・レポート結果に影響しません。";
+        }
+
+        var message = averageSpeed > 1.0 && averageLoad < 0.4 && averageMismatch < 0.3
+            ? "思考速度と組織の処理能力が概ね釣り合っており、提案と仮説が学習や創発に変換されています。"
+            : averageLoad >= 0.7
+                ? "未処理提案や未検証仮説が蓄積しやすい状態です。意思決定と検証の処理能力が追いついていません。"
+                : averageMismatch >= 0.6
+                    ? "エージェント間の思考速度差が大きく、説明負荷や理解速度の差が摩擦につながっています。"
+                    : "思考速度と組織処理能力は概ね安定しています。";
+
+        if (maxHighLoadSteps >= 3)
+        {
+            message += " 高負荷が連続しているため、遅延の蓄積に注意してください。";
+        }
+
+        return message;
     }
 
     private static string BuildRegionSummarySection(string title, PhaseDiagramRegionSummary summary)

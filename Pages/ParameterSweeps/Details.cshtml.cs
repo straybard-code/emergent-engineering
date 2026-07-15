@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text;
+using System.Globalization;
 using EmergentEngineering.Data;
 using EmergentEngineering.Models;
 using EmergentEngineering.Services;
@@ -14,7 +15,8 @@ public sealed class DetailsModel(
     ParameterSweepRunner sweepRunner,
     ExperimentInterpretationService interpretationService,
     ExperimentCleanupService cleanupService,
-    ParameterSweepReportService reportService) : PageModel
+    ParameterSweepReportService reportService,
+    ProductivityEvaluationService productivityEvaluationService) : PageModel
 {
     [TempData]
     public string? SweepMessage { get; set; }
@@ -36,6 +38,9 @@ public sealed class DetailsModel(
     public List<ImpactPathNode> ImpactPathNodes { get; private set; } = [];
     public List<SensitivityRankingRow> SensitivityRanking { get; private set; } = [];
     public Dictionary<int, string> ExperimentNames { get; private set; } = [];
+    public ProductivityEvaluation? ProductivityEvaluation { get; private set; }
+    public List<ParameterSweepSummaryCard> ThinkingSpeedSummaryCards { get; private set; } = [];
+    public string ThinkingSpeedInterpretation { get; private set; } = "--";
     public string MaxAverageTrustSummary { get; private set; } = "--";
     public string MaxEffectiveDensitySummary { get; private set; } = "--";
     public string MaxEmergentRateSummary { get; private set; } = "--";
@@ -192,10 +197,18 @@ public sealed class DetailsModel(
             .ToList();
 
         AnalysisPoints = await BuildAnalysisPointsAsync();
+        ProductivityEvaluation = AnalysisPoints.Count == 0
+            ? null
+            : productivityEvaluationService.Average(
+                AnalysisPoints.Select(point => productivityEvaluationService.CreateEvaluation(
+                    point.ManagementProductivityScore,
+                    point.EmergenceProductivityScore,
+                    point.InstitutionalizationProductivityScore)));
         BuildSweepSummaries();
         BuildImpactPathAnalysis();
         BuildSensitivityRanking();
         BuildDashboardSummary();
+        BuildThinkingSpeedSummary();
 
         var interpretation = interpretationService.BuildParameterSweepInterpretation(AnalysisPoints);
         SummaryCards = interpretation.SummaryCards;
@@ -453,7 +466,7 @@ public sealed class DetailsModel(
         return points;
     }
 
-    private static ParameterSweepAnalysisPoint BuildAnalysisPoint(
+    private ParameterSweepAnalysisPoint BuildAnalysisPoint(
         double parameterValue,
         IReadOnlyCollection<ProjectAnalysisResult> analyses,
         IReadOnlyCollection<ExperimentRun> runs)
@@ -463,6 +476,8 @@ public sealed class DetailsModel(
         var stableRunCount = runs.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Stable, StringComparison.OrdinalIgnoreCase));
         var learningRunCount = runs.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Learning, StringComparison.OrdinalIgnoreCase));
         var siloRunCount = runs.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Silo, StringComparison.OrdinalIgnoreCase));
+        var chaosRunCount = runs.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Chaos, StringComparison.OrdinalIgnoreCase));
+        var collapseRunCount = runs.Count(item => string.Equals(item.FinalPhase, SimulationPhase.Collapse, StringComparison.OrdinalIgnoreCase));
         var trustInsufficientRunCount = 0;
         var effectiveDensityInsufficientRunCount = 0;
         var strongLinkInsufficientRunCount = 0;
@@ -531,6 +546,39 @@ public sealed class DetailsModel(
                 .First()
                 .Reason;
         var mostCommonPipelineBottleneck = BuildMostCommonPipelineBottleneck(pipelineBottlenecks);
+        var managementScore = productivityEvaluationService.Evaluate(new ProductivityIndicators
+        {
+            PipelineCompletionScore = RoundAverage(analyses.Select(item => item.AveragePipelineCompletionScore)),
+            EffectiveDensity = analyses.Count == 0 ? null : analyses.Average(item => item.Metrics.EffectiveNetworkDensity),
+            ChaosRate = totalRunCount == 0 ? null : chaosRunCount / (double)totalRunCount,
+            CollapseRate = totalRunCount == 0 ? null : collapseRunCount / (double)totalRunCount,
+            SiloRate = totalRunCount == 0 ? null : siloRunCount / (double)totalRunCount
+        }).ManagementProductivityScore;
+        var emergenceScore = productivityEvaluationService.Evaluate(new ProductivityIndicators
+        {
+            KnowledgeReconfigurationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeReconfigurationScore)),
+            KnowledgeRecombinationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeRecombinationScore)),
+            SerendipityScore = RoundAverage(analyses.Select(item => item.AverageSerendipityScore)),
+            ExplorationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeDiversity)),
+            CrossDomainExposure = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.CrossDomainExposure ?? 0)),
+            ChallengeAcceptanceScore = RoundAverage(analyses.Select(item => item.AverageChallengeAcceptanceScore)),
+            EmergentRate = totalRunCount == 0 ? null : emergentRunCount / (double)totalRunCount
+        }).EmergenceProductivityScore;
+        var institutionalizationScore = productivityEvaluationService.Evaluate(new ProductivityIndicators
+        {
+            LearningScore = RoundAverage(analyses.Select(item => item.AverageLearningScore)),
+            AdaptationScore = RoundAverage(analyses.Select(item => item.AverageAdaptationScore)),
+            PipelineCompletionScore = RoundAverage(analyses.Select(item => item.AveragePipelineCompletionScore)),
+            AverageTrust = analyses.Count == 0 ? null : analyses.Average(item => item.Metrics.AverageTrust),
+            EffectiveDensity = analyses.Count == 0 ? null : analyses.Average(item => item.Metrics.EffectiveNetworkDensity),
+            AverageRespect = RoundAverage(analyses.Select(item => item.AverageRespect)),
+            AverageIntellectualRespect = RoundAverage(analyses.Select(item => item.AverageIntellectualRespect)),
+            MutualMentorshipScore = RoundAverage(analyses.Select(item => item.MutualMentorshipScore))
+        }).InstitutionalizationProductivityScore;
+        var productivityEvaluation = productivityEvaluationService.CreateEvaluation(
+            managementScore,
+            emergenceScore,
+            institutionalizationScore);
 
         return new ParameterSweepAnalysisPoint
         {
@@ -545,11 +593,35 @@ public sealed class DetailsModel(
             AverageKnowledgeDiversity = RoundAverage(analyses.Select(item => item.AverageKnowledgeDiversity)),
             AverageKnowledgeRecombinationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeRecombinationScore)),
             AverageKnowledgeReconfigurationScore = RoundAverage(analyses.Select(item => item.AverageKnowledgeReconfigurationScore)),
+            ThinkingSpeedModelEnabled = analyses.Any(item => item.ThinkingSpeedModelEnabled),
+            AverageThinkingSpeed = RoundAverage(analyses.Select(item => item.AverageThinkingSpeed)),
+            MinThinkingSpeed = analyses.Count == 0 ? 0 : Math.Round(analyses.Min(item => item.MinThinkingSpeed), 3),
+            MaxThinkingSpeed = analyses.Count == 0 ? 0 : Math.Round(analyses.Max(item => item.MaxThinkingSpeed), 3),
+            ThinkingSpeedDispersionActual = RoundAverage(analyses.Select(item => item.ThinkingSpeedDispersionActual)),
+            OrganizationalDecisionSpeed = RoundAverage(analyses.Select(item => item.OrganizationalDecisionSpeed)),
+            OrganizationalValidationSpeed = RoundAverage(analyses.Select(item => item.OrganizationalValidationSpeed)),
+            GeneratedIdeaCount = RoundAverage(analyses.Select(item => item.GeneratedIdeaCount)),
+            ProcessedIdeaCount = RoundAverage(analyses.Select(item => item.ProcessedIdeaCount)),
+            UnprocessedIdeaCount = RoundAverage(analyses.Select(item => item.UnprocessedIdeaCount)),
+            GeneratedHypothesisCount = RoundAverage(analyses.Select(item => item.GeneratedHypothesisCount)),
+            ValidatedHypothesisCount = RoundAverage(analyses.Select(item => item.ValidatedHypothesisCount)),
+            UnvalidatedHypothesisCount = RoundAverage(analyses.Select(item => item.UnvalidatedHypothesisCount)),
+            CognitiveLoad = RoundAverage(analyses.Select(item => item.CognitiveLoad)),
+            ThinkingSpeedMismatch = RoundAverage(analyses.Select(item => item.ThinkingSpeedMismatch)),
+            DecisionOverloadRatio = RoundAverage(analyses.Select(item => item.DecisionOverloadRatio)),
+            ValidationOverloadRatio = RoundAverage(analyses.Select(item => item.ValidationOverloadRatio)),
+            ConsecutiveHighLoadSteps = analyses.Count == 0 ? 0 : analyses.Max(item => item.ConsecutiveHighLoadSteps),
+            ThinkingFlowBonus = RoundAverage(analyses.Select(item => item.ThinkingFlowBonus)),
+            ThinkingOverloadPenalty = RoundAverage(analyses.Select(item => item.ThinkingOverloadPenalty)),
             AverageIntellectualRespect = RoundAverage(analyses.Select(item => item.AverageIntellectualRespect)),
             IntellectualRespectDensity = RoundAverage(analyses.Select(item => item.IntellectualRespectDensity)),
             IntellectualRespectDiversityIndex = RoundAverage(analyses.Select(item => item.IntellectualRespectDiversityIndex)),
             IntellectualRespectConcentration = RoundAverage(analyses.Select(item => item.IntellectualRespectConcentration)),
             MutualMentorshipScore = RoundAverage(analyses.Select(item => item.MutualMentorshipScore)),
+            ManagementProductivityScore = productivityEvaluation.ManagementProductivityScore,
+            EmergenceProductivityScore = productivityEvaluation.EmergenceProductivityScore,
+            InstitutionalizationProductivityScore = productivityEvaluation.InstitutionalizationProductivityScore,
+            CompositeProductivityScore = productivityEvaluation.CompositeProductivityScore,
             IdeaAcceptanceScore = RoundAverage(analyses.Select(item => item.IdeaAcceptanceScore)),
             AverageEmergentScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.EmergentScore ?? 0)),
             AverageStableScore = RoundAverage(analyses.Select(item => item.FinalKnowledgePoint?.StableScore ?? 0)),
@@ -612,6 +684,64 @@ public sealed class DetailsModel(
         var averageKnowledgeReconfigurationScore = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.KnowledgeReconfigurationScore), 3);
+        var thinkingSpeedModelEnabled = knowledgeTimeline.Any(item => item.ThinkingSpeedModelEnabled);
+        var averageThinkingSpeed = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.AverageThinkingSpeed), 3);
+        var minThinkingSpeed = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Min(item => item.MinThinkingSpeed), 3);
+        var maxThinkingSpeed = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Max(item => item.MaxThinkingSpeed), 3);
+        var thinkingSpeedDispersionActual = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ThinkingSpeedDispersionActual), 3);
+        var organizationalDecisionSpeed = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.OrganizationalDecisionSpeed), 3);
+        var organizationalValidationSpeed = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.OrganizationalValidationSpeed), 3);
+        var generatedIdeaCount = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.GeneratedIdeaCount), 3);
+        var processedIdeaCount = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ProcessedIdeaCount), 3);
+        var unprocessedIdeaCount = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.UnprocessedIdeaCount), 3);
+        var generatedHypothesisCount = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.GeneratedHypothesisCount), 3);
+        var validatedHypothesisCount = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ValidatedHypothesisCount), 3);
+        var unvalidatedHypothesisCount = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.UnvalidatedHypothesisCount), 3);
+        var cognitiveLoad = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.CognitiveLoad), 3);
+        var thinkingSpeedMismatch = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ThinkingSpeedMismatch), 3);
+        var decisionOverloadRatio = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.DecisionOverloadRatio), 3);
+        var validationOverloadRatio = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ValidationOverloadRatio), 3);
+        var consecutiveHighLoadSteps = knowledgeTimeline.Count == 0
+            ? 0
+            : knowledgeTimeline.Max(item => item.ConsecutiveHighLoadSteps);
+        var thinkingFlowBonus = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ThinkingFlowBonus), 3);
+        var thinkingOverloadPenalty = knowledgeTimeline.Count == 0
+            ? 0
+            : Math.Round(knowledgeTimeline.Average(item => item.ThinkingOverloadPenalty), 3);
         var averageRespect = knowledgeTimeline.Count == 0
             ? 0
             : Math.Round(knowledgeTimeline.Average(item => item.AverageRespect), 3);
@@ -701,6 +831,26 @@ public sealed class DetailsModel(
             AverageKnowledgeDiversity = averageKnowledgeDiversity,
             AverageKnowledgeRecombinationScore = averageKnowledgeRecombinationScore,
             AverageKnowledgeReconfigurationScore = averageKnowledgeReconfigurationScore,
+            ThinkingSpeedModelEnabled = thinkingSpeedModelEnabled,
+            AverageThinkingSpeed = averageThinkingSpeed,
+            MinThinkingSpeed = minThinkingSpeed,
+            MaxThinkingSpeed = maxThinkingSpeed,
+            ThinkingSpeedDispersionActual = thinkingSpeedDispersionActual,
+            OrganizationalDecisionSpeed = organizationalDecisionSpeed,
+            OrganizationalValidationSpeed = organizationalValidationSpeed,
+            GeneratedIdeaCount = generatedIdeaCount,
+            ProcessedIdeaCount = processedIdeaCount,
+            UnprocessedIdeaCount = unprocessedIdeaCount,
+            GeneratedHypothesisCount = generatedHypothesisCount,
+            ValidatedHypothesisCount = validatedHypothesisCount,
+            UnvalidatedHypothesisCount = unvalidatedHypothesisCount,
+            CognitiveLoad = cognitiveLoad,
+            ThinkingSpeedMismatch = thinkingSpeedMismatch,
+            DecisionOverloadRatio = decisionOverloadRatio,
+            ValidationOverloadRatio = validationOverloadRatio,
+            ConsecutiveHighLoadSteps = consecutiveHighLoadSteps,
+            ThinkingFlowBonus = thinkingFlowBonus,
+            ThinkingOverloadPenalty = thinkingOverloadPenalty,
             AverageRespect = averageRespect,
             AverageIntellectualRespect = averageIntellectualRespect,
             IntellectualRespectDensity = intellectualRespectDensity,
@@ -984,6 +1134,82 @@ public sealed class DetailsModel(
         {
             RecommendedInterpretation = "このデータには創発パイプライン情報が含まれていません。新しくスイープを実行すると表示されます。";
             PrimaryConclusionMessage = "このデータには創発パイプライン情報が含まれていません。新しくスイープを実行すると表示されます。";
+        }
+    }
+
+    private void BuildThinkingSpeedSummary()
+    {
+        if (AnalysisPoints.Count == 0)
+        {
+            ThinkingSpeedSummaryCards = [];
+            ThinkingSpeedInterpretation = "このスイープには思考速度データがまだありません。";
+            return;
+        }
+
+        var modelEnabled = AnalysisPoints.Any(item => item.ThinkingSpeedModelEnabled);
+        var averageThinkingSpeed = AnalysisPoints.Average(item => item.AverageThinkingSpeed);
+        var minThinkingSpeed = AnalysisPoints.Min(item => item.MinThinkingSpeed);
+        var maxThinkingSpeed = AnalysisPoints.Max(item => item.MaxThinkingSpeed);
+        var thinkingSpeedDispersion = AnalysisPoints.Average(item => item.ThinkingSpeedDispersionActual);
+        var decisionSpeed = AnalysisPoints.Average(item => item.OrganizationalDecisionSpeed);
+        var validationSpeed = AnalysisPoints.Average(item => item.OrganizationalValidationSpeed);
+        var cognitiveLoad = AnalysisPoints.Average(item => item.CognitiveLoad);
+        var thinkingSpeedMismatch = AnalysisPoints.Average(item => item.ThinkingSpeedMismatch);
+        var unprocessedIdeaCount = AnalysisPoints.Average(item => item.UnprocessedIdeaCount);
+        var unvalidatedHypothesisCount = AnalysisPoints.Average(item => item.UnvalidatedHypothesisCount);
+        var consecutiveHighLoadSteps = AnalysisPoints.Max(item => item.ConsecutiveHighLoadSteps);
+        var thinkingFlowBonus = AnalysisPoints.Average(item => item.ThinkingFlowBonus);
+        var thinkingOverloadPenalty = AnalysisPoints.Average(item => item.ThinkingOverloadPenalty);
+
+        ThinkingSpeedSummaryCards =
+        [
+            new() { Label = "思考速度モデル", Value = modelEnabled ? "有効" : "無効" },
+            new() { Label = "平均思考速度", Value = averageThinkingSpeed.ToString("0.000") },
+            new() { Label = "最小思考速度", Value = minThinkingSpeed.ToString("0.000") },
+            new() { Label = "最大思考速度", Value = maxThinkingSpeed.ToString("0.000") },
+            new() { Label = "思考速度のばらつき", Value = thinkingSpeedDispersion.ToString("0.000") },
+            new() { Label = "組織の意思決定速度", Value = decisionSpeed.ToString("0.000") },
+            new() { Label = "組織の検証速度", Value = validationSpeed.ToString("0.000") },
+            new() { Label = "認知負荷", Value = cognitiveLoad.ToString("0.000") },
+            new() { Label = "思考速度ミスマッチ", Value = thinkingSpeedMismatch.ToString("0.000") },
+            new() { Label = "未処理提案", Value = unprocessedIdeaCount.ToString("0.000") },
+            new() { Label = "未検証仮説", Value = unvalidatedHypothesisCount.ToString("0.000") },
+            new() { Label = "最大連続高負荷Step", Value = consecutiveHighLoadSteps.ToString(CultureInfo.InvariantCulture) }
+        ];
+
+        if (modelEnabled && averageThinkingSpeed > 1.0 && cognitiveLoad <= 0.60 && thinkingSpeedMismatch <= 0.35 && decisionSpeed >= averageThinkingSpeed * 0.80 && validationSpeed >= averageThinkingSpeed * 0.80)
+        {
+            ThinkingSpeedInterpretation = "思考生成速度と組織の意思決定・検証速度が概ね釣り合っています。高い思考速度が学習と創発へ変換されています。";
+        }
+        else if (unprocessedIdeaCount > unvalidatedHypothesisCount && averageThinkingSpeed > decisionSpeed)
+        {
+            ThinkingSpeedInterpretation = "提案生成速度が意思決定速度を上回り、未処理提案が蓄積しています。";
+        }
+        else if (unvalidatedHypothesisCount >= unprocessedIdeaCount && averageThinkingSpeed > validationSpeed)
+        {
+            ThinkingSpeedInterpretation = "仮説生成に対して検証速度が不足しています。";
+        }
+        else if (thinkingSpeedDispersion >= 0.35)
+        {
+            ThinkingSpeedInterpretation = "エージェント間の思考速度差が大きく、理解速度や説明負荷の差が摩擦につながっています。";
+        }
+        else if (averageThinkingSpeed > 1.0 && cognitiveLoad >= 0.55)
+        {
+            ThinkingSpeedInterpretation = "思考速度は高いものの、提案と仮説の処理負荷が高まっています。";
+        }
+        else
+        {
+            ThinkingSpeedInterpretation = "思考速度と組織処理能力は概ね安定しています。";
+        }
+
+        if (consecutiveHighLoadSteps >= 3)
+        {
+            ThinkingSpeedInterpretation += " 高負荷が連続しているため、処理遅延の蓄積に注意してください。";
+        }
+
+        if (thinkingFlowBonus > thinkingOverloadPenalty)
+        {
+            ThinkingSpeedInterpretation += " 速度条件は流れを生み、学習や探索の後押しになっています。";
         }
     }
 
@@ -1617,6 +1843,26 @@ public sealed class DetailsModel(
         public double AverageKnowledgeDiversity { get; init; }
         public double AverageKnowledgeRecombinationScore { get; init; }
         public double AverageKnowledgeReconfigurationScore { get; init; }
+        public bool ThinkingSpeedModelEnabled { get; init; }
+        public double AverageThinkingSpeed { get; init; }
+        public double MinThinkingSpeed { get; init; }
+        public double MaxThinkingSpeed { get; init; }
+        public double ThinkingSpeedDispersionActual { get; init; }
+        public double OrganizationalDecisionSpeed { get; init; }
+        public double OrganizationalValidationSpeed { get; init; }
+        public double GeneratedIdeaCount { get; init; }
+        public double ProcessedIdeaCount { get; init; }
+        public double UnprocessedIdeaCount { get; init; }
+        public double GeneratedHypothesisCount { get; init; }
+        public double ValidatedHypothesisCount { get; init; }
+        public double UnvalidatedHypothesisCount { get; init; }
+        public double CognitiveLoad { get; init; }
+        public double ThinkingSpeedMismatch { get; init; }
+        public double DecisionOverloadRatio { get; init; }
+        public double ValidationOverloadRatio { get; init; }
+        public int ConsecutiveHighLoadSteps { get; init; }
+        public double ThinkingFlowBonus { get; init; }
+        public double ThinkingOverloadPenalty { get; init; }
         public double AverageRespect { get; init; }
         public double AverageIntellectualRespect { get; init; }
         public double IntellectualRespectDensity { get; init; }

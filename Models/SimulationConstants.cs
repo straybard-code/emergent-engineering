@@ -151,6 +151,75 @@ public static class IntellectualRespectDefaults
     public const double HierarchyPenalty = 0.20;
 }
 
+public static class ThinkingSpeedDefaults
+{
+    public const bool EnableThinkingSpeedModel = false;
+    public const double ThinkingSpeedBase = 1.0;
+    public const double ThinkingSpeedDispersion = 0.0;
+    public const double OrganizationalDecisionSpeed = 1.0;
+    public const double OrganizationalValidationSpeed = 1.0;
+}
+
+public static class ThinkingSpeedConstants
+{
+    public const double MinThinkingSpeed = 0.1;
+    public const double MaxThinkingSpeed = 30.0;
+    public const double MinThinkingCapacityMultiplier = 0.5;
+    public const double MaxThinkingCapacityMultiplier = 6.0;
+    public const double DecisionCapacityScale = 1.0;
+    public const double ValidationCapacityScale = 1.0;
+    public const double CognitiveLoadScale = 1.0;
+    public const double BacklogCapPerAgent = 6.0;
+    public const double HighLoadThreshold = 0.70;
+    public const int HighLoadConsecutiveThreshold = 3;
+    public const double MismatchDispersionWeight = 0.40;
+    public const double MismatchDecisionWeight = 0.30;
+    public const double MismatchValidationWeight = 0.30;
+    public const double FlowBonusMax = 0.12;
+    public const double FlowBonusLowLoadThreshold = 0.55;
+    public const double FlowBonusLowMismatchThreshold = 0.30;
+    public const double FlowBonusAverageSpeedThreshold = 1.0;
+    public const double FlowBonusDecisionCoverageThreshold = 0.80;
+    public const double FlowBonusValidationCoverageThreshold = 0.80;
+    public const double FlowBonusTrustThreshold = 0.30;
+    public const double FlowBonusPsychologicalSafetyThreshold = 0.40;
+    public const double FlowBonusInformationSharingThreshold = 0.35;
+    public const double OverloadPenaltyMax = 0.15;
+    public const double OverloadPenaltyHighLoadThreshold = 0.70;
+    public const double OverloadPenaltyMismatchThreshold = 0.45;
+    public const int OverloadPenaltyConsecutiveThreshold = 3;
+    public const double FlowExplorationWeight = 0.24;
+    public const double FlowSerendipityWeight = 0.24;
+    public const double FlowRecombinationWeight = 0.24;
+    public const double FlowLearningWeight = 0.16;
+    public const double FlowEmergentWeight = 0.12;
+    public const double OverloadLearningWeight = 0.20;
+    public const double OverloadAdaptationWeight = 0.18;
+    public const double OverloadEmergentWeight = 0.18;
+    public const double OverloadSiloWeight = 0.22;
+    public const double OverloadChaosWeight = 0.22;
+}
+
+public static class ThinkingSpeedActionWeights
+{
+    public const double ProposeIdeaIdea = 1.00;
+    public const double ProposeIdeaHypothesis = 0.70;
+    public const double ShareInfoIdea = 0.60;
+    public const double ShareInfoHypothesis = 0.35;
+    public const double AskHelpIdea = 0.25;
+    public const double AskHelpHypothesis = 0.60;
+    public const double CriticizeIdea = 0.15;
+    public const double CriticizeHypothesis = 0.90;
+    public const double SupportOtherIdea = 0.20;
+    public const double SupportOtherHypothesis = 0.20;
+    public const double SupportOtherLoadRelief = 0.06;
+    public const double WorkAloneIdea = 0.40;
+    public const double WorkAloneHypothesis = 0.75;
+    public const double WaitIdea = 0.05;
+    public const double WaitHypothesis = 0.05;
+    public const double WaitLoadRelief = 0.10;
+}
+
 public static class ThanksCoinTypes
 {
     public const string Help = "Help";

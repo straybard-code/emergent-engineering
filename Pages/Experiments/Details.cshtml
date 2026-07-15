@@ -337,6 +337,52 @@
             <p class="text-muted small mb-0">Run ごとに、敬意・感謝の内訳と、創発への寄与を俯瞰します。</p>
         </div>
     </div>
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">生産性評価</h2>
+            <p class="text-muted small mb-0">配下の Simulation 結果を平均して、管理・創発・定着の3軸で評価します。</p>
+        </div>
+    </div>
+    @if (Model.ProductivityEvaluation is null)
+    {
+        <p class="text-muted mb-0">まだ生産性評価を表示できる Run はありません。</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均管理生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.ManagementProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均創発生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.EmergenceProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均定着生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.InstitutionalizationProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均総合生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.CompositeProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+        </div>
+        <div class="border rounded p-3 bg-light">
+            <div class="small text-muted mb-1">代表的な解釈</div>
+            <div>@Model.ProductivityEvaluation.Interpretation</div>
+        </div>
+    }
+</section>
+
     @if (Model.RunFingerprints.Count == 0)
     {
         <p class="text-muted mb-0">まだ Thanks Coin 集計を表示できる Run はありません。</p>

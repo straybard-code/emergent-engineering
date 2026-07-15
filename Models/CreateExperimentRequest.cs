@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmergentEngineering.Models;
 
-public sealed class CreateExperimentRequest : IThanksCoinSettings, IMutualRespectSettings, IIntellectualRespectSettings, IValidatableObject
+public sealed class CreateExperimentRequest : IThanksCoinSettings, IMutualRespectSettings, IIntellectualRespectSettings, IThinkingSpeedSettings, IValidatableObject
 {
     [Required]
     [StringLength(200)]
@@ -203,6 +203,20 @@ public sealed class CreateExperimentRequest : IThanksCoinSettings, IMutualRespec
     public double IntellectualRespectMentorshipSensitivity { get; set; } = IntellectualRespectDefaults.MentorshipSensitivity;
     public double IntellectualRespectEgoPenalty { get; set; } = IntellectualRespectDefaults.EgoPenalty;
     public double IntellectualRespectHierarchyPenalty { get; set; } = IntellectualRespectDefaults.HierarchyPenalty;
+
+    public bool EnableThinkingSpeedModel { get; set; } = ThinkingSpeedDefaults.EnableThinkingSpeedModel;
+
+    [Range(0.1, 30.0)]
+    public double ThinkingSpeedBase { get; set; } = ThinkingSpeedDefaults.ThinkingSpeedBase;
+
+    [Range(0.0, 1.0)]
+    public double ThinkingSpeedDispersion { get; set; } = ThinkingSpeedDefaults.ThinkingSpeedDispersion;
+
+    [Range(0.1, 30.0)]
+    public double OrganizationalDecisionSpeed { get; set; } = ThinkingSpeedDefaults.OrganizationalDecisionSpeed;
+
+    [Range(0.1, 30.0)]
+    public double OrganizationalValidationSpeed { get; set; } = ThinkingSpeedDefaults.OrganizationalValidationSpeed;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

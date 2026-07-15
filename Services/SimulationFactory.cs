@@ -132,6 +132,11 @@ public static class SimulationFactory
             IntellectualRespectMentorshipSensitivity = request.IntellectualRespectMentorshipSensitivity,
             IntellectualRespectEgoPenalty = request.IntellectualRespectEgoPenalty,
             IntellectualRespectHierarchyPenalty = request.IntellectualRespectHierarchyPenalty,
+            EnableThinkingSpeedModel = request.EnableThinkingSpeedModel,
+            ThinkingSpeedBase = request.ThinkingSpeedBase,
+            ThinkingSpeedDispersion = request.ThinkingSpeedDispersion,
+            OrganizationalDecisionSpeed = request.OrganizationalDecisionSpeed,
+            OrganizationalValidationSpeed = request.OrganizationalValidationSpeed,
             CurrentStep = 0,
             Status = SimulationStatus.Created,
             Phase = SimulationPhase.Forming,
@@ -229,6 +234,11 @@ public static class SimulationFactory
             IntellectualRespectMentorshipSensitivity = request.IntellectualRespectMentorshipSensitivity,
             IntellectualRespectEgoPenalty = request.IntellectualRespectEgoPenalty,
             IntellectualRespectHierarchyPenalty = request.IntellectualRespectHierarchyPenalty,
+            EnableThinkingSpeedModel = request.EnableThinkingSpeedModel,
+            ThinkingSpeedBase = request.ThinkingSpeedBase,
+            ThinkingSpeedDispersion = request.ThinkingSpeedDispersion,
+            OrganizationalDecisionSpeed = request.OrganizationalDecisionSpeed,
+            OrganizationalValidationSpeed = request.OrganizationalValidationSpeed,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -313,6 +323,11 @@ public static class SimulationFactory
             IntellectualRespectMentorshipSensitivity = scenario.IntellectualRespectMentorshipSensitivity,
             IntellectualRespectEgoPenalty = scenario.IntellectualRespectEgoPenalty,
             IntellectualRespectHierarchyPenalty = scenario.IntellectualRespectHierarchyPenalty,
+            EnableThinkingSpeedModel = scenario.EnableThinkingSpeedModel,
+            ThinkingSpeedBase = scenario.ThinkingSpeedBase,
+            ThinkingSpeedDispersion = scenario.ThinkingSpeedDispersion,
+            OrganizationalDecisionSpeed = scenario.OrganizationalDecisionSpeed,
+            OrganizationalValidationSpeed = scenario.OrganizationalValidationSpeed,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -393,6 +408,11 @@ public static class SimulationFactory
             IntellectualRespectMentorshipSensitivity = request.IntellectualRespectMentorshipSensitivity,
             IntellectualRespectEgoPenalty = request.IntellectualRespectEgoPenalty,
             IntellectualRespectHierarchyPenalty = request.IntellectualRespectHierarchyPenalty,
+            EnableThinkingSpeedModel = request.EnableThinkingSpeedModel,
+            ThinkingSpeedBase = request.ThinkingSpeedBase,
+            ThinkingSpeedDispersion = request.ThinkingSpeedDispersion,
+            OrganizationalDecisionSpeed = request.OrganizationalDecisionSpeed,
+            OrganizationalValidationSpeed = request.OrganizationalValidationSpeed,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
@@ -466,7 +486,12 @@ public static class SimulationFactory
             IntellectualRespectChallengeSensitivity = experiment.IntellectualRespectChallengeSensitivity,
             IntellectualRespectMentorshipSensitivity = experiment.IntellectualRespectMentorshipSensitivity,
             IntellectualRespectEgoPenalty = experiment.IntellectualRespectEgoPenalty,
-            IntellectualRespectHierarchyPenalty = experiment.IntellectualRespectHierarchyPenalty
+            IntellectualRespectHierarchyPenalty = experiment.IntellectualRespectHierarchyPenalty,
+            EnableThinkingSpeedModel = experiment.EnableThinkingSpeedModel,
+            ThinkingSpeedBase = experiment.ThinkingSpeedBase,
+            ThinkingSpeedDispersion = experiment.ThinkingSpeedDispersion,
+            OrganizationalDecisionSpeed = experiment.OrganizationalDecisionSpeed,
+            OrganizationalValidationSpeed = experiment.OrganizationalValidationSpeed
         });
 
         project.ExperimentId = experiment.Id;

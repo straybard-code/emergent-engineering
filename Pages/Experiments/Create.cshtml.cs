@@ -189,7 +189,12 @@ public sealed class CreateModel(AppDbContext db) : PageModel
             IntellectualRespectChallengeSensitivity = scenario.IntellectualRespectChallengeSensitivity,
             IntellectualRespectMentorshipSensitivity = scenario.IntellectualRespectMentorshipSensitivity,
             IntellectualRespectEgoPenalty = scenario.IntellectualRespectEgoPenalty,
-            IntellectualRespectHierarchyPenalty = scenario.IntellectualRespectHierarchyPenalty
+            IntellectualRespectHierarchyPenalty = scenario.IntellectualRespectHierarchyPenalty,
+            EnableThinkingSpeedModel = scenario.EnableThinkingSpeedModel,
+            ThinkingSpeedBase = scenario.ThinkingSpeedBase,
+            ThinkingSpeedDispersion = scenario.ThinkingSpeedDispersion,
+            OrganizationalDecisionSpeed = scenario.OrganizationalDecisionSpeed,
+            OrganizationalValidationSpeed = scenario.OrganizationalValidationSpeed
         };
     }
 

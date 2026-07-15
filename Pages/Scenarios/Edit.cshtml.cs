@@ -95,6 +95,11 @@ public sealed class EditModel(AppDbContext db) : PageModel
         scenario.ThanksCoinPopularityBias = Input.ThanksCoinPopularityBias;
         scenario.ThanksCoinDiversityBonus = Input.ThanksCoinDiversityBonus;
         scenario.ThanksCoinChallengeBonus = Input.ThanksCoinChallengeBonus;
+        scenario.EnableThinkingSpeedModel = Input.EnableThinkingSpeedModel;
+        scenario.ThinkingSpeedBase = Input.ThinkingSpeedBase;
+        scenario.ThinkingSpeedDispersion = Input.ThinkingSpeedDispersion;
+        scenario.OrganizationalDecisionSpeed = Input.OrganizationalDecisionSpeed;
+        scenario.OrganizationalValidationSpeed = Input.OrganizationalValidationSpeed;
         scenario.EnableIntellectualRespect = Input.EnableIntellectualRespect;
         scenario.IntellectualRespectBase = Input.IntellectualRespectBase;
         scenario.IntellectualRespectGrowthRate = Input.IntellectualRespectGrowthRate;

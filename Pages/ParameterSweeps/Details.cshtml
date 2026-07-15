@@ -125,6 +125,78 @@
 </section>
 
 <section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">生産性評価</h2>
+            <p class="text-muted small mb-0">各 Sweep Point の結果を平均して、管理・創発・定着の3軸で評価します。</p>
+        </div>
+    </div>
+    @if (Model.ProductivityEvaluation is null)
+    {
+        <p class="text-muted mb-0">まだ生産性評価を表示できるスイープ結果はありません。</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">管理生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.ManagementProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">創発生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.EmergenceProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">定着生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.InstitutionalizationProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">総合生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.CompositeProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+        </div>
+        <div class="border rounded p-3 bg-light">
+            <div class="small text-muted mb-1">簡易解釈</div>
+            <div>@Model.ProductivityEvaluation.Interpretation</div>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">思考速度と組織処理負荷</h2>
+            <p class="text-muted small mb-0">思考速度が組織の意思決定・検証能力と釣り合っているかを要約します。</p>
+        </div>
+    </div>
+    @if (Model.ThinkingSpeedSummaryCards.Count == 0)
+    {
+        <p class="text-muted mb-0">まだ思考速度データを表示できるスイープ結果はありません。</p>
+    }
+    else
+    {
+        <div class="analysis-summary-grid mb-3">
+            @foreach (var card in Model.ThinkingSpeedSummaryCards)
+            {
+                <article class="summary-card">
+                    <div class="summary-card-label">@card.Label</div>
+                    <div class="summary-card-value">@card.Value</div>
+                </article>
+            }
+        </div>
+        <div class="alert alert-light mb-0">@Model.ThinkingSpeedInterpretation</div>
+    }
+</section>
+
+<section class="log-section mb-4">
     <h2 class="h5 mb-2">自動解釈コメント</h2>
     <p class="text-muted mb-3">スイープ結果の読み取りを補助する短いコメントです。</p>
     <div class="summary-card summary-card-wide">
@@ -512,6 +584,10 @@
                         <th>WeakLinks</th>
                         <th>ComponentCount</th>
                         <th>IsolatedAgents</th>
+                        <th>管理生産性</th>
+                        <th>創発生産性</th>
+                        <th>定着生産性</th>
+                        <th>総合生産性</th>
                         <th>相転移候補</th>
                     </tr>
                 </thead>
@@ -546,6 +622,10 @@
                         <td>@point.WeakLinks.ToString("0.00")</td>
                         <td>@point.ComponentCount.ToString("0.00")</td>
                         <td>@point.IsolatedAgents.ToString("0.00")</td>
+                        <td>@point.ManagementProductivityScore.ToString("0.000")</td>
+                        <td>@point.EmergenceProductivityScore.ToString("0.000")</td>
+                        <td>@point.InstitutionalizationProductivityScore.ToString("0.000")</td>
+                        <td>@point.CompositeProductivityScore.ToString("0.000")</td>
                         <td>@(string.IsNullOrWhiteSpace(point.TransitionCandidates) ? "-" : point.TransitionCandidates)</td>
                     </tr>
                 }

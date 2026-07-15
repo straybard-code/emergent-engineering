@@ -14,12 +14,36 @@ public sealed class ParameterSweepAnalysisPoint
     public double AverageKnowledgeDiversity { get; set; }
     public double AverageKnowledgeRecombinationScore { get; set; }
     public double AverageKnowledgeReconfigurationScore { get; set; }
+    public bool ThinkingSpeedModelEnabled { get; set; }
+    public double AverageThinkingSpeed { get; set; }
+    public double MinThinkingSpeed { get; set; }
+    public double MaxThinkingSpeed { get; set; }
+    public double ThinkingSpeedDispersionActual { get; set; }
+    public double OrganizationalDecisionSpeed { get; set; }
+    public double OrganizationalValidationSpeed { get; set; }
+    public double GeneratedIdeaCount { get; set; }
+    public double ProcessedIdeaCount { get; set; }
+    public double UnprocessedIdeaCount { get; set; }
+    public double GeneratedHypothesisCount { get; set; }
+    public double ValidatedHypothesisCount { get; set; }
+    public double UnvalidatedHypothesisCount { get; set; }
+    public double CognitiveLoad { get; set; }
+    public double ThinkingSpeedMismatch { get; set; }
+    public double DecisionOverloadRatio { get; set; }
+    public double ValidationOverloadRatio { get; set; }
+    public int ConsecutiveHighLoadSteps { get; set; }
+    public double ThinkingFlowBonus { get; set; }
+    public double ThinkingOverloadPenalty { get; set; }
     public double AverageRespect { get; set; }
     public double AverageIntellectualRespect { get; set; }
     public double IntellectualRespectDensity { get; set; }
     public double IntellectualRespectDiversityIndex { get; set; }
     public double IntellectualRespectConcentration { get; set; }
     public double MutualMentorshipScore { get; set; }
+    public double ManagementProductivityScore { get; set; }
+    public double EmergenceProductivityScore { get; set; }
+    public double InstitutionalizationProductivityScore { get; set; }
+    public double CompositeProductivityScore { get; set; }
     public double IdeaAcceptanceScore { get; set; }
     public double AverageChallengeAcceptanceScore { get; set; }
     public double AverageRespectReconfigurationBoost { get; set; }

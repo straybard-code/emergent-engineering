@@ -69,6 +69,21 @@
 </section>
 
 <section class="log-section mt-4">
+    <h2 class="h5 mb-3">思考速度と組織処理能力</h2>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <tbody>
+                <tr><th>思考速度モデルを有効にする</th><td>@FormatBoolJapanese(Model.Scenario.EnableThinkingSpeedModel)</td></tr>
+                <tr><th>平均思考速度</th><td>@FormatValue(Model.Scenario.ThinkingSpeedBase)</td></tr>
+                <tr><th>思考速度のばらつき</th><td>@FormatValue(Model.Scenario.ThinkingSpeedDispersion)</td></tr>
+                <tr><th>組織の意思決定速度</th><td>@FormatValue(Model.Scenario.OrganizationalDecisionSpeed)</td></tr>
+                <tr><th>組織の検証速度</th><td>@FormatValue(Model.Scenario.OrganizationalValidationSpeed)</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="log-section mt-4">
     <h2 class="h5 mb-3">Thanks Coin / 相互敬意</h2>
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">

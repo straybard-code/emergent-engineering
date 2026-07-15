@@ -1,0 +1,33 @@
+@model EmergentEngineering.Models.IThinkingSpeedSettings
+
+<section class="log-section mb-4">
+    <h2 class="h5 mb-3">思考速度と組織処理能力</h2>
+    <p class="text-muted small mb-3">
+        思考速度は、単位時間あたりに仮説・提案・情報共有候補を生成する能力を表します。
+        思考速度が高いほど良いとは限りません。組織の意思決定速度や検証速度が追いつかない場合、未処理提案や未検証仮説が蓄積し、認知負荷・サイロ化・混乱が起きやすくなります。
+    </p>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="form-check mt-4">
+                <input asp-for="EnableThinkingSpeedModel" class="form-check-input" type="checkbox" />
+                <label asp-for="EnableThinkingSpeedModel" class="form-check-label">思考速度モデルを有効にする</label>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ThinkingSpeedBase" class="form-label">平均思考速度</label>
+            <input asp-for="ThinkingSpeedBase" class="form-control" type="number" min="0.1" max="30.0" step="0.001" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ThinkingSpeedDispersion" class="form-label">思考速度のばらつき</label>
+            <input asp-for="ThinkingSpeedDispersion" class="form-control" type="number" min="0.0" max="1.0" step="0.001" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="OrganizationalDecisionSpeed" class="form-label">組織の意思決定速度</label>
+            <input asp-for="OrganizationalDecisionSpeed" class="form-control" type="number" min="0.1" max="30.0" step="0.001" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="OrganizationalValidationSpeed" class="form-label">組織の検証速度</label>
+            <input asp-for="OrganizationalValidationSpeed" class="form-control" type="number" min="0.1" max="30.0" step="0.001" />
+        </div>
+    </div>
+</section>

@@ -443,6 +443,26 @@ public static class KnowledgeAnalysisService
                 KnowledgeDiversity = GetDouble(root, "knowledgeDiversity", KnowledgeDefaults.Diversity),
                 ExternalShockLevel = GetDouble(root, "externalShockLevel", KnowledgeDefaults.ExternalShockLevel),
                 CrossDomainExposure = GetDouble(root, "crossDomainExposure", KnowledgeDefaults.CrossDomainExposure),
+                ThinkingSpeedModelEnabled = GetBool(root, "thinkingSpeedModelEnabled"),
+                AverageThinkingSpeed = GetDouble(root, "averageThinkingSpeed", 0),
+                MinThinkingSpeed = GetDouble(root, "minThinkingSpeed", 0),
+                MaxThinkingSpeed = GetDouble(root, "maxThinkingSpeed", 0),
+                ThinkingSpeedDispersionActual = GetDouble(root, "thinkingSpeedDispersionActual", 0),
+                OrganizationalDecisionSpeed = GetDouble(root, "organizationalDecisionSpeed", ThinkingSpeedDefaults.OrganizationalDecisionSpeed),
+                OrganizationalValidationSpeed = GetDouble(root, "organizationalValidationSpeed", ThinkingSpeedDefaults.OrganizationalValidationSpeed),
+                GeneratedIdeaCount = GetDouble(root, "generatedIdeaCount", 0),
+                ProcessedIdeaCount = GetDouble(root, "processedIdeaCount", 0),
+                UnprocessedIdeaCount = GetDouble(root, "unprocessedIdeaCount", 0),
+                GeneratedHypothesisCount = GetDouble(root, "generatedHypothesisCount", 0),
+                ValidatedHypothesisCount = GetDouble(root, "validatedHypothesisCount", 0),
+                UnvalidatedHypothesisCount = GetDouble(root, "unvalidatedHypothesisCount", 0),
+                CognitiveLoad = GetDouble(root, "cognitiveLoad", 0),
+                ThinkingSpeedMismatch = GetDouble(root, "thinkingSpeedMismatch", 0),
+                DecisionOverloadRatio = GetDouble(root, "decisionOverloadRatio", 0),
+                ValidationOverloadRatio = GetDouble(root, "validationOverloadRatio", 0),
+                ConsecutiveHighLoadSteps = GetInt(root, "consecutiveHighLoadSteps", 0),
+                ThinkingFlowBonus = GetDouble(root, "thinkingFlowBonus", 0),
+                ThinkingOverloadPenalty = GetDouble(root, "thinkingOverloadPenalty", 0),
                 KnowledgeRewiringScore = GetDouble(root, "knowledgeRewiringScore", 0),
                 ExplorationScore = GetDouble(root, "explorationScore", 0),
                 SerendipityScore = GetDouble(root, "serendipityScore", 0),
@@ -589,6 +609,26 @@ public static class KnowledgeAnalysisService
                 KnowledgeDiversity = KnowledgeDefaults.Diversity,
                 ExternalShockLevel = KnowledgeDefaults.ExternalShockLevel,
                 CrossDomainExposure = KnowledgeDefaults.CrossDomainExposure,
+                ThinkingSpeedModelEnabled = false,
+                AverageThinkingSpeed = 0,
+                MinThinkingSpeed = 0,
+                MaxThinkingSpeed = 0,
+                ThinkingSpeedDispersionActual = 0,
+                OrganizationalDecisionSpeed = ThinkingSpeedDefaults.OrganizationalDecisionSpeed,
+                OrganizationalValidationSpeed = ThinkingSpeedDefaults.OrganizationalValidationSpeed,
+                GeneratedIdeaCount = 0,
+                ProcessedIdeaCount = 0,
+                UnprocessedIdeaCount = 0,
+                GeneratedHypothesisCount = 0,
+                ValidatedHypothesisCount = 0,
+                UnvalidatedHypothesisCount = 0,
+                CognitiveLoad = 0,
+                ThinkingSpeedMismatch = 0,
+                DecisionOverloadRatio = 0,
+                ValidationOverloadRatio = 0,
+                ConsecutiveHighLoadSteps = 0,
+                ThinkingFlowBonus = 0,
+                ThinkingOverloadPenalty = 0,
                 KnowledgeRewiringScore = 0,
                 ExplorationScore = 0,
                 SerendipityScore = 0,
@@ -745,6 +785,26 @@ public sealed class KnowledgeTimelinePoint
     public double KnowledgeDiversity { get; set; }
     public double ExternalShockLevel { get; set; }
     public double CrossDomainExposure { get; set; }
+    public bool ThinkingSpeedModelEnabled { get; set; }
+    public double AverageThinkingSpeed { get; set; }
+    public double MinThinkingSpeed { get; set; }
+    public double MaxThinkingSpeed { get; set; }
+    public double ThinkingSpeedDispersionActual { get; set; }
+    public double OrganizationalDecisionSpeed { get; set; }
+    public double OrganizationalValidationSpeed { get; set; }
+    public double GeneratedIdeaCount { get; set; }
+    public double ProcessedIdeaCount { get; set; }
+    public double UnprocessedIdeaCount { get; set; }
+    public double GeneratedHypothesisCount { get; set; }
+    public double ValidatedHypothesisCount { get; set; }
+    public double UnvalidatedHypothesisCount { get; set; }
+    public double CognitiveLoad { get; set; }
+    public double ThinkingSpeedMismatch { get; set; }
+    public double DecisionOverloadRatio { get; set; }
+    public double ValidationOverloadRatio { get; set; }
+    public int ConsecutiveHighLoadSteps { get; set; }
+    public double ThinkingFlowBonus { get; set; }
+    public double ThinkingOverloadPenalty { get; set; }
     public double KnowledgeRewiringScore { get; set; }
     public double ExplorationScore { get; set; }
     public double SerendipityScore { get; set; }

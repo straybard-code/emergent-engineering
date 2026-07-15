@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Security.Cryptography;
+using System.Text;
 using EmergentEngineering.Data;
 using EmergentEngineering.Models;
 using Microsoft.EntityFrameworkCore;
@@ -87,7 +89,7 @@ public sealed class SimulationRunner(
                 CreatedAt = DateTime.UtcNow
             };
 
-            var trustMetrics = ApplyTrustUpdate(project, agent, agentAction, trustDynamicsState, touchedTrustEdges);
+            var trustMetrics = ApplyTrustUpdate(project, agent, agentAction, trustDynamicsState, touchedTrustEdges, previousKnowledgePoint);
             agentAction.TrustBefore = trustMetrics.Before;
             agentAction.TrustDelta = trustMetrics.Delta;
             agentAction.TrustAfter = trustMetrics.After;
@@ -196,6 +198,59 @@ public sealed class SimulationRunner(
         knowledgePoint.ThanksIdeaAsIntellectualRespectSignal = intellectualRespectSummary.ThanksIdeaAsIntellectualRespectSignal;
         knowledgePoint.ThanksChallengeAsIntellectualRespectSignal = intellectualRespectSummary.ThanksChallengeAsIntellectualRespectSignal;
         knowledgePoint.ThanksBridgeAsMentorshipSignal = intellectualRespectSummary.ThanksBridgeAsMentorshipSignal;
+
+        var currentNetworkMetrics = NetworkMetricsCalculator.CalculateFromAgents(project.Agents, project.EffectiveTrustThreshold);
+        var thinkingSpeedMetrics = CalculateThinkingSpeedMetrics(
+            project,
+            currentStepActions,
+            previousKnowledgePoint,
+            currentNetworkMetrics);
+        knowledgePoint.ThinkingSpeedModelEnabled = thinkingSpeedMetrics.ThinkingSpeedModelEnabled;
+        knowledgePoint.AverageThinkingSpeed = thinkingSpeedMetrics.AverageThinkingSpeed;
+        knowledgePoint.MinThinkingSpeed = thinkingSpeedMetrics.MinThinkingSpeed;
+        knowledgePoint.MaxThinkingSpeed = thinkingSpeedMetrics.MaxThinkingSpeed;
+        knowledgePoint.ThinkingSpeedDispersionActual = thinkingSpeedMetrics.ThinkingSpeedDispersionActual;
+        knowledgePoint.OrganizationalDecisionSpeed = thinkingSpeedMetrics.OrganizationalDecisionSpeed;
+        knowledgePoint.OrganizationalValidationSpeed = thinkingSpeedMetrics.OrganizationalValidationSpeed;
+        knowledgePoint.GeneratedIdeaCount = thinkingSpeedMetrics.GeneratedIdeaCount;
+        knowledgePoint.ProcessedIdeaCount = thinkingSpeedMetrics.ProcessedIdeaCount;
+        knowledgePoint.UnprocessedIdeaCount = thinkingSpeedMetrics.UnprocessedIdeaCount;
+        knowledgePoint.GeneratedHypothesisCount = thinkingSpeedMetrics.GeneratedHypothesisCount;
+        knowledgePoint.ValidatedHypothesisCount = thinkingSpeedMetrics.ValidatedHypothesisCount;
+        knowledgePoint.UnvalidatedHypothesisCount = thinkingSpeedMetrics.UnvalidatedHypothesisCount;
+        knowledgePoint.CognitiveLoad = thinkingSpeedMetrics.CognitiveLoad;
+        knowledgePoint.ThinkingSpeedMismatch = thinkingSpeedMetrics.ThinkingSpeedMismatch;
+        knowledgePoint.DecisionOverloadRatio = thinkingSpeedMetrics.DecisionOverloadRatio;
+        knowledgePoint.ValidationOverloadRatio = thinkingSpeedMetrics.ValidationOverloadRatio;
+        knowledgePoint.ConsecutiveHighLoadSteps = thinkingSpeedMetrics.ConsecutiveHighLoadSteps;
+        knowledgePoint.ThinkingFlowBonus = thinkingSpeedMetrics.ThinkingFlowBonus;
+        knowledgePoint.ThinkingOverloadPenalty = thinkingSpeedMetrics.ThinkingOverloadPenalty;
+
+        if (thinkingSpeedMetrics.ThinkingFlowBonus > 0 || thinkingSpeedMetrics.ThinkingOverloadPenalty > 0)
+        {
+            knowledgePoint.ExplorationScore = Clamp01(
+                knowledgePoint.ExplorationScore + (thinkingSpeedMetrics.ThinkingFlowBonus * ThinkingSpeedConstants.FlowExplorationWeight));
+            knowledgePoint.SerendipityScore = Clamp01(
+                knowledgePoint.SerendipityScore
+                + (thinkingSpeedMetrics.ThinkingFlowBonus * ThinkingSpeedConstants.FlowSerendipityWeight)
+                - (thinkingSpeedMetrics.ThinkingOverloadPenalty * 0.03));
+            knowledgePoint.KnowledgeRecombinationScore = Clamp01(
+                knowledgePoint.KnowledgeRecombinationScore + (thinkingSpeedMetrics.ThinkingFlowBonus * ThinkingSpeedConstants.FlowRecombinationWeight));
+            knowledgePoint.LearningScore = Clamp01(
+                knowledgePoint.LearningScore
+                + (thinkingSpeedMetrics.ThinkingFlowBonus * ThinkingSpeedConstants.FlowLearningWeight)
+                - (thinkingSpeedMetrics.ThinkingOverloadPenalty * ThinkingSpeedConstants.OverloadLearningWeight));
+            knowledgePoint.AdaptationScore = Clamp01(
+                knowledgePoint.AdaptationScore - (thinkingSpeedMetrics.ThinkingOverloadPenalty * ThinkingSpeedConstants.OverloadAdaptationWeight));
+            knowledgePoint.EmergentScore = Clamp01(
+                knowledgePoint.EmergentScore
+                + (thinkingSpeedMetrics.ThinkingFlowBonus * ThinkingSpeedConstants.FlowEmergentWeight)
+                - (thinkingSpeedMetrics.ThinkingOverloadPenalty * ThinkingSpeedConstants.OverloadEmergentWeight));
+            knowledgePoint.SiloScore = Clamp01(
+                knowledgePoint.SiloScore + (thinkingSpeedMetrics.ThinkingOverloadPenalty * ThinkingSpeedConstants.OverloadSiloWeight));
+            knowledgePoint.ChaosScore = Clamp01(
+                knowledgePoint.ChaosScore + (thinkingSpeedMetrics.ThinkingOverloadPenalty * ThinkingSpeedConstants.OverloadChaosWeight));
+        }
 
         var constructiveCriticismRate = KnowledgeAnalysisService.CalculateConstructiveCriticismRate(
             stepActionSummary.CriticizeRate,
@@ -400,6 +455,26 @@ public sealed class SimulationRunner(
             project.TrustCapacityPenalty,
             project.DistrustPenalty,
             project.ConstructiveCriticismBonus,
+            thinkingSpeedModelEnabled = thinkingSpeedMetrics.ThinkingSpeedModelEnabled,
+            averageThinkingSpeed = thinkingSpeedMetrics.AverageThinkingSpeed,
+            minThinkingSpeed = thinkingSpeedMetrics.MinThinkingSpeed,
+            maxThinkingSpeed = thinkingSpeedMetrics.MaxThinkingSpeed,
+            thinkingSpeedDispersionActual = thinkingSpeedMetrics.ThinkingSpeedDispersionActual,
+            organizationalDecisionSpeed = thinkingSpeedMetrics.OrganizationalDecisionSpeed,
+            organizationalValidationSpeed = thinkingSpeedMetrics.OrganizationalValidationSpeed,
+            generatedIdeaCount = thinkingSpeedMetrics.GeneratedIdeaCount,
+            processedIdeaCount = thinkingSpeedMetrics.ProcessedIdeaCount,
+            unprocessedIdeaCount = thinkingSpeedMetrics.UnprocessedIdeaCount,
+            generatedHypothesisCount = thinkingSpeedMetrics.GeneratedHypothesisCount,
+            validatedHypothesisCount = thinkingSpeedMetrics.ValidatedHypothesisCount,
+            unvalidatedHypothesisCount = thinkingSpeedMetrics.UnvalidatedHypothesisCount,
+            cognitiveLoad = thinkingSpeedMetrics.CognitiveLoad,
+            thinkingSpeedMismatch = thinkingSpeedMetrics.ThinkingSpeedMismatch,
+            decisionOverloadRatio = thinkingSpeedMetrics.DecisionOverloadRatio,
+            validationOverloadRatio = thinkingSpeedMetrics.ValidationOverloadRatio,
+            consecutiveHighLoadSteps = thinkingSpeedMetrics.ConsecutiveHighLoadSteps,
+            thinkingFlowBonus = thinkingSpeedMetrics.ThinkingFlowBonus,
+            thinkingOverloadPenalty = thinkingSpeedMetrics.ThinkingOverloadPenalty,
             thanksCoinOccurred = knowledgePoint.ThanksCoinOccurred,
             thanksCoinCount = knowledgePoint.ThanksCoinCount,
             thanksCoinHelpCount = knowledgePoint.ThanksCoinHelpCount,
@@ -726,6 +801,189 @@ public sealed class SimulationRunner(
         """;
     }
 
+    private static ThinkingSpeedStepMetrics CalculateThinkingSpeedMetrics(
+        SimulationProject project,
+        IReadOnlyCollection<AgentAction> currentStepActions,
+        KnowledgeTimelinePoint? previousKnowledgePoint,
+        NetworkMetricsResult networkMetrics)
+    {
+        var agents = project.Agents.OrderBy(agent => agent.Id).ToList();
+        var agentSpeeds = agents
+            .Select(agent => CalculateAgentThinkingSpeed(project, agent))
+            .ToList();
+
+        var averageThinkingSpeed = agentSpeeds.Count == 0 ? 0 : Math.Round(agentSpeeds.Average(), 4);
+        var minThinkingSpeed = agentSpeeds.Count == 0 ? 0 : Math.Round(agentSpeeds.Min(), 4);
+        var maxThinkingSpeed = agentSpeeds.Count == 0 ? 0 : Math.Round(agentSpeeds.Max(), 4);
+        var thinkingSpeedDispersionActual = averageThinkingSpeed <= 0 || agentSpeeds.Count <= 1
+            ? 0
+            : Math.Round(CalculateStandardDeviation(agentSpeeds) / Math.Max(averageThinkingSpeed, 0.000001), 4);
+
+        var normalizedDecisionSpeed = Math.Clamp(project.OrganizationalDecisionSpeed, ThinkingSpeedConstants.MinThinkingSpeed, ThinkingSpeedConstants.MaxThinkingSpeed);
+        var normalizedValidationSpeed = Math.Clamp(project.OrganizationalValidationSpeed, ThinkingSpeedConstants.MinThinkingSpeed, ThinkingSpeedConstants.MaxThinkingSpeed);
+        var capacityMultiplierByAgentId = agents.ToDictionary(agent => agent.Id, agent => CalculateThinkingCapacityMultiplier(project, agent));
+
+        double generatedIdeaCount = 0;
+        double generatedHypothesisCount = 0;
+        foreach (var action in currentStepActions)
+        {
+            var capacityMultiplier = capacityMultiplierByAgentId.GetValueOrDefault(action.AgentId, CalculateThinkingCapacityMultiplier(project, null));
+            var profile = GetThinkingActionProfile(action.Action);
+            var effectiveMultiplier = capacityMultiplier * (1.0 - profile.LoadRelief);
+            generatedIdeaCount += profile.IdeaWeight * effectiveMultiplier;
+            generatedHypothesisCount += profile.HypothesisWeight * effectiveMultiplier;
+        }
+
+        var previousUnprocessedIdeaCount = previousKnowledgePoint?.UnprocessedIdeaCount ?? 0;
+        var previousUnvalidatedHypothesisCount = previousKnowledgePoint?.UnvalidatedHypothesisCount ?? 0;
+        var decisionCapacity = project.OrganizationalDecisionSpeed * Math.Max(project.Agents.Count, 1) * ThinkingSpeedConstants.DecisionCapacityScale;
+        var validationCapacity = project.OrganizationalValidationSpeed * Math.Max(project.Agents.Count, 1) * ThinkingSpeedConstants.ValidationCapacityScale;
+        var processedIdeaCount = Math.Min(previousUnprocessedIdeaCount + generatedIdeaCount, decisionCapacity);
+        var validatedHypothesisCount = Math.Min(previousUnvalidatedHypothesisCount + generatedHypothesisCount, validationCapacity);
+        var backlogCap = Math.Max(project.Agents.Count, 1) * ThinkingSpeedConstants.BacklogCapPerAgent;
+        var unprocessedIdeaCount = Math.Min(Math.Max(0, previousUnprocessedIdeaCount + generatedIdeaCount - processedIdeaCount), backlogCap);
+        var unvalidatedHypothesisCount = Math.Min(Math.Max(0, previousUnvalidatedHypothesisCount + generatedHypothesisCount - validatedHypothesisCount), backlogCap);
+        var rawCognitiveLoad = unprocessedIdeaCount + unvalidatedHypothesisCount;
+        var cognitiveLoad = Math.Clamp(
+            rawCognitiveLoad / Math.Max(1, project.Agents.Count * ThinkingSpeedConstants.CognitiveLoadScale),
+            0,
+            1);
+
+        var thinkingToDecisionRatio = averageThinkingSpeed / Math.Max(normalizedDecisionSpeed, 0.000001);
+        var thinkingToValidationRatio = averageThinkingSpeed / Math.Max(normalizedValidationSpeed, 0.000001);
+        var decisionOverloadRatio = Math.Max(0, thinkingToDecisionRatio - 1);
+        var validationOverloadRatio = Math.Max(0, thinkingToValidationRatio - 1);
+        var thinkingSpeedMismatch = Math.Clamp(
+            (thinkingSpeedDispersionActual * ThinkingSpeedConstants.MismatchDispersionWeight)
+            + (decisionOverloadRatio * ThinkingSpeedConstants.MismatchDecisionWeight)
+            + (validationOverloadRatio * ThinkingSpeedConstants.MismatchValidationWeight),
+            0,
+            1);
+
+        var previousHighLoadSteps = previousKnowledgePoint?.ConsecutiveHighLoadSteps ?? 0;
+        var consecutiveHighLoadSteps = cognitiveLoad >= ThinkingSpeedConstants.HighLoadThreshold
+            ? previousHighLoadSteps + 1
+            : 0;
+
+        var trustOk = networkMetrics.AverageTrust >= ThinkingSpeedConstants.FlowBonusTrustThreshold;
+        var psychologicalSafetyOk = project.PsychologicalSafetyLevel >= ThinkingSpeedConstants.FlowBonusPsychologicalSafetyThreshold;
+        var informationSharingOk = project.InformationSharingLevel >= ThinkingSpeedConstants.FlowBonusInformationSharingThreshold;
+        var decisionCoverageOk = averageThinkingSpeed <= 0
+            || normalizedDecisionSpeed / Math.Max(averageThinkingSpeed, 0.000001) >= ThinkingSpeedConstants.FlowBonusDecisionCoverageThreshold;
+        var validationCoverageOk = averageThinkingSpeed <= 0
+            || normalizedValidationSpeed / Math.Max(averageThinkingSpeed, 0.000001) >= ThinkingSpeedConstants.FlowBonusValidationCoverageThreshold;
+
+        var thinkingFlowBonus = 0.0;
+        if (project.EnableThinkingSpeedModel
+            && averageThinkingSpeed > ThinkingSpeedConstants.FlowBonusAverageSpeedThreshold
+            && cognitiveLoad <= ThinkingSpeedConstants.FlowBonusLowLoadThreshold
+            && thinkingSpeedMismatch <= ThinkingSpeedConstants.FlowBonusLowMismatchThreshold
+            && trustOk
+            && psychologicalSafetyOk
+            && informationSharingOk
+            && decisionCoverageOk
+            && validationCoverageOk)
+        {
+            var speedFactor = Math.Clamp((averageThinkingSpeed - ThinkingSpeedConstants.FlowBonusAverageSpeedThreshold) / 4.0, 0, 1);
+            var loadFactor = Math.Clamp((ThinkingSpeedConstants.FlowBonusLowLoadThreshold - cognitiveLoad) / ThinkingSpeedConstants.FlowBonusLowLoadThreshold, 0, 1);
+            var mismatchFactor = Math.Clamp((ThinkingSpeedConstants.FlowBonusLowMismatchThreshold - thinkingSpeedMismatch) / ThinkingSpeedConstants.FlowBonusLowMismatchThreshold, 0, 1);
+            var trustFactor = Math.Clamp((networkMetrics.AverageTrust - ThinkingSpeedConstants.FlowBonusTrustThreshold) / 0.35, 0, 1);
+            var safetyFactor = Math.Clamp((project.PsychologicalSafetyLevel - ThinkingSpeedConstants.FlowBonusPsychologicalSafetyThreshold) / 0.35, 0, 1);
+            var sharingFactor = Math.Clamp((project.InformationSharingLevel - ThinkingSpeedConstants.FlowBonusInformationSharingThreshold) / 0.35, 0, 1);
+            var coverageFactor = Math.Clamp(Math.Min(
+                normalizedDecisionSpeed / Math.Max(averageThinkingSpeed, 0.000001),
+                normalizedValidationSpeed / Math.Max(averageThinkingSpeed, 0.000001)) / ThinkingSpeedConstants.FlowBonusDecisionCoverageThreshold, 0, 1);
+
+            thinkingFlowBonus = Math.Clamp(
+                (speedFactor * 0.25)
+                + (loadFactor * 0.20)
+                + (mismatchFactor * 0.20)
+                + (trustFactor * 0.12)
+                + (safetyFactor * 0.12)
+                + (sharingFactor * 0.06)
+                + (coverageFactor * 0.05),
+                0,
+                1) * ThinkingSpeedConstants.FlowBonusMax;
+        }
+
+        var overloadPressure = Math.Clamp(
+            ((cognitiveLoad >= ThinkingSpeedConstants.OverloadPenaltyHighLoadThreshold
+                    ? (cognitiveLoad - ThinkingSpeedConstants.OverloadPenaltyHighLoadThreshold) / (1 - ThinkingSpeedConstants.OverloadPenaltyHighLoadThreshold)
+                    : 0) * 0.30)
+            + (Math.Max(0, thinkingSpeedMismatch - ThinkingSpeedConstants.OverloadPenaltyMismatchThreshold) / Math.Max(0.000001, 1 - ThinkingSpeedConstants.OverloadPenaltyMismatchThreshold) * 0.25)
+            + (Math.Max(0, consecutiveHighLoadSteps - ThinkingSpeedConstants.OverloadPenaltyConsecutiveThreshold) / 3.0 * 0.15)
+            + (Math.Max(0, 0.30 - networkMetrics.AverageTrust) / 0.30 * 0.15)
+            + (Math.Max(0, 0.40 - project.PsychologicalSafetyLevel) / 0.40 * 0.10)
+            + (Math.Max(0, (unprocessedIdeaCount + unvalidatedHypothesisCount) - backlogCap) / Math.Max(1, backlogCap) * 0.05),
+            0,
+            1);
+
+        var thinkingOverloadPenalty = project.EnableThinkingSpeedModel
+            ? Math.Clamp(overloadPressure, 0, 1) * ThinkingSpeedConstants.OverloadPenaltyMax
+            : 0;
+
+        return new ThinkingSpeedStepMetrics
+        {
+            ThinkingSpeedModelEnabled = project.EnableThinkingSpeedModel,
+            AverageThinkingSpeed = averageThinkingSpeed,
+            MinThinkingSpeed = minThinkingSpeed,
+            MaxThinkingSpeed = maxThinkingSpeed,
+            ThinkingSpeedDispersionActual = thinkingSpeedDispersionActual,
+            OrganizationalDecisionSpeed = normalizedDecisionSpeed,
+            OrganizationalValidationSpeed = normalizedValidationSpeed,
+            GeneratedIdeaCount = Math.Round(generatedIdeaCount, 4),
+            ProcessedIdeaCount = Math.Round(processedIdeaCount, 4),
+            UnprocessedIdeaCount = Math.Round(unprocessedIdeaCount, 4),
+            GeneratedHypothesisCount = Math.Round(generatedHypothesisCount, 4),
+            ValidatedHypothesisCount = Math.Round(validatedHypothesisCount, 4),
+            UnvalidatedHypothesisCount = Math.Round(unvalidatedHypothesisCount, 4),
+            CognitiveLoad = Math.Round(cognitiveLoad, 4),
+            ThinkingSpeedMismatch = Math.Round(thinkingSpeedMismatch, 4),
+            DecisionOverloadRatio = Math.Round(decisionOverloadRatio, 4),
+            ValidationOverloadRatio = Math.Round(validationOverloadRatio, 4),
+            ConsecutiveHighLoadSteps = consecutiveHighLoadSteps,
+            ThinkingFlowBonus = Math.Round(thinkingFlowBonus, 4),
+            ThinkingOverloadPenalty = Math.Round(thinkingOverloadPenalty, 4)
+        };
+    }
+
+    private static double CalculateThinkingCapacityMultiplier(SimulationProject project, Agent? agent)
+    {
+        return ThinkingSpeedAnalysisService.CalculateThinkingCapacityMultiplier(project, agent);
+    }
+
+    private static double CalculateAgentThinkingSpeed(SimulationProject project, Agent agent)
+    {
+        return ThinkingSpeedAnalysisService.CalculateAgentThinkingSpeed(project, agent);
+    }
+
+    private static (double IdeaWeight, double HypothesisWeight, double LoadRelief) GetThinkingActionProfile(string action)
+    {
+        return action switch
+        {
+            AgentActionType.ProposeIdea => (ThinkingSpeedActionWeights.ProposeIdeaIdea, ThinkingSpeedActionWeights.ProposeIdeaHypothesis, 0),
+            AgentActionType.ShareInfo => (ThinkingSpeedActionWeights.ShareInfoIdea, ThinkingSpeedActionWeights.ShareInfoHypothesis, 0),
+            AgentActionType.AskHelp => (ThinkingSpeedActionWeights.AskHelpIdea, ThinkingSpeedActionWeights.AskHelpHypothesis, 0),
+            AgentActionType.Criticize => (ThinkingSpeedActionWeights.CriticizeIdea, ThinkingSpeedActionWeights.CriticizeHypothesis, 0),
+            AgentActionType.SupportOther => (ThinkingSpeedActionWeights.SupportOtherIdea, ThinkingSpeedActionWeights.SupportOtherHypothesis, ThinkingSpeedActionWeights.SupportOtherLoadRelief),
+            AgentActionType.WorkAlone => (ThinkingSpeedActionWeights.WorkAloneIdea, ThinkingSpeedActionWeights.WorkAloneHypothesis, 0),
+            AgentActionType.Wait => (ThinkingSpeedActionWeights.WaitIdea, ThinkingSpeedActionWeights.WaitHypothesis, ThinkingSpeedActionWeights.WaitLoadRelief),
+            _ => (ThinkingSpeedActionWeights.ShareInfoIdea, ThinkingSpeedActionWeights.ShareInfoHypothesis, 0)
+        };
+    }
+
+    private static double CalculateStandardDeviation(IReadOnlyCollection<double> values)
+    {
+        if (values.Count <= 1)
+        {
+            return 0;
+        }
+
+        var average = values.Average();
+        var variance = values.Sum(value => Math.Pow(value - average, 2)) / values.Count;
+        return Math.Sqrt(Math.Max(variance, 0));
+    }
+
     private async Task<PhaseDecisionResult> DeterminePhaseAsync(
         SimulationProject project,
         int stepNo,
@@ -1032,7 +1290,8 @@ public sealed class SimulationRunner(
         Agent actor,
         AgentAction agentAction,
         TrustDynamicsStepState trustDynamicsState,
-        ISet<string> touchedTrustEdges)
+        ISet<string> touchedTrustEdges,
+        KnowledgeTimelinePoint? previousKnowledgePoint)
     {
         var targetName = NormalizeTarget(agentAction.TargetAgentName);
         var targetAgent = project.Agents.FirstOrDefault(candidate =>
@@ -1045,31 +1304,31 @@ public sealed class SimulationRunner(
             case AgentActionType.SupportOther:
                 if (targetAgent is not null)
                 {
-                    actorSideChanges.Add(ApplyTrustDelta(project, actor, targetAgent, 0.10, trustDynamicsState, touchedTrustEdges));
-                    ApplyTrustDelta(project, targetAgent, actor, 0.15, trustDynamicsState, touchedTrustEdges);
+                    actorSideChanges.Add(ApplyTrustDelta(project, actor, targetAgent, 0.10, trustDynamicsState, touchedTrustEdges, previousKnowledgePoint));
+                    ApplyTrustDelta(project, targetAgent, actor, 0.15, trustDynamicsState, touchedTrustEdges, previousKnowledgePoint);
                 }
                 break;
 
             case AgentActionType.AskHelp:
                 if (targetAgent is not null)
                 {
-                    actorSideChanges.Add(ApplyTrustDelta(project, actor, targetAgent, 0.05, trustDynamicsState, touchedTrustEdges));
-                    ApplyTrustDelta(project, targetAgent, actor, 0.05, trustDynamicsState, touchedTrustEdges);
+                    actorSideChanges.Add(ApplyTrustDelta(project, actor, targetAgent, 0.05, trustDynamicsState, touchedTrustEdges, previousKnowledgePoint));
+                    ApplyTrustDelta(project, targetAgent, actor, 0.05, trustDynamicsState, touchedTrustEdges, previousKnowledgePoint);
                 }
                 break;
 
             case AgentActionType.ShareInfo:
                 foreach (var otherAgent in project.Agents.Where(candidate => candidate.Id != actor.Id))
                 {
-                    actorSideChanges.Add(ApplyTrustDelta(project, actor, otherAgent, 0.03, trustDynamicsState, touchedTrustEdges));
-                    ApplyTrustDelta(project, otherAgent, actor, 0.03, trustDynamicsState, touchedTrustEdges);
+                    actorSideChanges.Add(ApplyTrustDelta(project, actor, otherAgent, 0.03, trustDynamicsState, touchedTrustEdges, previousKnowledgePoint));
+                    ApplyTrustDelta(project, otherAgent, actor, 0.03, trustDynamicsState, touchedTrustEdges, previousKnowledgePoint);
                 }
                 break;
 
             case AgentActionType.ProposeIdea:
                 foreach (var otherAgent in project.Agents.Where(candidate => candidate.Id != actor.Id))
                 {
-                    actorSideChanges.Add(ApplyTrustDelta(project, actor, otherAgent, 0.02, trustDynamicsState, touchedTrustEdges));
+                    actorSideChanges.Add(ApplyTrustDelta(project, actor, otherAgent, 0.02, trustDynamicsState, touchedTrustEdges, previousKnowledgePoint));
                 }
                 break;
 
@@ -1077,8 +1336,8 @@ public sealed class SimulationRunner(
                 if (targetAgent is not null)
                 {
                     var criticismDelta = GetCriticizeTrustDelta(project, constructiveCriticism);
-                    actorSideChanges.Add(ApplyTrustDelta(project, actor, targetAgent, criticismDelta, trustDynamicsState, touchedTrustEdges));
-                    ApplyTrustDelta(project, targetAgent, actor, criticismDelta, trustDynamicsState, touchedTrustEdges);
+                    actorSideChanges.Add(ApplyTrustDelta(project, actor, targetAgent, criticismDelta, trustDynamicsState, touchedTrustEdges, previousKnowledgePoint));
+                    ApplyTrustDelta(project, targetAgent, actor, criticismDelta, trustDynamicsState, touchedTrustEdges, previousKnowledgePoint);
                 }
                 break;
         }
@@ -1394,7 +1653,8 @@ public sealed class SimulationRunner(
         Agent targetAgent,
         double rawDelta,
         TrustDynamicsStepState trustDynamicsState,
-        ISet<string> touchedTrustEdges)
+        ISet<string> touchedTrustEdges,
+        KnowledgeTimelinePoint? previousKnowledgePoint)
     {
         if (sourceAgent.Id == targetAgent.Id)
         {
@@ -1411,6 +1671,16 @@ public sealed class SimulationRunner(
             var growthMultiplier = Math.Clamp(project.TrustGrowthRate, 0, 2) * (1.0 - saturationEffect);
             delta = rawDelta * growthMultiplier;
             trustDynamicsState.RecordPositiveGrowth(growthMultiplier, saturationEffect);
+        }
+
+        var speedFrictionPenalty = ThinkingSpeedAnalysisService.CalculateTrustSpeedFrictionPenalty(
+            project,
+            sourceAgent,
+            targetAgent,
+            previousKnowledgePoint);
+        if (speedFrictionPenalty > 0)
+        {
+            delta -= speedFrictionPenalty;
         }
 
         var after = TrustJsonUtility.Clamp(before + delta);
@@ -2008,6 +2278,30 @@ public sealed class SimulationRunner(
 
     private sealed record TrustPairChange(double? Before, double? After);
     private sealed record TrustChangeMetrics(double? Before, double? Delta, double? After);
+
+    private sealed record ThinkingSpeedStepMetrics
+    {
+        public bool ThinkingSpeedModelEnabled { get; init; }
+        public double AverageThinkingSpeed { get; init; }
+        public double MinThinkingSpeed { get; init; }
+        public double MaxThinkingSpeed { get; init; }
+        public double ThinkingSpeedDispersionActual { get; init; }
+        public double OrganizationalDecisionSpeed { get; init; }
+        public double OrganizationalValidationSpeed { get; init; }
+        public double GeneratedIdeaCount { get; init; }
+        public double ProcessedIdeaCount { get; init; }
+        public double UnprocessedIdeaCount { get; init; }
+        public double GeneratedHypothesisCount { get; init; }
+        public double ValidatedHypothesisCount { get; init; }
+        public double UnvalidatedHypothesisCount { get; init; }
+        public double CognitiveLoad { get; init; }
+        public double ThinkingSpeedMismatch { get; init; }
+        public double DecisionOverloadRatio { get; init; }
+        public double ValidationOverloadRatio { get; init; }
+        public int ConsecutiveHighLoadSteps { get; init; }
+        public double ThinkingFlowBonus { get; init; }
+        public double ThinkingOverloadPenalty { get; init; }
+    }
 
     private sealed class PhaseDecisionResult
     {

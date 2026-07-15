@@ -12,7 +12,8 @@ public sealed class DetailsModel(
     AppDbContext db,
     ExperimentCleanupService cleanupService,
     ParameterSweepRunner parameterSweepRunner,
-    ExperimentReportService reportService) : PageModel
+    ExperimentReportService reportService,
+    ProductivityEvaluationService productivityEvaluationService) : PageModel
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -41,6 +42,7 @@ public sealed class DetailsModel(
     public List<TriggerAgentRankingSummary> TriggerAgentRankings { get; private set; } = [];
     public List<EmergenceFingerprint> RunFingerprints { get; private set; } = [];
     public List<ExperimentThresholdSweepPoint> ThresholdSweepSummary { get; private set; } = [];
+    public ProductivityEvaluation? ProductivityEvaluation { get; private set; }
     public double AverageTrustOverall { get; private set; }
     public double AverageComponentCountOverall { get; private set; }
     public int CompletedSimulationCount { get; private set; }
@@ -128,8 +130,18 @@ public sealed class DetailsModel(
             .ToListAsync();
 
         var simulationProjects = await db.SimulationProjects
+            .Include(item => item.Metrics)
             .Where(item => item.ExperimentId == id)
             .ToListAsync();
+        var projectIds = simulationProjects.Select(item => item.Id).ToList();
+        var projectSteps = projectIds.Count == 0
+            ? []
+            : await db.SimulationSteps
+                .Where(item => projectIds.Contains(item.SimulationProjectId))
+                .OrderBy(item => item.SimulationProjectId)
+                .ThenBy(item => item.StepNo)
+                .ToListAsync();
+        ProductivityEvaluation = BuildProductivityEvaluation(simulationProjects, projectSteps);
 
         AverageTrustOverall = Runs.Count == 0 ? 0 : Math.Round(Runs.Average(run => run.AverageTrust), 2);
         AverageComponentCountOverall = Runs.Count == 0 ? 0 : Math.Round(Runs.Average(run => run.ComponentCount), 2);
@@ -690,6 +702,62 @@ public sealed class DetailsModel(
         }
 
         return bundles;
+    }
+
+    private ProductivityEvaluation? BuildProductivityEvaluation(
+        IReadOnlyCollection<SimulationProject> projects,
+        IReadOnlyCollection<SimulationStep> steps)
+    {
+        if (projects.Count == 0)
+        {
+            return null;
+        }
+
+        var stepsByProjectId = steps
+            .GroupBy(item => item.SimulationProjectId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+
+        var evaluations = projects
+            .Select(project =>
+            {
+                var timeline = KnowledgeAnalysisService.BuildTimeline(stepsByProjectId.GetValueOrDefault(project.Id, []));
+                if (timeline.Count == 0 && project.Metrics is null)
+                {
+                    return null;
+                }
+
+                var emergentRate = timeline.Count == 0
+                    ? (project.Metrics is not null && string.Equals(project.Metrics.FinalPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase) ? 1.0 : 0.0)
+                    : timeline.Count(point => string.Equals(point.SelectedPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase)) / (double)timeline.Count;
+
+                return productivityEvaluationService.Evaluate(new ProductivityIndicators
+                {
+                    PhaseStability = project.Metrics?.PhaseStability,
+                    PipelineCompletionScore = timeline.Count == 0 ? project.Metrics?.PhaseStability : timeline.Average(item => item.PipelineCompletionScore),
+                    EffectiveDensity = project.Metrics?.EffectiveNetworkDensity,
+                    ChaosRate = timeline.Count == 0 ? null : timeline.Average(item => item.ChaosScore),
+                    CollapseRate = timeline.Count == 0 ? null : timeline.Average(item => item.CollapseScore),
+                    SiloRate = timeline.Count == 0 ? null : timeline.Average(item => item.SiloScore),
+                    KnowledgeReconfigurationScore = timeline.Count == 0 ? 0 : timeline.Average(item => item.KnowledgeReconfigurationScore),
+                    KnowledgeRecombinationScore = timeline.Count == 0 ? 0 : timeline.Average(item => item.KnowledgeRecombinationScore),
+                    SerendipityScore = timeline.Count == 0 ? 0 : timeline.Average(item => item.SerendipityScore),
+                    ExplorationScore = timeline.Count == 0 ? 0 : timeline.Average(item => item.ExplorationScore),
+                    CrossDomainExposure = timeline.Count == 0 ? 0 : timeline.Average(item => item.CrossDomainExposure),
+                    ChallengeAcceptanceScore = timeline.Count == 0 ? 0 : timeline.Average(item => item.ChallengeAcceptanceScore),
+                    EmergentRate = emergentRate,
+                    LearningScore = timeline.Count == 0 ? 0 : timeline.Average(item => item.LearningScore),
+                    AdaptationScore = timeline.Count == 0 ? 0 : timeline.Average(item => item.AdaptationScore),
+                    AverageTrust = project.Metrics?.AverageTrust,
+                    AverageRespect = timeline.Count == 0 ? 0 : timeline.Average(item => item.AverageRespect),
+                    AverageIntellectualRespect = timeline.Count == 0 ? 0 : timeline.Average(item => item.AverageIntellectualRespect),
+                    MutualMentorshipScore = timeline.Count == 0 ? 0 : timeline.Average(item => item.MutualMentorshipScore)
+                });
+            })
+            .Where(item => item is not null)
+            .Cast<ProductivityEvaluation>()
+            .ToList();
+
+        return evaluations.Count == 0 ? null : productivityEvaluationService.Average(evaluations);
     }
 
     private async Task<List<ExperimentThresholdSweepPoint>> GetThresholdSweepSummaryAsync(int experimentId)

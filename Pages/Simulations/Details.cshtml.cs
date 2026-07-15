@@ -12,7 +12,8 @@ public sealed class DetailsModel(
     AppDbContext db,
     ISimulationRunner runner,
     ExperimentCleanupService cleanupService,
-    ParameterSweepRunner sweepRunner) : PageModel
+    ParameterSweepRunner sweepRunner,
+    ProductivityEvaluationService productivityEvaluationService) : PageModel
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private const double SvgCenterX = 350;
@@ -35,6 +36,24 @@ public sealed class DetailsModel(
     public List<PrecursorPoint> PrecursorPoints { get; private set; } = [];
     public List<KnowledgeTimelinePoint> KnowledgeTimeline { get; private set; } = [];
     public KnowledgeTimelinePoint? FinalKnowledgePoint { get; private set; }
+    public ProductivityEvaluation? ProductivityEvaluation { get; private set; }
+    public double AverageThinkingSpeed { get; private set; }
+    public double MinThinkingSpeed { get; private set; }
+    public double MaxThinkingSpeed { get; private set; }
+    public double ThinkingSpeedDispersionActual { get; private set; }
+    public double GeneratedIdeaCountTotal { get; private set; }
+    public double ProcessedIdeaCountTotal { get; private set; }
+    public double FinalUnprocessedIdeaCount { get; private set; }
+    public double GeneratedHypothesisCountTotal { get; private set; }
+    public double ValidatedHypothesisCountTotal { get; private set; }
+    public double FinalUnvalidatedHypothesisCount { get; private set; }
+    public double FinalCognitiveLoad { get; private set; }
+    public double MaxCognitiveLoad { get; private set; }
+    public double AverageThinkingSpeedMismatch { get; private set; }
+    public double MaxThinkingSpeedMismatch { get; private set; }
+    public int MaxConsecutiveHighLoadSteps { get; private set; }
+    public string ThinkingSpeedInterpretation { get; private set; } = "-";
+    public ThinkingSpeedNetworkAnalysisResult ThinkingSpeedNetworkAnalysis { get; private set; } = new();
     public List<EmergentCriterionEntry> FinalEmergentCriteria { get; private set; } = [];
     public string FinalPhaseDecisionReasonDisplay { get; private set; } = "-";
     public EmergenceFingerprint? Fingerprint { get; private set; }
@@ -134,6 +153,7 @@ public sealed class DetailsModel(
         FinalKnowledgePoint = KnowledgeTimeline.OrderBy(point => point.StepNo).LastOrDefault();
         FinalEmergentCriteria = EmergentCriteriaParser.Parse(FinalKnowledgePoint?.EmergentCriteriaJson);
         FinalPhaseDecisionReasonDisplay = DescribePhaseDecisionReason(FinalKnowledgePoint);
+        ProductivityEvaluation = BuildProductivityEvaluation();
 
         var phaseByStep = PhaseHistory.ToDictionary(point => point.StepNo, point => point.Phase);
         var trustSnapshots = await db.TrustSnapshots
@@ -162,6 +182,8 @@ public sealed class DetailsModel(
             NetworkMetricsCalculator.NormalizeThreshold(Project.EffectiveTrustThreshold));
         var edgeRowsByStep = BuildEdgeRowsByStep(NetworkSnapshots);
         FinalNetworkMetrics = CalculateNetworkMetrics(Project.Agents, finalTrustRows, Project.EffectiveTrustThreshold);
+        BuildThinkingSpeedSummary();
+        ThinkingSpeedNetworkAnalysis = ThinkingSpeedAnalysisService.BuildNetworkAnalysis(Project, FinalKnowledgePoint, FinalNetworkMetrics);
         ThresholdSweep = BuildThresholdSweep(Project.Agents, finalTrustRows);
         ActionTimeline = BuildActionTimeline(orderedActions, phaseByStep, Project.Phase);
         var phaseTransitionStates = BuildPhaseTransitionStates(
@@ -286,6 +308,147 @@ public sealed class DetailsModel(
     public string GetKnowledgeTimelineJson()
     {
         return JsonSerializer.Serialize(KnowledgeTimeline, JsonOptions);
+    }
+
+    private ProductivityEvaluation? BuildProductivityEvaluation()
+    {
+        if (Project is null || KnowledgeTimeline.Count == 0)
+        {
+            return null;
+        }
+
+        double? emergentRate = KnowledgeTimeline.Count == 0
+            ? null
+            : KnowledgeTimeline.Count(point => string.Equals(point.SelectedPhase, SimulationPhase.Emergent, StringComparison.OrdinalIgnoreCase)) / (double)KnowledgeTimeline.Count;
+
+        var managementIndicators = new ProductivityIndicators
+        {
+            PhaseStability = Project.Metrics?.PhaseStability,
+            PipelineCompletionScore = FinalKnowledgePoint?.PipelineCompletionScore,
+            EffectiveDensity = FinalNetworkMetrics?.EffectiveNetworkDensity,
+            ChaosRate = KnowledgeTimeline.Average(point => point.ChaosScore),
+            CollapseRate = KnowledgeTimeline.Average(point => point.CollapseScore),
+            SiloRate = KnowledgeTimeline.Average(point => point.SiloScore)
+        };
+
+        var emergenceIndicators = new ProductivityIndicators
+        {
+            KnowledgeReconfigurationScore = KnowledgeTimeline.Average(point => point.KnowledgeReconfigurationScore),
+            KnowledgeRecombinationScore = KnowledgeTimeline.Average(point => point.KnowledgeRecombinationScore),
+            SerendipityScore = KnowledgeTimeline.Average(point => point.SerendipityScore),
+            ExplorationScore = KnowledgeTimeline.Average(point => point.ExplorationScore),
+            CrossDomainExposure = KnowledgeTimeline.Average(point => point.CrossDomainExposure),
+            ChallengeAcceptanceScore = KnowledgeTimeline.Average(point => point.ChallengeAcceptanceScore),
+            EmergentRate = emergentRate
+        };
+
+        var institutionalizationIndicators = new ProductivityIndicators
+        {
+            LearningScore = KnowledgeTimeline.Average(point => point.LearningScore),
+            AdaptationScore = KnowledgeTimeline.Average(point => point.AdaptationScore),
+            PipelineCompletionScore = KnowledgeTimeline.Average(point => point.PipelineCompletionScore),
+            AverageTrust = FinalNetworkMetrics?.AverageTrust,
+            EffectiveDensity = FinalNetworkMetrics?.EffectiveNetworkDensity,
+            AverageRespect = KnowledgeTimeline.Average(point => point.AverageRespect),
+            AverageIntellectualRespect = KnowledgeTimeline.Average(point => point.AverageIntellectualRespect),
+            MutualMentorshipScore = KnowledgeTimeline.Average(point => point.MutualMentorshipScore)
+        };
+
+        var management = productivityEvaluationService.Evaluate(managementIndicators).ManagementProductivityScore;
+        var emergence = productivityEvaluationService.Evaluate(emergenceIndicators).EmergenceProductivityScore;
+        var institutionalization = productivityEvaluationService.Evaluate(institutionalizationIndicators).InstitutionalizationProductivityScore;
+        return productivityEvaluationService.CreateEvaluation(management, emergence, institutionalization);
+    }
+
+    private void BuildThinkingSpeedSummary()
+    {
+        if (Project is null || KnowledgeTimeline.Count == 0)
+        {
+            ThinkingSpeedInterpretation = "-";
+            return;
+        }
+
+        var points = KnowledgeTimeline.ToList();
+        var enabledPoints = points.Where(point => point.ThinkingSpeedModelEnabled).ToList();
+        var sourcePoints = enabledPoints.Count > 0 ? enabledPoints : points;
+
+        AverageThinkingSpeed = Math.Round(sourcePoints.Average(point => point.AverageThinkingSpeed), 4);
+        MinThinkingSpeed = Math.Round(sourcePoints.Min(point => point.MinThinkingSpeed), 4);
+        MaxThinkingSpeed = Math.Round(sourcePoints.Max(point => point.MaxThinkingSpeed), 4);
+        ThinkingSpeedDispersionActual = Math.Round(sourcePoints.Average(point => point.ThinkingSpeedDispersionActual), 4);
+        GeneratedIdeaCountTotal = Math.Round(points.Sum(point => point.GeneratedIdeaCount), 4);
+        ProcessedIdeaCountTotal = Math.Round(points.Sum(point => point.ProcessedIdeaCount), 4);
+        FinalUnprocessedIdeaCount = Math.Round(FinalKnowledgePoint?.UnprocessedIdeaCount ?? 0, 4);
+        GeneratedHypothesisCountTotal = Math.Round(points.Sum(point => point.GeneratedHypothesisCount), 4);
+        ValidatedHypothesisCountTotal = Math.Round(points.Sum(point => point.ValidatedHypothesisCount), 4);
+        FinalUnvalidatedHypothesisCount = Math.Round(FinalKnowledgePoint?.UnvalidatedHypothesisCount ?? 0, 4);
+        FinalCognitiveLoad = Math.Round(FinalKnowledgePoint?.CognitiveLoad ?? 0, 4);
+        MaxCognitiveLoad = Math.Round(points.Max(point => point.CognitiveLoad), 4);
+        AverageThinkingSpeedMismatch = Math.Round(points.Average(point => point.ThinkingSpeedMismatch), 4);
+        MaxThinkingSpeedMismatch = Math.Round(points.Max(point => point.ThinkingSpeedMismatch), 4);
+        MaxConsecutiveHighLoadSteps = points.Max(point => point.ConsecutiveHighLoadSteps);
+        ThinkingSpeedInterpretation = BuildThinkingSpeedInterpretation();
+    }
+
+    private string BuildThinkingSpeedInterpretation()
+    {
+        if (Project is null || KnowledgeTimeline.Count == 0)
+        {
+            return "-";
+        }
+
+        var averageTrust = FinalNetworkMetrics?.AverageTrust ?? 0;
+        var thinkingEnabled = Project.EnableThinkingSpeedModel;
+        if (!thinkingEnabled)
+        {
+            return "思考速度モデルは無効です。設定値は保存されていますが、既存のシミュレーション挙動には影響していません。";
+        }
+
+        var decisionCoverage = AverageThinkingSpeed <= 0
+            ? 0
+            : Project.OrganizationalDecisionSpeed / Math.Max(AverageThinkingSpeed, 0.000001);
+        var validationCoverage = AverageThinkingSpeed <= 0
+            ? 0
+            : Project.OrganizationalValidationSpeed / Math.Max(AverageThinkingSpeed, 0.000001);
+
+        if (AverageThinkingSpeed > 1.0
+            && FinalCognitiveLoad <= 0.45
+            && AverageThinkingSpeedMismatch <= 0.30
+            && averageTrust >= 0.30
+            && Project.PsychologicalSafetyLevel >= 0.35
+            && Project.InformationSharingLevel >= 0.35
+            && decisionCoverage >= 0.80
+            && validationCoverage >= 0.80)
+        {
+            return "思考生成速度と組織の意思決定・検証速度が釣り合っています。高い思考速度が学習と創発へ変換されています。";
+        }
+
+        if (GeneratedIdeaCountTotal > ProcessedIdeaCountTotal)
+        {
+            return "提案生成速度が意思決定速度を上回り、未処理提案が蓄積しています。";
+        }
+
+        if (GeneratedHypothesisCountTotal > ValidatedHypothesisCountTotal)
+        {
+            return "仮説生成に対して検証速度が不足しています。";
+        }
+
+        if (MaxThinkingSpeedMismatch >= 0.45)
+        {
+            return "エージェント間の思考速度差が大きく、理解速度や説明負荷の差が摩擦につながっています。";
+        }
+
+        if (AverageThinkingSpeed > 1.0 && (averageTrust < 0.30 || Project.PsychologicalSafetyLevel < 0.35))
+        {
+            return "思考速度は高いものの、信頼と心理的安全性が不足しており、対立や分断が高速化する可能性があります。";
+        }
+
+        if (GeneratedIdeaCountTotal + GeneratedHypothesisCountTotal > ProcessedIdeaCountTotal + ValidatedHypothesisCountTotal)
+        {
+            return "提案・仮説の生成量が多く、共有・検証・統合の負荷が高まっています。";
+        }
+
+        return "思考生成速度と組織の処理能力は概ね釣り合っています。";
     }
 
     public string GetPipelineTimelineJson()

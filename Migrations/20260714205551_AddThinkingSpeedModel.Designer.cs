@@ -4,6 +4,7 @@ using EmergentEngineering.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmergentEngineering.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260714205551_AddThinkingSpeedModel")]
+    partial class AddThinkingSpeedModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -329,32 +332,25 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("nvarchar(40)");
 
                     b.Property<double>("MutualRespectBase")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.29999999999999999);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectBridgeSensitivity")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.40000000000000002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectChallengeSensitivity")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.40000000000000002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectDecayRate")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectDiversitySensitivity")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.40000000000000002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectGrowthRate")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.040000000000000001);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectPopularityPenalty")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.29999999999999999);
+                        .HasColumnType("float");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1141,32 +1137,25 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("nvarchar(40)");
 
                     b.Property<double>("MutualRespectBase")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.29999999999999999);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectBridgeSensitivity")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.40000000000000002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectChallengeSensitivity")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.40000000000000002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectDecayRate")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectDiversitySensitivity")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.40000000000000002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectGrowthRate")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.040000000000000001);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectPopularityPenalty")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.29999999999999999);
+                        .HasColumnType("float");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1620,32 +1609,25 @@ namespace EmergentEngineering.Migrations
                         .HasColumnType("nvarchar(40)");
 
                     b.Property<double>("MutualRespectBase")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.29999999999999999);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectBridgeSensitivity")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.40000000000000002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectChallengeSensitivity")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.40000000000000002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectDecayRate")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectDiversitySensitivity")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.40000000000000002);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectGrowthRate")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.040000000000000001);
+                        .HasColumnType("float");
 
                     b.Property<double>("MutualRespectPopularityPenalty")
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.29999999999999999);
+                        .HasColumnType("float");
 
                     b.Property<string>("Name")
                         .IsRequired()

@@ -803,6 +803,52 @@
 </section>
 
 <section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">生産性評価</h2>
+            <p class="text-muted small mb-0">管理生産性、創発生産性、定着生産性の3軸から、組織の生産性を簡易評価します。</p>
+        </div>
+    </div>
+    @if (Model.ProductivityEvaluation is null)
+    {
+        <p class="text-muted mb-0">まだ生産性評価を表示できるデータがありません。</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">管理生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.ManagementProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">創発生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.EmergenceProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">定着生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.InstitutionalizationProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">総合生産性</div>
+                    <div class="fs-5">@Model.ProductivityEvaluation.CompositeProductivityScore.ToString("0.000")</div>
+                </div>
+            </div>
+        </div>
+        <div class="border rounded p-3 bg-light">
+            <div class="small text-muted mb-1">簡易解釈</div>
+            <div>@Model.ProductivityEvaluation.Interpretation</div>
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
     <h2 class="h5 mb-3">境界条件パラメータ</h2>
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
@@ -1165,6 +1211,152 @@
         </div>
     }
 </section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">思考速度ネットワーク解析</h2>
+            <p class="text-muted small mb-0">平均思考速度、組織の意思決定・検証速度、認知負荷、速度ミスマッチの関係を整理して表示します。</p>
+        </div>
+    </div>
+    @if (!Model.ThinkingSpeedNetworkAnalysis.HasData)
+    {
+        <p class="text-muted mb-0">まだ思考速度ネットワーク解析を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">平均思考速度</div>
+                    <div class="fs-5">@Model.ThinkingSpeedNetworkAnalysis.AverageThinkingSpeed.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">思考速度のばらつき</div>
+                    <div class="fs-5">@Model.ThinkingSpeedNetworkAnalysis.ObservedThinkingSpeedDispersion.ToString("0.000")</div>
+                    <div class="small text-muted">設定値 @Model.ThinkingSpeedNetworkAnalysis.ThinkingSpeedDispersion.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">組織の意思決定速度</div>
+                    <div class="fs-5">@Model.ThinkingSpeedNetworkAnalysis.OrganizationalDecisionSpeed.ToString("0.000")</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="small text-muted">組織の検証速度</div>
+                    <div class="fs-5">@Model.ThinkingSpeedNetworkAnalysis.OrganizationalValidationSpeed.ToString("0.000")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <tbody>
+                    <tr><th>ThinkingToDecisionRatio</th><td>@Model.ThinkingSpeedNetworkAnalysis.ThinkingToDecisionRatio.ToString("0.000")</td><th>ThinkingToValidationRatio</th><td>@Model.ThinkingSpeedNetworkAnalysis.ThinkingToValidationRatio.ToString("0.000")</td></tr>
+                    <tr><th>CognitiveLoad</th><td>@Model.ThinkingSpeedNetworkAnalysis.CognitiveLoad.ToString("0.000")</td><th>ThinkingSpeedMismatch</th><td>@Model.ThinkingSpeedNetworkAnalysis.ThinkingSpeedMismatch.ToString("0.000")</td></tr>
+                    <tr><th>平均信頼度</th><td>@Model.ThinkingSpeedNetworkAnalysis.AverageTrust.ToString("0.000")</td><th>判定</th><td>@(Model.ThinkingSpeedNetworkAnalysis.Enabled ? "有効" : "無効")</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alert alert-light border mb-0">
+            @Model.ThinkingSpeedNetworkAnalysis.Interpretation
+        </div>
+    }
+</section>
+
+<section class="log-section mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 mb-1">エージェント別 思考速度状態</h2>
+            <p class="text-muted small mb-0">各エージェントの思考速度、組織処理速度との差、速度役割、孤立リスクを表示します。</p>
+        </div>
+    </div>
+    @if (!Model.ThinkingSpeedNetworkAnalysis.HasData)
+    {
+        <p class="text-muted mb-0">まだエージェント別の思考速度状態を表示できるデータはありません。</p>
+    }
+    else
+    {
+        <div class="table-responsive mb-0">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Agent名</th>
+                        <th>ThinkingSpeed</th>
+                        <th>組織意思決定速度との差</th>
+                        <th>組織検証速度との差</th>
+                        <th>Speed Role</th>
+                        <th>Isolation Risk</th>
+                        <th>Outgoing Trust</th>
+                        <th>Incoming Trust</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.ThinkingSpeedNetworkAnalysis.AgentRows)
+                {
+                    <tr class="@(row.IsolationRisk >= 0.7 ? "table-warning" : "")">
+                        <td>@row.AgentName</td>
+                        <td>@row.ThinkingSpeed.ToString("0.000")</td>
+                        <td>@row.DecisionSpeedDifference.ToString("+0.000;-0.000;0.000")</td>
+                        <td>@row.ValidationSpeedDifference.ToString("+0.000;-0.000;0.000")</td>
+                        <td>@row.SpeedRole</td>
+                        <td>@row.IsolationRisk.ToString("0.000")</td>
+                        <td>@row.OutgoingTrust.ToString("0.000")</td>
+                        <td>@row.IncomingTrust.ToString("0.000")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@if (Model.ThinkingSpeedNetworkAnalysis.HighIsolationAgents.Count > 0)
+{
+    <section class="log-section mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="h5 mb-1">高速エージェント孤立予兆</h2>
+                <p class="text-muted small mb-0">組織平均を大きく上回る思考速度を持つ一方、組織処理速度または信頼ネットワークとの不整合が見られるエージェントです。</p>
+            </div>
+        </div>
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Agent名</th>
+                        <th>ThinkingSpeed</th>
+                        <th>Speed Role</th>
+                        <th>Isolation Risk</th>
+                        <th>Outgoing Trust</th>
+                        <th>Incoming Trust</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.ThinkingSpeedNetworkAnalysis.HighIsolationAgents)
+                {
+                    <tr class="table-warning">
+                        <td>@row.AgentName</td>
+                        <td>@row.ThinkingSpeed.ToString("0.000")</td>
+                        <td>@row.SpeedRole</td>
+                        <td>@row.IsolationRisk.ToString("0.000")</td>
+                        <td>@row.OutgoingTrust.ToString("0.000")</td>
+                        <td>@row.IncomingTrust.ToString("0.000")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <div class="alert alert-warning mb-0">
+            組織平均を大きく上回る思考速度を持つ一方、組織処理速度または信頼ネットワークとの不整合が見られます。
+        </div>
+    </section>
+}
 
 <section class="log-section mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">

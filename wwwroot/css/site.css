@@ -583,7 +583,7 @@ tr.impact-node-weak > * {
 }
 
 .phase-diagram-shell {
-  overflow-x: auto;
+  overflow-x: visible;
 }
 
 .adaptive-action-grid {
@@ -610,12 +610,15 @@ tr.impact-node-weak > * {
 }
 
 .phase-diagram-scroll {
+  width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .phase-diagram-table {
   width: max-content;
   min-width: 100%;
+  table-layout: auto;
 }
 
 .phase-diagram-table th,
@@ -623,6 +626,8 @@ tr.impact-node-weak > * {
   text-align: center;
   vertical-align: middle;
   white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
   font-variant-numeric: tabular-nums;
 }
 
@@ -631,11 +636,12 @@ tr.impact-node-weak > * {
   background: #f8fafc;
   color: #374151;
   font-weight: 700;
+  min-width: 80px;
 }
 
 .phase-diagram-cell {
-  min-width: 64px;
-  padding: 0.35rem 0.45rem;
+  min-width: 150px;
+  padding: 0.35rem 0.7rem;
   font-size: 0.78rem;
   font-weight: 700;
   border-radius: 6px;
